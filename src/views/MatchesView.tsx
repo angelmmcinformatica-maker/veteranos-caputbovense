@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { MatchCard } from '@/components/matches/MatchCard';
-import type { Matchday } from '@/types/league';
+import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
+import type { Matchday, Match, MatchReport } from '@/types/league';
 import { cn } from '@/lib/utils';
 
 interface MatchesViewProps {
   matchdays: Matchday[];
+  matchReports: MatchReport[];
 }
 
-export function MatchesView({ matchdays }: MatchesViewProps) {
+export function MatchesView({ matchdays, matchReports }: MatchesViewProps) {
   const [selectedJornada, setSelectedJornada] = useState<number>(() => {
-    // Find the first matchday with pending matches or the last one
-    const pendingMatchday = matchdays.find(md => 
-      md.matches?.some(m => m.status === 'PENDING')
+    // Find the last matchday with played matches
+    const playedMatchdays = matchdays.filter(md => 
+      md.matches?.some(m => m.status === 'PLAYED')
     );
-    return pendingMatchday?.jornada || matchdays[matchdays.length - 1]?.jornada || 1;
+    return playedMatchdays[playedMatchdays.length - 1]?.jornada || matchdays[0]?.jornada || 1;
   });
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const selectedMatchday = matchdays.find(md => md.jornada === selectedJornada);
   const maxJornada = Math.max(...matchdays.map(md => md.jornada), 1);
@@ -30,6 +33,11 @@ export function MatchesView({ matchdays }: MatchesViewProps) {
     if (selectedJornada < maxJornada) {
       setSelectedJornada(selectedJornada + 1);
     }
+  };
+
+  const getMatchReport = (match: Match): MatchReport | null => {
+    const reportId = `${match.home}-${match.away}`;
+    return matchReports.find(r => r.id === reportId) || null;
   };
 
   return (
@@ -103,7 +111,13 @@ export function MatchesView({ matchdays }: MatchesViewProps) {
       {selectedMatchday?.matches && selectedMatchday.matches.length > 0 ? (
         <div className="space-y-3">
           {selectedMatchday.matches.map((match, index) => (
-            <MatchCard key={index} match={match} showTime />
+            <MatchCard 
+              key={index} 
+              match={match} 
+              showTime 
+              onClick={match.status === 'PLAYED' ? () => setSelectedMatch(match) : undefined}
+              hasReport={!!getMatchReport(match)}
+            />
           ))}
         </div>
       ) : (
@@ -119,6 +133,15 @@ export function MatchesView({ matchdays }: MatchesViewProps) {
             Descansa: <span className="font-medium text-foreground">{selectedMatchday.rest}</span>
           </p>
         </div>
+      )}
+
+      {/* Match Detail Modal */}
+      {selectedMatch && (
+        <MatchDetailModal
+          match={selectedMatch}
+          matchReport={getMatchReport(selectedMatch)}
+          onClose={() => setSelectedMatch(null)}
+        />
       )}
     </div>
   );

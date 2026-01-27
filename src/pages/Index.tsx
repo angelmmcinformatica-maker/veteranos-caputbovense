@@ -15,6 +15,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const { 
     matchdays,
+    matchReports,
     standings, 
     leader, 
     pichichi,
@@ -50,12 +51,14 @@ const Index = () => {
             pichichi={pichichi}
             lastPlayedMatchday={lastPlayedMatchday}
             nextMatchday={nextMatchday}
+            standings={standings}
+            matchReports={matchReports}
           />
         );
       case 'standings':
         return <StandingsView standings={standings} />;
       case 'matches':
-        return <MatchesView matchdays={matchdays} />;
+        return <MatchesView matchdays={matchdays} matchReports={matchReports} />;
       case 'stats':
         return <StatsView topScorers={topScorers} cardRankings={cardRankings} />;
       case 'admin':

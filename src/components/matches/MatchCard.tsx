@@ -1,4 +1,4 @@
-import { Clock, CheckCircle2, Radio } from 'lucide-react';
+import { Clock, CheckCircle2, Radio, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
 
@@ -6,9 +6,11 @@ interface MatchCardProps {
   match: Match;
   compact?: boolean;
   showTime?: boolean;
+  onClick?: () => void;
+  hasReport?: boolean;
 }
 
-export function MatchCard({ match, compact = false, showTime = false }: MatchCardProps) {
+export function MatchCard({ match, compact = false, showTime = false, onClick, hasReport = false }: MatchCardProps) {
   const isPlayed = match.status === 'PLAYED';
   const isLive = match.status === 'LIVE';
   const isPending = match.status === 'PENDING';
@@ -20,22 +22,31 @@ export function MatchCard({ match, compact = false, showTime = false }: MatchCar
     return name;
   };
 
+  const CardWrapper = onClick ? 'button' : 'div';
+
   return (
-    <div className={cn(
-      'rounded-lg transition-all',
-      compact ? 'p-3 bg-secondary/50' : 'glass-card-hover p-4',
-      isLive && 'border-l-2 border-l-green-500'
-    )}>
+    <CardWrapper
+      onClick={onClick}
+      className={cn(
+        'w-full rounded-lg transition-all text-left',
+        compact ? 'p-3 bg-secondary/50' : 'glass-card-hover p-4',
+        isLive && 'border-l-2 border-l-green-500',
+        onClick && 'cursor-pointer hover:ring-1 hover:ring-primary/50'
+      )}
+    >
       {/* Status badge */}
       <div className="flex justify-center mb-2">
         {isPlayed && (
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <CheckCircle2 className="w-3 h-3" />
             Finalizado
+            {hasReport && (
+              <FileText className="w-3 h-3 ml-1 text-primary" />
+            )}
           </span>
         )}
         {isLive && (
-          <span className="flex items-center gap-1 text-[10px] text-green-400 animate-pulse">
+          <span className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
             <Radio className="w-3 h-3" />
             En directo
           </span>
@@ -109,6 +120,6 @@ export function MatchCard({ match, compact = false, showTime = false }: MatchCar
           </p>
         </div>
       </div>
-    </div>
+    </CardWrapper>
   );
 }
