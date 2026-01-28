@@ -96,18 +96,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
     setLoading(true);
     
+    console.log('Attempting login with email:', email);
+    
     try {
       // First, try to authenticate with Firebase Auth
+      console.log('Calling Firebase signInWithEmailAndPassword...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Firebase Auth success:', userCredential.user.email);
       
       // Fetch user data from Firestore to get role
       if (userCredential.user.email) {
+        console.log('Fetching user data from Firestore...');
         const data = await fetchUserData(userCredential.user.email);
+        console.log('Firestore user data:', data);
         
         if (!data) {
           // User authenticated but not found in users collection
+          console.log('User not found in Firestore users collection');
           await firebaseSignOut(auth);
-          setError('Usuario no autorizado para acceder al panel de administración');
+          setError('Usuario autenticado pero no encontrado en la base de datos. Verifica que el campo "username" en Firestore coincida con tu email.');
           setLoading(false);
           return false;
         }
@@ -119,11 +126,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return true;
     } catch (err: any) {
       console.error('Sign in error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
       
       // Handle specific Firebase Auth errors
       switch (err.code) {
         case 'auth/user-not-found':
-          setError('Usuario no encontrado');
+          setError('Usuario no encontrado en Firebase Authentication');
           break;
         case 'auth/wrong-password':
           setError('Contraseña incorrecta');
@@ -132,13 +141,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setError('Email inválido');
           break;
         case 'auth/too-many-requests':
-          setError('Demasiados intentos. Intenta más tarde');
+          setError('Demasiados intentos. Espera unos minutos e intenta de nuevo');
           break;
         case 'auth/invalid-credential':
-          setError('Credenciales inválidas');
+          setError('Email o contraseña incorrectos. Verifica tus credenciales de Firebase Authentication');
+          break;
+        case 'auth/network-request-failed':
+          setError('Error de red. Verifica tu conexión a internet');
           break;
         default:
-          setError('Error al iniciar sesión. Verifica tus credenciales');
+          setError(`Error: ${err.code || err.message}`);
       }
       
       setLoading(false);
