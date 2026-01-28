@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2 } from 'lucide-react';
+import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2, Shield, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -7,6 +7,9 @@ import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/leagu
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { useImageUpload, getPlayerPhotoPath, getTeamShieldPath } from '@/hooks/useImageUpload';
+import { useTeamImages } from '@/hooks/useTeamImages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +36,10 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const [isSaving, setIsSaving] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showDedupConfirm, setShowDedupConfirm] = useState(false);
+  
+  // Image upload hooks
+  const { uploadImage } = useImageUpload();
+  const { getTeamShield, getPlayerPhoto, setTeamShield, setPlayerPhoto, removePlayerPhoto } = useTeamImages();
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -289,14 +296,17 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
             {selectedTeam ? (
-              <div className="space-y-4">
+            <div className="space-y-4">
+                {/* Team header with shield upload */}
                 <div className="flex items-center justify-between">
-                  <button
-                    onClick={() => setSelectedTeam(null)}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    ← Volver a equipos
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedTeam(null)}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      ← Volver a equipos
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     {duplicateCount > 0 && (
                       <Button variant="outline" size="sm" onClick={() => setShowDedupConfirm(true)}>
@@ -307,6 +317,29 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                       <Plus className="w-4 h-4 mr-2" />
                       Añadir jugador
                     </Button>
+                  </div>
+                </div>
+
+                {/* Team shield upload section */}
+                <div className="glass-card p-4 bg-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-4">
+                    <ImageUpload
+                      currentUrl={getTeamShield(selectedTeam.name)}
+                      onUpload={async (file) => {
+                        const path = getTeamShieldPath(selectedTeam.name);
+                        const url = await uploadImage(file, path);
+                        await setTeamShield(selectedTeam.name, url);
+                      }}
+                      size="lg"
+                      shape="square"
+                      placeholder={<Shield className="w-8 h-8 text-muted-foreground" />}
+                    />
+                    <div>
+                      <h4 className="font-semibold">Escudo del equipo</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Haz clic para subir el escudo (máx. 5MB)
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -375,6 +408,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                  <div className="space-y-2">
                    {playersForDisplay.map(({ player, occurrence, originalIndex }) => {
                      const stats = getPlayerStats(player.name, selectedTeam.name);
+                     const playerPhotoUrl = getPlayerPhoto(selectedTeam.name, player.id);
                     
                     return (
                       <div
@@ -383,9 +417,23 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center font-bold">
-                              {player.id}
-                            </div>
+                            {/* Player photo upload */}
+                            <ImageUpload
+                              currentUrl={playerPhotoUrl}
+                              onUpload={async (file) => {
+                                const path = getPlayerPhotoPath(selectedTeam.name, player.id);
+                                const url = await uploadImage(file, path);
+                                await setPlayerPhoto(selectedTeam.name, player.id, url);
+                              }}
+                              onRemove={async () => {
+                                await removePlayerPhoto(selectedTeam.name, player.id);
+                              }}
+                              size="sm"
+                              shape="circle"
+                              placeholder={
+                                <span className="text-xs font-bold">{player.id}</span>
+                              }
+                            />
                             <div>
                               <p className="font-medium">
                                 {player.alias || player.name}
@@ -463,25 +511,36 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
 
                 {/* Teams list */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {filteredTeams.map((team) => (
-                    <button
-                      key={team.id}
-                      onClick={() => setSelectedTeam(team)}
-                      className="glass-card p-4 text-left hover:ring-1 hover:ring-primary/50 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-primary" />
+                  {filteredTeams.map((team) => {
+                    const shieldUrl = getTeamShield(team.name);
+                    return (
+                      <button
+                        key={team.id}
+                        onClick={() => setSelectedTeam(team)}
+                        className="glass-card p-4 text-left hover:ring-1 hover:ring-primary/50 transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          {shieldUrl ? (
+                            <img
+                              src={shieldUrl}
+                              alt={team.name}
+                              className="w-12 h-12 rounded-xl object-contain bg-white/5"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                              <Users className="w-6 h-6 text-primary" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium">{team.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {team.players?.length || 0} jugadores
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{team.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {team.players?.length || 0} jugadores
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {filteredTeams.length === 0 && (

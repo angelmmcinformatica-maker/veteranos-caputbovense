@@ -135,6 +135,7 @@ const Index = () => {
           teamName={selectedPlayer.team}
           matchdays={matchdays}
           matchReports={matchReports}
+          teams={teams}
           onClose={() => setSelectedPlayer(null)}
         />
       )}
