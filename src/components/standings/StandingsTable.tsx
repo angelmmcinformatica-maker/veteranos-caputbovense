@@ -4,9 +4,10 @@ import { FormIndicator } from './FormIndicator';
 
 interface StandingsTableProps {
   standings: TeamStanding[];
+  onTeamClick?: (teamName: string) => void;
 }
 
-export function StandingsTable({ standings }: StandingsTableProps) {
+export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) {
   return (
     <div className="glass-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -44,9 +45,18 @@ export function StandingsTable({ standings }: StandingsTableProps) {
                 </td>
                 <td className="font-medium">
                   <div className="flex items-center gap-2">
-                    <span className="truncate max-w-[140px] sm:max-w-none">
-                      {team.team}
-                    </span>
+                    {onTeamClick ? (
+                      <button
+                        onClick={() => onTeamClick(team.team)}
+                        className="truncate max-w-[140px] sm:max-w-none hover:text-primary hover:underline transition-colors text-left"
+                      >
+                        {team.team}
+                      </button>
+                    ) : (
+                      <span className="truncate max-w-[140px] sm:max-w-none">
+                        {team.team}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="text-center text-muted-foreground">{team.played}</td>

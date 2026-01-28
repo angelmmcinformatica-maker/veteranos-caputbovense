@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils';
 interface MatchesViewProps {
   matchdays: Matchday[];
   matchReports: MatchReport[];
+  onTeamClick?: (teamName: string) => void;
 }
 
-export function MatchesView({ matchdays, matchReports }: MatchesViewProps) {
+export function MatchesView({ matchdays, matchReports, onTeamClick }: MatchesViewProps) {
   const [selectedJornada, setSelectedJornada] = useState<number>(() => {
     // Find the last matchday with played matches
     const playedMatchdays = matchdays.filter(md => 
@@ -117,6 +118,7 @@ export function MatchesView({ matchdays, matchReports }: MatchesViewProps) {
               showTime 
               onClick={match.status === 'PLAYED' ? () => setSelectedMatch(match) : undefined}
               hasReport={!!getMatchReport(match)}
+              onTeamClick={onTeamClick}
             />
           ))}
         </div>

@@ -14,9 +14,10 @@ interface HomeViewProps {
   nextMatchday: Matchday | null;
   standings: TeamStanding[];
   matchReports: MatchReport[];
+  onTeamClick?: (teamName: string) => void;
 }
 
-export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports }: HomeViewProps) {
+export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, onTeamClick }: HomeViewProps) {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const getMatchReport = (match: Match): MatchReport | null => {
@@ -70,7 +71,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
           <div className="flex items-center gap-2 mb-3">
             <h3 className="text-sm font-semibold">Clasificación</h3>
           </div>
-          <StandingsTable standings={standings} />
+          <StandingsTable standings={standings} onTeamClick={onTeamClick} />
         </div>
       </div>
 

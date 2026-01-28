@@ -8,11 +8,12 @@ import { cn } from '@/lib/utils';
 interface StatsViewProps {
   topScorers: TopScorer[];
   cardRankings: CardRanking[];
+  onPlayerClick?: (playerName: string, teamName: string) => void;
 }
 
 type StatsTab = 'scorers' | 'cards';
 
-export function StatsView({ topScorers, cardRankings }: StatsViewProps) {
+export function StatsView({ topScorers, cardRankings, onPlayerClick }: StatsViewProps) {
   const [activeTab, setActiveTab] = useState<StatsTab>('scorers');
 
   return (
@@ -53,9 +54,9 @@ export function StatsView({ topScorers, cardRankings }: StatsViewProps) {
 
       {/* Content */}
       {activeTab === 'scorers' ? (
-        <TopScorersTable scorers={topScorers} />
+        <TopScorersTable scorers={topScorers} onPlayerClick={onPlayerClick} />
       ) : (
-        <CardsTable players={cardRankings} />
+        <CardsTable players={cardRankings} onPlayerClick={onPlayerClick} />
       )}
     </div>
   );

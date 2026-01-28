@@ -4,9 +4,10 @@ import { cn } from '@/lib/utils';
 
 interface TopScorersTableProps {
   scorers: TopScorer[];
+  onPlayerClick?: (playerName: string, teamName: string) => void;
 }
 
-export function TopScorersTable({ scorers }: TopScorersTableProps) {
+export function TopScorersTable({ scorers, onPlayerClick }: TopScorersTableProps) {
   return (
     <div className="glass-card overflow-hidden">
       <div className="px-5 py-4 border-b border-white/5 flex items-center gap-2">
@@ -15,9 +16,10 @@ export function TopScorersTable({ scorers }: TopScorersTableProps) {
       </div>
       <div className="divide-y divide-white/5">
         {scorers.map((scorer, index) => (
-          <div 
+          <button 
             key={`${scorer.name}-${scorer.team}`}
-            className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition-colors"
+            onClick={() => onPlayerClick?.(scorer.name, scorer.team)}
+            className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition-colors text-left"
           >
             <span className={cn(
               'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
@@ -34,14 +36,14 @@ export function TopScorersTable({ scorers }: TopScorersTableProps) {
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{scorer.name}</p>
+              <p className="font-medium truncate hover:text-primary transition-colors">{scorer.name}</p>
               <p className="text-xs text-muted-foreground truncate">{scorer.team}</p>
             </div>
             
             <div className="text-right">
               <span className="text-xl font-bold text-orange-400">{scorer.goals}</span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>

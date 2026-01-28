@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Shield, Lock, LogIn, LogOut } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import type { Matchday, Team, MatchReport } from '@/types/league';
+import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
+import { AdminReportsView } from '@/components/admin/AdminReportsView';
+import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
 
-export function AdminView() {
+interface AdminViewProps {
+  matchdays: Matchday[];
+  teams: Team[];
+  matchReports: MatchReport[];
+}
+
+type AdminModal = 'matches' | 'reports' | 'teams' | null;
+
+export function AdminView({ matchdays, teams, matchReports }: AdminViewProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [activeModal, setActiveModal] = useState<AdminModal>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,46 +111,91 @@ export function AdminView() {
       <div className="grid gap-4 md:grid-cols-2">
         <AdminCard 
           title="Gestión de Partidos"
-          description="Editar resultados, fechas y horarios"
+          description={`${matchdays.length} jornadas • Ver resultados y editar`}
           icon="⚽"
+          onClick={() => setActiveModal('matches')}
         />
         <AdminCard 
           title="Actas Digitales"
-          description="Alineaciones, goles y tarjetas"
+          description={`${matchReports.length} actas • Alineaciones, goles y tarjetas`}
           icon="📋"
+          onClick={() => setActiveModal('reports')}
         />
         <AdminCard 
           title="Equipos y Jugadores"
-          description="Gestionar plantillas"
+          description={`${teams.length} equipos • Gestionar plantillas`}
           icon="👥"
+          onClick={() => setActiveModal('teams')}
         />
         <AdminCard 
           title="Campo Táctico"
           description="Visualización de formaciones"
           icon="🏟️"
+          onClick={() => {}}
+          disabled
         />
       </div>
 
       <div className="glass-card p-6 mt-4 text-center">
         <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
         <p className="text-muted-foreground text-sm">
-          Las funcionalidades completas de administración están en desarrollo
+          La edición de datos estará disponible próximamente
         </p>
       </div>
+
+      {/* Modals */}
+      {activeModal === 'matches' && (
+        <AdminMatchesView 
+          matchdays={matchdays} 
+          matchReports={matchReports}
+          onClose={() => setActiveModal(null)} 
+        />
+      )}
+      {activeModal === 'reports' && (
+        <AdminReportsView 
+          matchdays={matchdays}
+          matchReports={matchReports} 
+          onClose={() => setActiveModal(null)} 
+        />
+      )}
+      {activeModal === 'teams' && (
+        <AdminTeamsView 
+          teams={teams} 
+          matchReports={matchReports}
+          onClose={() => setActiveModal(null)} 
+        />
+      )}
     </div>
   );
 }
 
-function AdminCard({ title, description, icon }: { title: string; description: string; icon: string }) {
-  return (
-    <div className="glass-card-hover p-5 cursor-pointer">
-      <div className="flex items-start gap-4">
-        <span className="text-3xl">{icon}</span>
-        <div>
-          <h3 className="font-semibold">{title}</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
+interface AdminCardProps {
+  title: string;
+  description: string;
+  icon: string;
+  onClick: () => void;
+  disabled?: boolean;
 }
+
+const AdminCard = forwardRef<HTMLButtonElement, AdminCardProps>(
+  function AdminCard({ title, description, icon, onClick, disabled }, ref) {
+    return (
+      <button
+        ref={ref}
+        onClick={onClick}
+        disabled={disabled}
+        className={`glass-card-hover p-5 text-left w-full transition-all ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:ring-1 hover:ring-primary/50'
+        }`}
+      >
+        <div className="flex items-start gap-4">
+          <span className="text-3xl">{icon}</span>
+          <div>
+            <h3 className="font-semibold">{title}</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+          </div>
+        </div>
+      </button>
+    );
+  }
+);
