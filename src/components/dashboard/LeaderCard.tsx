@@ -1,11 +1,13 @@
-import { Crown, TrendingUp } from 'lucide-react';
+import { Crown, TrendingUp, Shield } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { TeamStanding } from '@/types/league';
 
 interface LeaderCardProps {
   leader: TeamStanding | null;
+  shieldUrl?: string;
 }
 
-export function LeaderCard({ leader }: LeaderCardProps) {
+export function LeaderCard({ leader, shieldUrl }: LeaderCardProps) {
   if (!leader) return null;
 
   return (
@@ -19,7 +21,18 @@ export function LeaderCard({ leader }: LeaderCardProps) {
           <span className="text-xs font-semibold uppercase tracking-wider text-yellow-500">Líder</span>
         </div>
         
-        <h3 className="text-xl font-bold truncate mb-1">{leader.team}</h3>
+        <div className="flex items-center gap-3 mb-1">
+          {/* Team shield */}
+          <Avatar className="w-12 h-12 rounded-lg">
+            {shieldUrl ? (
+              <AvatarImage src={shieldUrl} alt={leader.team} className="object-cover" />
+            ) : null}
+            <AvatarFallback className="rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+              <Shield className="w-6 h-6 text-primary/60" />
+            </AvatarFallback>
+          </Avatar>
+          <h3 className="text-xl font-bold truncate flex-1">{leader.team}</h3>
+        </div>
         
         <div className="flex items-center gap-4 mt-4">
           <div className="text-center">
