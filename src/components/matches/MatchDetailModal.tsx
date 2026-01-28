@@ -132,11 +132,21 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">
-            {match.status === 'PENDING' ? 'Información del Partido' : 
-             match.status === 'LIVE' ? 'Partido en Directo' : 'Acta del Partido'}
-          </h2>
+        <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">
+                {match.status === 'PENDING' ? 'Información del Partido' : 
+                 match.status === 'LIVE' ? 'Partido en Directo' : 'Acta Digital'}
+              </h2>
+              {match.date && (
+                <p className="text-xs text-muted-foreground">{match.date} {match.time && `• ${match.time}`}</p>
+              )}
+            </div>
+          </div>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
@@ -145,67 +155,79 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
           </button>
         </div>
 
-        <div className="p-4 space-y-6">
-          {/* Match Result */}
-          <div className="glass-card p-4 bg-secondary/30">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 text-right flex items-center justify-end gap-2">
-                {homeShield ? (
-                  <img src={homeShield} alt={match.home} className="w-8 h-8 object-contain" />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-secondary/50 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-muted-foreground" />
+        <div className="p-5 space-y-6">
+          {/* Match Result - Professional scoreboard */}
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-secondary/40 via-secondary/20 to-secondary/40 border border-border/30">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+            <div className="relative p-6">
+              <div className="flex items-center justify-between gap-4">
+                {/* Home Team */}
+                <div className="flex-1 flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden">
+                    {homeShield ? (
+                      <img src={homeShield} alt={match.home} className="w-12 h-12 object-contain" />
+                    ) : (
+                      <Shield className="w-8 h-8 text-muted-foreground" />
+                    )}
                   </div>
-                )}
-                <p className={cn(
-                  "font-semibold",
-                  match.homeGoals > match.awayGoals && "text-primary"
-                )}>
-                  {match.home}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 px-4">
-                {match.status === 'PENDING' ? (
-                  <span className="text-muted-foreground text-xl">vs</span>
-                ) : (
-                  <>
-                    <span className={cn(
-                      "text-3xl font-bold tabular-nums",
-                      match.homeGoals > match.awayGoals && "text-primary"
-                    )}>
-                      {match.homeGoals}
-                    </span>
-                    <span className="text-muted-foreground text-xl">-</span>
-                    <span className={cn(
-                      "text-3xl font-bold tabular-nums",
-                      match.awayGoals > match.homeGoals && "text-primary"
-                    )}>
-                      {match.awayGoals}
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="flex-1 text-left flex items-center gap-2">
-                <p className={cn(
-                  "font-semibold",
-                  match.awayGoals > match.homeGoals && "text-primary"
-                )}>
-                  {match.away}
-                </p>
-                {awayShield ? (
-                  <img src={awayShield} alt={match.away} className="w-8 h-8 object-contain" />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-secondary/50 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-muted-foreground" />
+                  <p className={cn(
+                    "font-bold text-sm text-center leading-tight",
+                    match.homeGoals > match.awayGoals && "text-primary"
+                  )}>
+                    {match.home}
+                  </p>
+                </div>
+                
+                {/* Score */}
+                <div className="flex items-center gap-3 px-6">
+                  {match.status === 'PENDING' ? (
+                    <div className="text-center">
+                      <span className="text-muted-foreground text-2xl font-medium">vs</span>
+                      {match.time && (
+                        <p className="text-sm text-muted-foreground mt-1">{match.time}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className={cn(
+                        "w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black tabular-nums",
+                        match.homeGoals > match.awayGoals 
+                          ? "bg-primary/20 text-primary ring-2 ring-primary/30" 
+                          : "bg-secondary/50 text-foreground"
+                      )}>
+                        {match.homeGoals}
+                      </div>
+                      <span className="text-muted-foreground text-2xl font-bold">:</span>
+                      <div className={cn(
+                        "w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black tabular-nums",
+                        match.awayGoals > match.homeGoals 
+                          ? "bg-primary/20 text-primary ring-2 ring-primary/30" 
+                          : "bg-secondary/50 text-foreground"
+                      )}>
+                        {match.awayGoals}
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {/* Away Team */}
+                <div className="flex-1 flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden">
+                    {awayShield ? (
+                      <img src={awayShield} alt={match.away} className="w-12 h-12 object-contain" />
+                    ) : (
+                      <Shield className="w-8 h-8 text-muted-foreground" />
+                    )}
                   </div>
-                )}
+                  <p className={cn(
+                    "font-bold text-sm text-center leading-tight",
+                    match.awayGoals > match.homeGoals && "text-primary"
+                  )}>
+                    {match.away}
+                  </p>
+                </div>
               </div>
             </div>
-            {match.date && (
-              <p className="text-center text-xs text-muted-foreground mt-2">
-                {match.date} {match.time && `• ${match.time}`}
-              </p>
-            )}
           </div>
 
           {!matchReport ? (
@@ -288,52 +310,56 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Home team */}
                 <div className="glass-card p-4 bg-secondary/20">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
-                    {homeShield ? (
-                      <img src={homeShield} alt={match.home} className="w-5 h-5 object-contain" />
-                    ) : (
-                      <User className="w-4 h-4 text-primary" />
-                    )}
-                    {match.home}
+                  <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
+                      {homeShield ? (
+                        <img src={homeShield} alt={match.home} className="w-6 h-6 object-contain" />
+                      ) : (
+                        <User className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <span className="text-sm">{match.home}</span>
                   </h3>
                   
                   {getStarters(homePlayers).length > 0 && (
                     <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-1">Titulares</p>
-                      <div className="space-y-0.5">
+                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
+                      <div className="space-y-1">
                         {getStarters(homePlayers).map((player, i) => (
-                          <p key={i} className="text-sm flex items-center gap-1">
-                            <span className="text-muted-foreground text-xs mr-1">#{player.matchNumber}</span>
-                            <PlayerName player={player} teamName={match.home} />
-                          </p>
+                          <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
+                              {player.matchNumber}
+                            </span>
+                            <PlayerName player={player} teamName={match.home} className="text-sm" />
+                          </div>
                         ))}
                       </div>
                     </div>
                   )}
 
                   {homeSubPairs.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <div className="pt-2 border-t border-border/30">
+                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
                         <ArrowRightLeft className="w-3 h-3" />
                         Cambios
                       </p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {homeSubPairs.map((pair, i) => (
-                          <div key={i} className="text-sm text-muted-foreground">
+                          <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
                             {pair.playerIn && (
-                              <span className="text-foreground">
-                                <span className="text-xs mr-1">#{pair.playerIn.matchNumber}</span>
-                                <PlayerName player={pair.playerIn} teamName={match.home} />
-                                <span className="text-xs ml-1">({pair.minute}')</span>
+                              <span className="flex items-center gap-1 text-primary">
+                                <span className="text-xs">↑</span>
+                                <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
+                                  {pair.playerIn.matchNumber}
+                                </span>
+                                <PlayerName player={pair.playerIn} teamName={match.home} className="text-foreground" />
                               </span>
                             )}
-                            {pair.playerIn && pair.playerOut && (
-                              <span className="mx-1 text-muted-foreground">/</span>
-                            )}
+                            <span className="text-muted-foreground text-xs">({pair.minute}')</span>
                             {pair.playerOut && (
-                              <span className="text-muted-foreground">
-                                Sale <PlayerName player={pair.playerOut} teamName={match.home} className="text-muted-foreground" />
-                                <span className="text-xs ml-1">({pair.minute}')</span>
+                              <span className="flex items-center gap-1 text-muted-foreground ml-auto">
+                                <span className="text-xs">↓</span>
+                                <PlayerName player={pair.playerOut} teamName={match.home} />
                               </span>
                             )}
                           </div>
@@ -345,52 +371,56 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
                 {/* Away team */}
                 <div className="glass-card p-4 bg-secondary/20">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold mb-3">
-                    {awayShield ? (
-                      <img src={awayShield} alt={match.away} className="w-5 h-5 object-contain" />
-                    ) : (
-                      <User className="w-4 h-4 text-primary" />
-                    )}
-                    {match.away}
+                  <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
+                      {awayShield ? (
+                        <img src={awayShield} alt={match.away} className="w-6 h-6 object-contain" />
+                      ) : (
+                        <User className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <span className="text-sm">{match.away}</span>
                   </h3>
                   
                   {getStarters(awayPlayers).length > 0 && (
                     <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-1">Titulares</p>
-                      <div className="space-y-0.5">
+                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
+                      <div className="space-y-1">
                         {getStarters(awayPlayers).map((player, i) => (
-                          <p key={i} className="text-sm flex items-center gap-1">
-                            <span className="text-muted-foreground text-xs mr-1">#{player.matchNumber}</span>
-                            <PlayerName player={player} teamName={match.away} />
-                          </p>
+                          <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
+                              {player.matchNumber}
+                            </span>
+                            <PlayerName player={player} teamName={match.away} className="text-sm" />
+                          </div>
                         ))}
                       </div>
                     </div>
                   )}
 
                   {awaySubPairs.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <div className="pt-2 border-t border-border/30">
+                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
                         <ArrowRightLeft className="w-3 h-3" />
                         Cambios
                       </p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {awaySubPairs.map((pair, i) => (
-                          <div key={i} className="text-sm text-muted-foreground">
+                          <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
                             {pair.playerIn && (
-                              <span className="text-foreground">
-                                <span className="text-xs mr-1">#{pair.playerIn.matchNumber}</span>
-                                <PlayerName player={pair.playerIn} teamName={match.away} />
-                                <span className="text-xs ml-1">({pair.minute}')</span>
+                              <span className="flex items-center gap-1 text-primary">
+                                <span className="text-xs">↑</span>
+                                <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
+                                  {pair.playerIn.matchNumber}
+                                </span>
+                                <PlayerName player={pair.playerIn} teamName={match.away} className="text-foreground" />
                               </span>
                             )}
-                            {pair.playerIn && pair.playerOut && (
-                              <span className="mx-1 text-muted-foreground">/</span>
-                            )}
+                            <span className="text-muted-foreground text-xs">({pair.minute}')</span>
                             {pair.playerOut && (
-                              <span className="text-muted-foreground">
-                                Sale <PlayerName player={pair.playerOut} teamName={match.away} className="text-muted-foreground" />
-                                <span className="text-xs ml-1">({pair.minute}')</span>
+                              <span className="flex items-center gap-1 text-muted-foreground ml-auto">
+                                <span className="text-xs">↓</span>
+                                <PlayerName player={pair.playerOut} teamName={match.away} />
                               </span>
                             )}
                           </div>

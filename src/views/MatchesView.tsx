@@ -15,7 +15,13 @@ interface MatchesViewProps {
 
 export function MatchesView({ matchdays, matchReports, teams, onTeamClick, onPlayerClick }: MatchesViewProps) {
   const [selectedJornada, setSelectedJornada] = useState<number>(() => {
-    // Find the last matchday with played matches
+    // PRIORITY 1: Find matchday with LIVE matches first
+    const liveMatchday = matchdays.find(md => 
+      md.matches?.some(m => m.status === 'LIVE')
+    );
+    if (liveMatchday) return liveMatchday.jornada;
+    
+    // PRIORITY 2: Find the last matchday with played matches
     const playedMatchdays = matchdays.filter(md => 
       md.matches?.some(m => m.status === 'PLAYED')
     );
