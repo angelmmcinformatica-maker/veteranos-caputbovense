@@ -18,50 +18,50 @@ export function useLeagueData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        
-        // Fetch matchdays
-        const matchdaysRef = collection(db, 'matchdays');
-        const matchdaysSnap = await getDocs(matchdaysRef);
-        const matchdaysData = matchdaysSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Matchday[];
-        
-        // Sort matchdays by jornada number
-        matchdaysData.sort((a, b) => a.jornada - b.jornada);
-        setMatchdays(matchdaysData);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch matchdays
+      const matchdaysRef = collection(db, 'matchdays');
+      const matchdaysSnap = await getDocs(matchdaysRef);
+      const matchdaysData = matchdaysSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Matchday[];
+      
+      // Sort matchdays by jornada number
+      matchdaysData.sort((a, b) => a.jornada - b.jornada);
+      setMatchdays(matchdaysData);
 
-        // Fetch teams
-        const teamsRef = collection(db, 'teams');
-        const teamsSnap = await getDocs(teamsRef);
-        const teamsData = teamsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Team[];
-        setTeams(teamsData);
+      // Fetch teams
+      const teamsRef = collection(db, 'teams');
+      const teamsSnap = await getDocs(teamsRef);
+      const teamsData = teamsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Team[];
+      setTeams(teamsData);
 
-        // Fetch match reports
-        const reportsRef = collection(db, 'match_reports');
-        const reportsSnap = await getDocs(reportsRef);
-        const reportsData = reportsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as MatchReport[];
-        setMatchReports(reportsData);
+      // Fetch match reports
+      const reportsRef = collection(db, 'match_reports');
+      const reportsSnap = await getDocs(reportsRef);
+      const reportsData = reportsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as MatchReport[];
+      setMatchReports(reportsData);
 
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching league data:', err);
-        setError('Error al cargar los datos de la liga');
-      } finally {
-        setLoading(false);
-      }
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching league data:', err);
+      setError('Error al cargar los datos de la liga');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -256,6 +256,7 @@ export function useLeagueData() {
     lastPlayedMatchday,
     nextMatchday,
     loading,
-    error
+    error,
+    refetch: fetchData
   };
 }

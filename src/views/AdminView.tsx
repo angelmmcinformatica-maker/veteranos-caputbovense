@@ -10,11 +10,12 @@ interface AdminViewProps {
   matchdays: Matchday[];
   teams: Team[];
   matchReports: MatchReport[];
+  onDataRefresh: () => void;
 }
 
 type AdminModal = 'matches' | 'reports' | 'teams' | null;
 
-export function AdminView({ matchdays, teams, matchReports }: AdminViewProps) {
+export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -233,7 +234,9 @@ export function AdminView({ matchdays, teams, matchReports }: AdminViewProps) {
         <AdminMatchesView 
           matchdays={matchdays} 
           matchReports={matchReports}
-          onClose={() => setActiveModal(null)} 
+          teams={teams}
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
         />
       )}
       {activeModal === 'reports' && canManageReports && (
