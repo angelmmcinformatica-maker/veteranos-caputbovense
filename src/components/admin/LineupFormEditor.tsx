@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import { ChevronDown, Plus, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useMemo, useState } from 'react';
+import { Plus, Minus } from 'lucide-react';
 import type { Player, MatchReportPlayer } from '@/types/league';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -11,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { LineupPlayerSlot } from './LineupPlayerSlot';
 
 interface LineupFormEditorProps {
   teamName: string;
@@ -41,12 +40,7 @@ export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChang
     if (index < numSubstitutes) subSlots[index] = player;
   });
 
-  const getAvailablePlayers = (excludeSlotPlayer?: MatchReportPlayer | null) => {
-    const usedIds = players
-      .filter(p => excludeSlotPlayer ? p.id !== excludeSlotPlayer.id : true)
-      .map(p => p.id);
-    return teamRoster.filter(p => !usedIds.includes(p.id));
-  };
+  const usedPlayerIds = useMemo(() => players.map((p) => p.id), [players]);
 
   const handlePlayerSelect = (slotIndex: number, isStarter: boolean, playerId: string) => {
     if (playerId === 'none') {
@@ -92,149 +86,8 @@ export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChang
     onPlayersChange(updatedPlayers);
   };
 
-  const updatePlayerStat = (playerId: number | string, field: keyof MatchReportPlayer, value: any) => {
-    onPlayersChange(
-      players.map(p => p.id === playerId ? { ...p, [field]: value } : p)
-    );
-  };
-
-  const PlayerSlot = ({ 
-    index, 
-    player, 
-    isStarter,
-    label 
-  }: { 
-    index: number; 
-    player: MatchReportPlayer | null;
-    isStarter: boolean;
-    label: string;
-  }) => {
-    const availablePlayers = getAvailablePlayers(player);
-    
-    return (
-      <div className="glass-card p-3 bg-secondary/30 space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-muted-foreground w-6">{index + 1}.</span>
-          <Select
-            value={player ? String(player.id) : 'none'}
-            onValueChange={(value) => handlePlayerSelect(index, isStarter, value)}
-          >
-            <SelectTrigger className="flex-1 bg-secondary/50">
-              <SelectValue placeholder={`-- ${label} --`} />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              <SelectItem value="none">-- {label} --</SelectItem>
-              {player && (
-                <SelectItem value={String(player.id)}>
-                  {player.matchNumber} - {player.name} {player.alias ? `(${player.alias})` : ''}
-                </SelectItem>
-              )}
-              {availablePlayers.map(p => (
-                <SelectItem key={p.id} value={String(p.id)}>
-                  {p.id} - {p.name} {p.alias ? `(${p.alias})` : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Stats row - only show if player selected */}
-        {player && (
-          <div className="grid grid-cols-4 gap-2 text-center">
-            {/* Dorsal */}
-            <div>
-              <Label className="text-xs text-muted-foreground">Nº</Label>
-              <div className="mt-1 px-2 py-1 rounded bg-secondary/50 text-sm font-medium">
-                {player.matchNumber}
-              </div>
-            </div>
-
-            {/* Goals */}
-            <div>
-              <Label className="text-xs text-muted-foreground">Goles</Label>
-              <div className="mt-1 flex items-center justify-center gap-1">
-                <button
-                  onClick={() => updatePlayerStat(player.id, 'goals', Math.max(0, player.goals - 1))}
-                  className="w-6 h-6 rounded bg-secondary hover:bg-secondary/80 flex items-center justify-center"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="w-6 text-center text-sm font-bold">{player.goals}</span>
-                <button
-                  onClick={() => updatePlayerStat(player.id, 'goals', player.goals + 1)}
-                  className="w-6 h-6 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-
-            {/* Cards */}
-            <div>
-              <Label className="text-xs text-muted-foreground">Tarjetas</Label>
-              <Select
-                value={
-                  player.directRedCards > 0 ? 'red' :
-                  player.yellowCards >= 2 ? 'double-yellow' :
-                  player.yellowCards === 1 ? 'yellow' : 'none'
-                }
-                onValueChange={(value) => {
-                  if (value === 'none') {
-                    updatePlayerStat(player.id, 'yellowCards', 0);
-                    updatePlayerStat(player.id, 'directRedCards', 0);
-                  } else if (value === 'yellow') {
-                    updatePlayerStat(player.id, 'yellowCards', 1);
-                    updatePlayerStat(player.id, 'directRedCards', 0);
-                  } else if (value === 'double-yellow') {
-                    updatePlayerStat(player.id, 'yellowCards', 2);
-                    updatePlayerStat(player.id, 'directRedCards', 0);
-                  } else if (value === 'red') {
-                    updatePlayerStat(player.id, 'yellowCards', 0);
-                    updatePlayerStat(player.id, 'directRedCards', 1);
-                  }
-                }}
-              >
-                <SelectTrigger className="mt-1 h-7 bg-secondary/50 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin</SelectItem>
-                  <SelectItem value="yellow">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-3 bg-warning rounded-sm" /> Amarilla
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="double-yellow">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-3 bg-warning rounded-sm" />
-                      <span className="w-2 h-3 bg-warning rounded-sm" /> Doble
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="red">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-3 bg-destructive rounded-sm" /> Roja
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Substitution minute */}
-            <div>
-              <Label className="text-xs text-muted-foreground">
-                {isStarter ? 'Min Sust.' : 'Entra'}
-              </Label>
-              <Input
-                value={player.substitutionMin}
-                onChange={(e) => updatePlayerStat(player.id, 'substitutionMin', e.target.value)}
-                placeholder={isStarter ? "Ej: 65'" : "Ej: 60'"}
-                className="mt-1 h-7 text-xs px-2 bg-secondary/50"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  const patchPlayer = (playerId: number | string, patch: Partial<MatchReportPlayer>) => {
+    onPlayersChange(players.map((p) => (p.id === playerId ? { ...p, ...patch } : p)));
   };
 
   return (
@@ -264,12 +117,16 @@ export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChang
         </h4>
         <div className="space-y-2">
           {starterSlots.map((player, index) => (
-            <PlayerSlot
+            <LineupPlayerSlot
               key={`starter-${index}`}
               index={index}
               player={player}
               isStarter={true}
               label="Titular"
+              teamRoster={teamRoster}
+              usedPlayerIds={usedPlayerIds}
+              onSelectPlayer={handlePlayerSelect}
+              onPatchPlayer={patchPlayer}
             />
           ))}
         </div>
@@ -298,12 +155,16 @@ export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChang
         </div>
         <div className="space-y-2">
           {subSlots.map((player, index) => (
-            <PlayerSlot
+            <LineupPlayerSlot
               key={`sub-${index}`}
               index={index}
               player={player}
               isStarter={false}
               label="Suplente"
+              teamRoster={teamRoster}
+              usedPlayerIds={usedPlayerIds}
+              onSelectPlayer={handlePlayerSelect}
+              onPatchPlayer={patchPlayer}
             />
           ))}
         </div>
