@@ -1,6 +1,7 @@
-import { Clock, CheckCircle2, Radio, FileText } from 'lucide-react';
+import { Clock, CheckCircle2, Radio, FileText, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
+import { useTeamImages } from '@/hooks/useTeamImages';
 
 interface MatchCardProps {
   match: Match;
@@ -12,9 +13,13 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, compact = false, showTime = false, onClick, hasReport = false, onTeamClick }: MatchCardProps) {
+  const { getTeamShield } = useTeamImages();
   const isPlayed = match.status === 'PLAYED';
   const isLive = match.status === 'LIVE';
   const isPending = match.status === 'PENDING';
+
+  const homeShield = getTeamShield(match.home);
+  const awayShield = getTeamShield(match.away);
 
   const formatTeamName = (name: string) => {
     if (compact && name.length > 18) {
@@ -31,6 +36,26 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
   };
 
   const CardWrapper = onClick ? 'button' : 'div';
+
+  const TeamShield = ({ url, name }: { url?: string; name: string }) => (
+    url ? (
+      <img
+        src={url}
+        alt={name}
+        className={cn(
+          'object-contain rounded',
+          compact ? 'w-5 h-5' : 'w-7 h-7'
+        )}
+      />
+    ) : (
+      <div className={cn(
+        'rounded bg-secondary/50 flex items-center justify-center',
+        compact ? 'w-5 h-5' : 'w-7 h-7'
+      )}>
+        <Shield className={cn('text-muted-foreground', compact ? 'w-3 h-3' : 'w-4 h-4')} />
+      </div>
+    )
+  );
 
   return (
     <CardWrapper
@@ -76,7 +101,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       <div className="flex items-center justify-between gap-2">
         {/* Home team */}
         <div className={cn(
-          'flex-1 text-right min-w-0',
+          'flex-1 flex items-center justify-end gap-2 min-w-0',
           isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
         )}>
           {onTeamClick ? (
@@ -94,6 +119,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               {formatTeamName(match.home)}
             </p>
           )}
+          <TeamShield url={homeShield} name={match.home} />
         </div>
 
         {/* Score */}
@@ -126,9 +152,10 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
 
         {/* Away team */}
         <div className={cn(
-          'flex-1 text-left min-w-0',
+          'flex-1 flex items-center gap-2 min-w-0',
           isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
         )}>
+          <TeamShield url={awayShield} name={match.away} />
           {onTeamClick ? (
             <button
               onClick={(e) => handleTeamClick(e, match.away)}
