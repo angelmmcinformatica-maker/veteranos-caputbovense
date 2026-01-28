@@ -1,17 +1,10 @@
 import { useState } from 'react';
-import { Plus, UserPlus, User, Goal, Minus, ArrowRightLeft, Trash2 } from 'lucide-react';
+import { Plus, UserPlus, User, Minus, ArrowRightLeft, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Player, MatchReportPlayer } from '@/types/league';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 interface LineupEditorProps {
   teamName: string;
@@ -62,8 +55,8 @@ export function LineupEditor({ teamName, teamRoster, players, onPlayersChange }:
     if (!player) return;
 
     if (player.isStarting) {
-      // Moving to substitutes - keep in list but mark as substitute
-      updatePlayer(playerId, { isStarting: false });
+      // Moving to substitutes
+      updatePlayer(playerId, { isStarting: false, substitutionMin: '' });
     } else {
       // Moving to starters - check if we have less than 11
       if (startingPlayers.length < 11) {
@@ -74,7 +67,7 @@ export function LineupEditor({ teamName, teamRoster, players, onPlayersChange }:
     }
   };
 
-  const PlayerCard = ({ player, showControls = true }: { player: MatchReportPlayer; showControls?: boolean }) => (
+  const PlayerCard = ({ player }: { player: MatchReportPlayer }) => (
     <div className={cn(
       'p-3 rounded-lg border transition-all',
       player.isStarting 
@@ -99,33 +92,31 @@ export function LineupEditor({ teamName, teamRoster, players, onPlayersChange }:
           </div>
         </div>
         
-        {showControls && (
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => toggleStarting(player.id)}
-              className={cn(
-                'p-1.5 rounded transition-colors',
-                player.isStarting 
-                  ? 'bg-secondary hover:bg-secondary/80 text-muted-foreground' 
-                  : 'bg-primary/20 hover:bg-primary/30 text-primary'
-              )}
-              title={player.isStarting ? 'Mover a suplentes' : 'Mover a titulares'}
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => removePlayer(player.id)}
-              className="p-1.5 rounded bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
-              title="Quitar del acta"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => toggleStarting(player.id)}
+            className={cn(
+              'p-1.5 rounded transition-colors',
+              player.isStarting 
+                ? 'bg-secondary hover:bg-secondary/80 text-muted-foreground' 
+                : 'bg-primary/20 hover:bg-primary/30 text-primary'
+            )}
+            title={player.isStarting ? 'Mover a suplentes' : 'Mover a titulares'}
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => removePlayer(player.id)}
+            className="p-1.5 rounded bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
+            title="Quitar del acta"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Player stats controls */}
-      <div className="mt-3 grid grid-cols-4 gap-2">
+      <div className="mt-3 grid grid-cols-5 gap-2">
         {/* Goals */}
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Goles</Label>
@@ -196,15 +187,34 @@ export function LineupEditor({ teamName, teamRoster, players, onPlayersChange }:
           </div>
         </div>
 
-        {/* Substitution minute (only for substitutes) */}
-        {!player.isStarting && (
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Min.</Label>
+        {/* Substitution minute - for starters who go out */}
+        {player.isStarting && (
+          <div className="space-y-1 col-span-2">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <ArrowDown className="w-3 h-3 text-destructive" />
+              Sale min.
+            </Label>
             <Input
               value={player.substitutionMin}
               onChange={(e) => updatePlayer(player.id, { substitutionMin: e.target.value })}
-              placeholder="0'"
-              className="h-6 text-xs px-2"
+              placeholder="--"
+              className="h-7 text-xs px-2"
+            />
+          </div>
+        )}
+
+        {/* Substitution minute - for subs who come in */}
+        {!player.isStarting && (
+          <div className="space-y-1 col-span-2">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <ArrowUp className="w-3 h-3 text-primary" />
+              Entra min.
+            </Label>
+            <Input
+              value={player.substitutionMin}
+              onChange={(e) => updatePlayer(player.id, { substitutionMin: e.target.value })}
+              placeholder="--"
+              className="h-7 text-xs px-2"
             />
           </div>
         )}

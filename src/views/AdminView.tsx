@@ -3,7 +3,6 @@ import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel } from 'l
 import { useAuth } from '@/contexts/AuthContext';
 import type { Matchday, Team, MatchReport } from '@/types/league';
 import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
-import { AdminReportsView } from '@/components/admin/AdminReportsView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
 
 interface AdminViewProps {
@@ -13,7 +12,7 @@ interface AdminViewProps {
   onDataRefresh: () => void;
 }
 
-type AdminModal = 'matches' | 'reports' | 'teams' | null;
+type AdminModal = 'matches' | 'teams' | null;
 
 export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
@@ -138,7 +137,6 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
 
   // Determine which features are available based on role
   const canManageMatches = isAdmin || isReferee;
-  const canManageReports = isAdmin || isReferee;
   const canManageTeams = isAdmin || isDelegate;
   const canViewTacticalField = isAdmin || isReferee || isDelegate;
 
@@ -187,20 +185,12 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
 
       <div className="grid gap-4 md:grid-cols-2">
         <AdminCard 
-          title="Gestión de Partidos"
-          description={`${matchdays.length} jornadas • Ver resultados y editar`}
+          title="Gestión de Partidos y Actas"
+          description={`${matchdays.length} jornadas • Resultados, alineaciones y actas`}
           icon="⚽"
           onClick={() => setActiveModal('matches')}
           disabled={!canManageMatches}
           disabledMessage={!canManageMatches ? 'Requiere rol de administrador o árbitro' : undefined}
-        />
-        <AdminCard 
-          title="Actas Digitales"
-          description={`${matchReports.length} actas • Alineaciones, goles y tarjetas`}
-          icon="📋"
-          onClick={() => setActiveModal('reports')}
-          disabled={!canManageReports}
-          disabledMessage={!canManageReports ? 'Requiere rol de administrador o árbitro' : undefined}
         />
         <AdminCard 
           title="Equipos y Jugadores"
@@ -239,18 +229,12 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
           onDataChange={onDataRefresh}
         />
       )}
-      {activeModal === 'reports' && canManageReports && (
-        <AdminReportsView 
-          matchdays={matchdays}
-          matchReports={matchReports} 
-          onClose={() => setActiveModal(null)} 
-        />
-      )}
       {activeModal === 'teams' && canManageTeams && (
         <AdminTeamsView 
           teams={teams} 
           matchReports={matchReports}
-          onClose={() => setActiveModal(null)} 
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
         />
       )}
     </div>
