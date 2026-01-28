@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Match, Matchday, Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
-import { LineupEditor } from './LineupEditor';
+import { LineupFormEditor } from './LineupFormEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -278,7 +278,7 @@ export function MatchEditModal({
 
             {/* Home Team Tab */}
             <TabsContent value="home" className="m-0">
-              <LineupEditor
+              <LineupFormEditor
                 teamName={match.home}
                 teamRoster={homeTeam?.players || []}
                 players={homePlayers}
@@ -288,7 +288,7 @@ export function MatchEditModal({
 
             {/* Away Team Tab */}
             <TabsContent value="away" className="m-0">
-              <LineupEditor
+              <LineupFormEditor
                 teamName={match.away}
                 teamRoster={awayTeam?.players || []}
                 players={awayPlayers}
