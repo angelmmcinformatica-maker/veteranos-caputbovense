@@ -1,11 +1,13 @@
-import { Target, Flame } from 'lucide-react';
+import { Target, Flame, User } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { TopScorer } from '@/types/league';
 
 interface PichichiCardProps {
   pichichi: TopScorer | null;
+  photoUrl?: string;
 }
 
-export function PichichiCard({ pichichi }: PichichiCardProps) {
+export function PichichiCard({ pichichi, photoUrl }: PichichiCardProps) {
   if (!pichichi) return null;
 
   return (
@@ -20,10 +22,15 @@ export function PichichiCard({ pichichi }: PichichiCardProps) {
         </div>
         
         <div className="flex items-center gap-4">
-          {/* Avatar placeholder */}
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-600/20 border-2 border-orange-500/30 flex items-center justify-center">
-            <Target className="w-6 h-6 text-orange-400" />
-          </div>
+          {/* Player photo */}
+          <Avatar className="w-14 h-14 border-2 border-orange-500/30">
+            {photoUrl ? (
+              <AvatarImage src={photoUrl} alt={pichichi.name} className="object-cover" />
+            ) : null}
+            <AvatarFallback className="bg-gradient-to-br from-orange-500/20 to-orange-600/20">
+              <User className="w-6 h-6 text-orange-400" />
+            </AvatarFallback>
+          </Avatar>
           
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold truncate">{pichichi.name}</h3>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2, Shield, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,8 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const [isSaving, setIsSaving] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showDedupConfirm, setShowDedupConfirm] = useState(false);
+  const [showAddTeam, setShowAddTeam] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
   
   // Image upload hooks
   const { uploadImage } = useImageUpload();
@@ -263,6 +265,39 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
     } catch (error) {
       console.error('Error deleting player:', error);
       alert('Error al eliminar el jugador');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const createTeam = async () => {
+    if (!newTeamName.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      // Create a sanitized ID from the team name
+      const teamId = newTeamName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      const teamRef = doc(db, 'teams', teamId);
+      
+      // Check if team already exists
+      const existingDoc = await getDoc(teamRef);
+      if (existingDoc.exists()) {
+        alert('Ya existe un equipo con ese nombre');
+        setIsSaving(false);
+        return;
+      }
+      
+      await setDoc(teamRef, {
+        name: newTeamName.trim(),
+        players: []
+      });
+      
+      setShowAddTeam(false);
+      setNewTeamName('');
+      onDataChange?.();
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Error al crear el equipo');
     } finally {
       setIsSaving(false);
     }
@@ -497,17 +532,64 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
               </div>
             ) : (
               <>
-                {/* Search */}
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar equipo..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
-                  />
+                {/* Header with Add Team button */}
+                <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                  {/* Search */}
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Buscar equipo..."
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                    />
+                  </div>
+                  <Button size="sm" onClick={() => setShowAddTeam(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Añadir equipo
+                  </Button>
                 </div>
+
+                {/* Add Team form */}
+                {showAddTeam && (
+                  <div className="glass-card p-4 bg-primary/5 border border-primary/20 space-y-3 mb-4">
+                    <h4 className="font-semibold">Nuevo equipo</h4>
+                    <div>
+                      <Label className="text-xs">Nombre del equipo</Label>
+                      <Input
+                        value={newTeamName}
+                        onChange={(e) => setNewTeamName(e.target.value)}
+                        placeholder="Ej: CD Valdivia Veteranos"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddTeam(false);
+                          setNewTeamName('');
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={createTeam}
+                        disabled={isSaving || !newTeamName.trim()}
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Crear equipo
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Teams list */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
