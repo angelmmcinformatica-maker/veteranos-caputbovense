@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
-import type { Matchday, Match, MatchReport } from '@/types/league';
+import type { Matchday, Match, MatchReport, Team } from '@/types/league';
 import { cn } from '@/lib/utils';
 
 interface MatchesViewProps {
   matchdays: Matchday[];
   matchReports: MatchReport[];
+  teams: Team[];
   onTeamClick?: (teamName: string) => void;
+  onPlayerClick?: (playerName: string, teamName: string) => void;
 }
 
-export function MatchesView({ matchdays, matchReports, onTeamClick }: MatchesViewProps) {
+export function MatchesView({ matchdays, matchReports, teams, onTeamClick, onPlayerClick }: MatchesViewProps) {
   const [selectedJornada, setSelectedJornada] = useState<number>(() => {
     // Find the last matchday with played matches
     const playedMatchdays = matchdays.filter(md => 
@@ -142,7 +144,9 @@ export function MatchesView({ matchdays, matchReports, onTeamClick }: MatchesVie
         <MatchDetailModal
           match={selectedMatch}
           matchReport={getMatchReport(selectedMatch)}
+          teams={teams}
           onClose={() => setSelectedMatch(null)}
+          onPlayerClick={onPlayerClick}
         />
       )}
     </div>

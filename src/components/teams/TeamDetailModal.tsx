@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, Users, Calendar, Trophy, Target, Shield } from 'lucide-react';
+import { X, Users, Calendar, Trophy, Target, Shield, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, Team, MatchReport, MatchReportPlayer } from '@/types/league';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
+import { useTeamImages } from '@/hooks/useTeamImages';
 
 interface TeamDetailModalProps {
   teamName: string;
@@ -25,6 +26,9 @@ export function TeamDetailModal({
 }: TeamDetailModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('matches');
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const { getTeamShield, getPlayerPhoto } = useTeamImages();
+
+  const teamShield = getTeamShield(teamName);
 
   // Get all matches for this team
   const teamMatches = matchdays.flatMap(md => 
@@ -32,9 +36,14 @@ export function TeamDetailModal({
       .map(m => ({ ...m, jornada: md.jornada })) || []
   ).sort((a, b) => a.jornada - b.jornada);
 
-  // Get team roster from teams collection
+  // Get team roster from teams collection - SORTED BY DORSAL
   const team = teams.find(t => t.name === teamName);
-  const roster = team?.players || [];
+  const roster = [...(team?.players || [])].sort((a, b) => {
+    const dorsalA = typeof a.id === 'number' ? a.id : parseInt(String(a.id)) || 999;
+    const dorsalB = typeof b.id === 'number' ? b.id : parseInt(String(b.id)) || 999;
+    if (dorsalA !== dorsalB) return dorsalA - dorsalB;
+    return (a.name || '').localeCompare(b.name || '');
+  });
 
   // Calculate team stats
   const playedMatches = teamMatches.filter(m => m.status === 'PLAYED');
@@ -85,9 +94,13 @@ export function TeamDetailModal({
           <div className="sticky top-0 glass-card border-b border-border/50 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-primary" />
-                </div>
+                {teamShield ? (
+                  <img src={teamShield} alt={teamName} className="w-12 h-12 object-contain" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-primary" />
+                  </div>
+                )}
                 <div>
                   <h2 className="text-lg font-bold">{teamName}</h2>
                   <p className="text-xs text-muted-foreground">{roster.length} jugadores</p>
@@ -231,6 +244,7 @@ export function TeamDetailModal({
               <div className="space-y-2">
                 {roster.map((player) => {
                   const stats = getPlayerStats(player.name);
+                  const photoUrl = getPlayerPhoto(teamName, player.id);
                   
                   return (
                     <button
@@ -240,9 +254,17 @@ export function TeamDetailModal({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary">
-                            {typeof player.id === 'number' ? player.id : '#'}
-                          </div>
+                          {photoUrl ? (
+                            <img 
+                              src={photoUrl} 
+                              alt={player.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary">
+                              {typeof player.id === 'number' ? player.id : '#'}
+                            </div>
+                          )}
                           <div>
                             <p className="font-medium text-sm">
                               {player.alias || player.name}
@@ -297,7 +319,9 @@ export function TeamDetailModal({
         <MatchDetailModal
           match={selectedMatch}
           matchReport={getMatchReport(selectedMatch)}
+          teams={teams}
           onClose={() => setSelectedMatch(null)}
+          onPlayerClick={onPlayerClick}
         />
       )}
     </>
