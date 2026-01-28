@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -28,10 +28,11 @@ interface AdminTeamsViewProps {
 export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: AdminTeamsViewProps) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
-  const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+  const [editingPlayer, setEditingPlayer] = useState<{ player: Player; occurrence: number } | null>(null);
+  const [playerToDelete, setPlayerToDelete] = useState<{ player: Player; occurrence: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [showDedupConfirm, setShowDedupConfirm] = useState(false);
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -41,6 +42,57 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const toNumeric = (v: string | number) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+  };
+
+  const playerSig = (p: Player) => {
+    const id = String(p.id).trim();
+    const name = String(p.name || '').trim().toLowerCase();
+    const alias = String(p.alias || '').trim().toLowerCase();
+    return `${id}|${name}|${alias}`;
+  };
+
+  const findNthIndex = <T,>(arr: T[], pred: (v: T) => boolean, occurrence: number) => {
+    let seen = 0;
+    for (let i = 0; i < arr.length; i++) {
+      if (!pred(arr[i])) continue;
+      if (seen === occurrence) return i;
+      seen++;
+    }
+    return -1;
+  };
+
+  const playersForDisplay = useMemo(() => {
+    const raw = selectedTeam?.players || [];
+    const occurrenceCounter = new Map<string, number>();
+    const withMeta = raw.map((player, originalIndex) => {
+      const sig = playerSig(player);
+      const occ = occurrenceCounter.get(sig) ?? 0;
+      occurrenceCounter.set(sig, occ + 1);
+      return { player, sig, occurrence: occ, originalIndex };
+    });
+    withMeta.sort((a, b) => {
+      const an = toNumeric(a.player.id);
+      const bn = toNumeric(b.player.id);
+      if (an !== bn) return an - bn;
+      return String(a.player.name).localeCompare(String(b.player.name));
+    });
+    return withMeta;
+  }, [selectedTeam]);
+
+  const duplicateCount = useMemo(() => {
+    const raw = selectedTeam?.players || [];
+    const counts = new Map<string, number>();
+    raw.forEach((p) => counts.set(playerSig(p), (counts.get(playerSig(p)) ?? 0) + 1));
+    let dups = 0;
+    counts.forEach((count) => {
+      if (count > 1) dups += count - 1;
+    });
+    return dups;
+  }, [selectedTeam]);
 
   const getPlayerStats = (playerName: string, teamName: string) => {
     let goals = 0, yellowCards = 0, redCards = 0, gamesPlayed = 0, gamesStarted = 0;
@@ -63,8 +115,8 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
     return { goals, yellowCards, redCards, gamesPlayed, gamesStarted };
   };
 
-  const startEditPlayer = (player: Player) => {
-    setEditingPlayer(player);
+  const startEditPlayer = (player: Player, occurrence: number) => {
+    setEditingPlayer({ player, occurrence });
     setEditName(player.name);
     setEditAlias(player.alias || '');
     setEditId(String(player.id));
@@ -75,7 +127,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
     setEditName('');
     setEditAlias('');
     // Generate next ID
-    const maxId = Math.max(0, ...(selectedTeam?.players?.map(p => Number(p.id)) || []));
+    const maxId = Math.max(0, ...(selectedTeam?.players?.map(p => Number(p.id)) || []).filter(n => Number.isFinite(n)));
     setEditId(String(maxId + 1));
   };
 
@@ -91,23 +143,37 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
         const teamData = teamSnap.data();
         let updatedPlayers: Player[];
         
+        const rawPlayers: Player[] = teamData.players || [];
+
         if (editingPlayer) {
-          // Update existing player
-          updatedPlayers = (teamData.players || []).map((p: Player) => {
-            if (p.id === editingPlayer.id) {
-              return {
-                ...p,
-                id: editId ? Number(editId) : p.id,
-                name: editName.trim(),
-                alias: editAlias.trim() || null
-              };
-            }
-            return p;
-          });
+          // Update EXACT duplicated instance by signature + occurrence
+          const targetSig = playerSig(editingPlayer.player);
+          const idx = findNthIndex(
+            rawPlayers,
+            (p) => playerSig(p) === targetSig,
+            editingPlayer.occurrence,
+          );
+
+          if (idx === -1) {
+            alert('No se encontró el jugador');
+            setIsSaving(false);
+            return;
+          }
+
+          updatedPlayers = rawPlayers.map((p, i) =>
+            i === idx
+              ? {
+                  ...p,
+                  id: editId ? Number(editId) : p.id,
+                  name: editName.trim(),
+                  alias: editAlias.trim() || null,
+                }
+              : p,
+          );
         } else {
           // Add new player
           updatedPlayers = [
-            ...(teamData.players || []),
+            ...rawPlayers,
             {
               id: editId ? Number(editId) : Date.now(),
               name: editName.trim(),
@@ -115,6 +181,14 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
             }
           ];
         }
+
+        // Always keep ordered by dorsal
+        updatedPlayers.sort((a, b) => {
+          const an = toNumeric(a.id);
+          const bn = toNumeric(b.id);
+          if (an !== bn) return an - bn;
+          return String(a.name).localeCompare(String(b.name));
+        });
         
         await updateDoc(teamRef, { players: updatedPlayers });
         
@@ -129,7 +203,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
         onDataChange?.();
       }
       
-      setEditingPlayer(null);
+         setEditingPlayer(null);
       setShowAddPlayer(false);
     } catch (error) {
       console.error('Error saving player:', error);
@@ -149,16 +223,14 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
       
       if (teamSnap.exists()) {
         const teamData = teamSnap.data();
-        const playersArray = teamData.players || [];
-        
-        // Find the EXACT player by matching id AND name to avoid deleting duplicates
-        const playerIndex = playersArray.findIndex(
-          (p: Player) => p.id === playerToDelete.id && p.name === playerToDelete.name
-        );
+        const playersArray: Player[] = teamData.players || [];
+
+        const targetSig = playerSig(playerToDelete.player);
+        const playerIndex = findNthIndex(playersArray, (p) => playerSig(p) === targetSig, playerToDelete.occurrence);
         
         if (playerIndex === -1) {
           alert('No se encontró el jugador');
-          setPlayerToDelete(null);
+       setPlayerToDelete(null);
           setIsSaving(false);
           return;
         }
@@ -225,10 +297,17 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                   >
                     ← Volver a equipos
                   </button>
-                  <Button size="sm" onClick={startAddPlayer}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Añadir jugador
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {duplicateCount > 0 && (
+                      <Button variant="outline" size="sm" onClick={() => setShowDedupConfirm(true)}>
+                        Limpiar duplicados ({duplicateCount})
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={startAddPlayer}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Añadir jugador
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Add/Edit player form */}
@@ -293,13 +372,13 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  {selectedTeam.players?.map((player) => {
-                    const stats = getPlayerStats(player.name, selectedTeam.name);
+                 <div className="space-y-2">
+                   {playersForDisplay.map(({ player, occurrence, originalIndex }) => {
+                     const stats = getPlayerStats(player.name, selectedTeam.name);
                     
                     return (
                       <div
-                        key={player.id}
+                         key={`${player.id}-${player.name}-${originalIndex}`}
                         className="glass-card p-3 bg-secondary/20"
                       >
                         <div className="flex items-center justify-between">
@@ -343,7 +422,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => startEditPlayer(player)}
+                               onClick={() => startEditPlayer(player, occurrence)}
                             >
                               <Edit2 className="w-4 h-4" />
                             </Button>
@@ -351,7 +430,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => setPlayerToDelete(player)}
+                               onClick={() => setPlayerToDelete({ player, occurrence })}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -423,7 +502,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
             <AlertDialogTitle>¿Eliminar jugador?</AlertDialogTitle>
             <AlertDialogDescription>
               ¿Estás seguro de que quieres eliminar a{' '}
-              <strong>{playerToDelete?.alias || playerToDelete?.name}</strong>?
+              <strong>{playerToDelete?.player?.alias || playerToDelete?.player?.name}</strong>?
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -439,6 +518,59 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                 <Trash2 className="w-4 h-4 mr-2" />
               )}
               Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dedupe confirmation dialog */}
+      <AlertDialog open={showDedupConfirm} onOpenChange={setShowDedupConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Limpiar jugadores duplicados?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán {duplicateCount} entradas duplicadas (mismo dorsal, nombre y alias) dejando una sola.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!selectedTeam) return;
+                setIsSaving(true);
+                try {
+                  const teamRef = doc(db, 'teams', selectedTeam.id);
+                  const teamSnap = await getDoc(teamRef);
+                  if (!teamSnap.exists()) return;
+                  const teamData = teamSnap.data();
+                  const rawPlayers: Player[] = teamData.players || [];
+                  const seen = new Set<string>();
+                  const deduped = rawPlayers.filter((p) => {
+                    const sig = playerSig(p);
+                    if (seen.has(sig)) return false;
+                    seen.add(sig);
+                    return true;
+                  });
+                  deduped.sort((a, b) => {
+                    const an = toNumeric(a.id);
+                    const bn = toNumeric(b.id);
+                    if (an !== bn) return an - bn;
+                    return String(a.name).localeCompare(String(b.name));
+                  });
+                  await updateDoc(teamRef, { players: deduped });
+                  setSelectedTeam({ ...selectedTeam, players: deduped });
+                  onDataChange?.();
+                } catch (e) {
+                  console.error('Error deduplicating players:', e);
+                  alert('Error al limpiar duplicados');
+                } finally {
+                  setIsSaving(false);
+                  setShowDedupConfirm(false);
+                }
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
