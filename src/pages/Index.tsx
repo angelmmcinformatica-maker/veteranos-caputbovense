@@ -7,14 +7,20 @@ import { StandingsView } from '@/views/StandingsView';
 import { MatchesView } from '@/views/MatchesView';
 import { StatsView } from '@/views/StatsView';
 import { AdminView } from '@/views/AdminView';
+import { TeamDetailModal } from '@/components/teams/TeamDetailModal';
+import { PlayerDetailModal } from '@/components/players/PlayerDetailModal';
 import { useLeagueData } from '@/hooks/useLeagueData';
 
 type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'admin';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<{ name: string; team: string } | null>(null);
+  
   const { 
     matchdays,
+    teams,
     matchReports,
     standings, 
     leader, 
@@ -26,6 +32,14 @@ const Index = () => {
     loading, 
     error 
   } = useLeagueData();
+
+  const handleTeamClick = (teamName: string) => {
+    setSelectedTeam(teamName);
+  };
+
+  const handlePlayerClick = (playerName: string, teamName: string) => {
+    setSelectedPlayer({ name: playerName, team: teamName });
+  };
 
   if (loading) {
     return <LoadingScreen />;
@@ -53,16 +67,40 @@ const Index = () => {
             nextMatchday={nextMatchday}
             standings={standings}
             matchReports={matchReports}
+            onTeamClick={handleTeamClick}
           />
         );
       case 'standings':
-        return <StandingsView standings={standings} />;
+        return (
+          <StandingsView 
+            standings={standings} 
+            onTeamClick={handleTeamClick}
+          />
+        );
       case 'matches':
-        return <MatchesView matchdays={matchdays} matchReports={matchReports} />;
+        return (
+          <MatchesView 
+            matchdays={matchdays} 
+            matchReports={matchReports}
+            onTeamClick={handleTeamClick}
+          />
+        );
       case 'stats':
-        return <StatsView topScorers={topScorers} cardRankings={cardRankings} />;
+        return (
+          <StatsView 
+            topScorers={topScorers} 
+            cardRankings={cardRankings}
+            onPlayerClick={handlePlayerClick}
+          />
+        );
       case 'admin':
-        return <AdminView />;
+        return (
+          <AdminView 
+            matchdays={matchdays}
+            teams={teams}
+            matchReports={matchReports}
+          />
+        );
       default:
         return null;
     }
@@ -75,6 +113,29 @@ const Index = () => {
         {renderContent()}
       </main>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Team Detail Modal */}
+      {selectedTeam && (
+        <TeamDetailModal
+          teamName={selectedTeam}
+          matchdays={matchdays}
+          teams={teams}
+          matchReports={matchReports}
+          onClose={() => setSelectedTeam(null)}
+          onPlayerClick={handlePlayerClick}
+        />
+      )}
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <PlayerDetailModal
+          playerName={selectedPlayer.name}
+          teamName={selectedPlayer.team}
+          matchdays={matchdays}
+          matchReports={matchReports}
+          onClose={() => setSelectedPlayer(null)}
+        />
+      )}
     </div>
   );
 };

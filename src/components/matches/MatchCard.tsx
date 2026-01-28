@@ -8,9 +8,10 @@ interface MatchCardProps {
   showTime?: boolean;
   onClick?: () => void;
   hasReport?: boolean;
+  onTeamClick?: (teamName: string) => void;
 }
 
-export function MatchCard({ match, compact = false, showTime = false, onClick, hasReport = false }: MatchCardProps) {
+export function MatchCard({ match, compact = false, showTime = false, onClick, hasReport = false, onTeamClick }: MatchCardProps) {
   const isPlayed = match.status === 'PLAYED';
   const isLive = match.status === 'LIVE';
   const isPending = match.status === 'PENDING';
@@ -20,6 +21,13 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       return name.substring(0, 16) + '...';
     }
     return name;
+  };
+
+  const handleTeamClick = (e: React.MouseEvent, teamName: string) => {
+    if (onTeamClick) {
+      e.stopPropagation();
+      onTeamClick(teamName);
+    }
   };
 
   const CardWrapper = onClick ? 'button' : 'div';
@@ -71,12 +79,21 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           'flex-1 text-right min-w-0',
           isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
         )}>
-          <p className={cn(
-            'truncate',
-            compact ? 'text-xs' : 'text-sm'
-          )}>
-            {formatTeamName(match.home)}
-          </p>
+          {onTeamClick ? (
+            <button
+              onClick={(e) => handleTeamClick(e, match.home)}
+              className={cn(
+                'truncate hover:text-primary hover:underline transition-colors',
+                compact ? 'text-xs' : 'text-sm'
+              )}
+            >
+              {formatTeamName(match.home)}
+            </button>
+          ) : (
+            <p className={cn('truncate', compact ? 'text-xs' : 'text-sm')}>
+              {formatTeamName(match.home)}
+            </p>
+          )}
         </div>
 
         {/* Score */}
@@ -112,12 +129,21 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           'flex-1 text-left min-w-0',
           isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
         )}>
-          <p className={cn(
-            'truncate',
-            compact ? 'text-xs' : 'text-sm'
-          )}>
-            {formatTeamName(match.away)}
-          </p>
+          {onTeamClick ? (
+            <button
+              onClick={(e) => handleTeamClick(e, match.away)}
+              className={cn(
+                'truncate hover:text-primary hover:underline transition-colors',
+                compact ? 'text-xs' : 'text-sm'
+              )}
+            >
+              {formatTeamName(match.away)}
+            </button>
+          ) : (
+            <p className={cn('truncate', compact ? 'text-xs' : 'text-sm')}>
+              {formatTeamName(match.away)}
+            </p>
+          )}
         </div>
       </div>
     </CardWrapper>
