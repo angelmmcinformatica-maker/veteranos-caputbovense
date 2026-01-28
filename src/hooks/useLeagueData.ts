@@ -111,10 +111,11 @@ export function useLeagueData() {
       });
     });
 
-    // Process all played matches
+    // Process all played AND LIVE matches (live matches count for real-time standings)
     matchdays.forEach(matchday => {
       matchday.matches?.forEach(match => {
-        if (match.status !== 'PLAYED') return;
+        // Include both PLAYED and LIVE matches in standings
+        if (match.status !== 'PLAYED' && match.status !== 'LIVE') return;
 
         const homeTeam = teamStats[match.home];
         const awayTeam = teamStats[match.away];
@@ -126,19 +127,19 @@ export function useLeagueData() {
         awayTeam.played++;
 
         // Update goals
-        homeTeam.goalsFor += match.homeGoals;
-        homeTeam.goalsAgainst += match.awayGoals;
-        awayTeam.goalsFor += match.awayGoals;
-        awayTeam.goalsAgainst += match.homeGoals;
+        homeTeam.goalsFor += match.homeGoals || 0;
+        homeTeam.goalsAgainst += match.awayGoals || 0;
+        awayTeam.goalsFor += match.awayGoals || 0;
+        awayTeam.goalsAgainst += match.homeGoals || 0;
 
         // Determine winner and update points
-        if (match.homeGoals > match.awayGoals) {
+        if ((match.homeGoals || 0) > (match.awayGoals || 0)) {
           homeTeam.won++;
           homeTeam.points += 3;
           homeTeam.form.push('W');
           awayTeam.lost++;
           awayTeam.form.push('L');
-        } else if (match.homeGoals < match.awayGoals) {
+        } else if ((match.homeGoals || 0) < (match.awayGoals || 0)) {
           awayTeam.won++;
           awayTeam.points += 3;
           awayTeam.form.push('W');

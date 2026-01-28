@@ -74,10 +74,10 @@ export function MatchEditModal({
           if (m.home === match.home && m.away === match.away) {
             return {
               ...m,
-              homeGoals,
-              awayGoals,
-              date: matchDate,
-              time: matchTime,
+              homeGoals: homeGoals || 0,
+              awayGoals: awayGoals || 0,
+              date: matchDate || '',
+              time: matchTime || '',
               status: matchStatus
             };
           }
@@ -92,11 +92,27 @@ export function MatchEditModal({
         const reportId = `${match.home}-${match.away}`;
         const reportRef = doc(db, 'match_reports', reportId);
         
-        const reportData: MatchReport = {
+        // Clean and validate player data before saving
+        const cleanPlayerData = (players: MatchReportPlayer[]): MatchReportPlayer[] => {
+          return players.map(player => ({
+            id: player.id,
+            name: player.name || '',
+            alias: player.alias || '',
+            matchNumber: player.matchNumber || player.id,
+            isStarting: Boolean(player.isStarting),
+            substitutionMin: player.substitutionMin || '',
+            goals: Number(player.goals) || 0,
+            yellowCards: Number(player.yellowCards) || 0,
+            redCards: Number(player.redCards) || 0,
+            directRedCards: Number(player.directRedCards) || 0
+          }));
+        };
+
+        const reportData = {
           id: reportId,
-          observations,
-          [match.home]: { players: homePlayers },
-          [match.away]: { players: awayPlayers }
+          observations: observations || '',
+          [match.home]: { players: cleanPlayerData(homePlayers) },
+          [match.away]: { players: cleanPlayerData(awayPlayers) }
         };
 
         await setDoc(reportRef, reportData, { merge: true });
@@ -106,7 +122,7 @@ export function MatchEditModal({
       onClose();
     } catch (error) {
       console.error('Error saving match:', error);
-      alert('Error al guardar los cambios');
+      alert('Error al guardar los cambios: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
       setIsSaving(false);
     }
