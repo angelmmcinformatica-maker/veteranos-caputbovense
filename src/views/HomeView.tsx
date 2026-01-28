@@ -5,7 +5,7 @@ import { MatchCard } from '@/components/matches/MatchCard';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { Calendar, CheckCircle2 } from 'lucide-react';
-import type { TeamStanding, TopScorer, Matchday, Match, MatchReport } from '@/types/league';
+import type { TeamStanding, TopScorer, Matchday, Match, MatchReport, Team } from '@/types/league';
 
 interface HomeViewProps {
   leader: TeamStanding | null;
@@ -14,10 +14,12 @@ interface HomeViewProps {
   nextMatchday: Matchday | null;
   standings: TeamStanding[];
   matchReports: MatchReport[];
+  teams: Team[];
   onTeamClick?: (teamName: string) => void;
+  onPlayerClick?: (playerName: string, teamName: string) => void;
 }
 
-export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, onTeamClick }: HomeViewProps) {
+export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, teams, onTeamClick, onPlayerClick }: HomeViewProps) {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const getMatchReport = (match: Match): MatchReport | null => {
@@ -105,7 +107,9 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
         <MatchDetailModal
           match={selectedMatch}
           matchReport={getMatchReport(selectedMatch)}
+          teams={teams}
           onClose={() => setSelectedMatch(null)}
+          onPlayerClick={onPlayerClick}
         />
       )}
     </div>

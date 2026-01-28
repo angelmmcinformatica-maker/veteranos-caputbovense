@@ -68,7 +68,9 @@ const Index = () => {
             nextMatchday={nextMatchday}
             standings={standings}
             matchReports={matchReports}
+            teams={teams}
             onTeamClick={handleTeamClick}
+            onPlayerClick={handlePlayerClick}
           />
         );
       case 'standings':
@@ -83,7 +85,9 @@ const Index = () => {
           <MatchesView 
             matchdays={matchdays} 
             matchReports={matchReports}
+            teams={teams}
             onTeamClick={handleTeamClick}
+            onPlayerClick={handlePlayerClick}
           />
         );
       case 'stats':
