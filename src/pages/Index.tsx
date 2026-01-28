@@ -30,7 +30,8 @@ const Index = () => {
     lastPlayedMatchday,
     nextMatchday,
     loading, 
-    error 
+    error,
+    refetch
   } = useLeagueData();
 
   const handleTeamClick = (teamName: string) => {
@@ -99,6 +100,7 @@ const Index = () => {
             matchdays={matchdays}
             teams={teams}
             matchReports={matchReports}
+            onDataRefresh={refetch}
           />
         );
       default:
