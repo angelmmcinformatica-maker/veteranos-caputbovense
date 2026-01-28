@@ -65,16 +65,32 @@ export function useLeagueData() {
     fetchData();
   }, []);
 
-  // Calculate standings from matchdays
+  // Calculate standings from matchdays - include ALL teams
   const standings = useMemo((): TeamStanding[] => {
     const teamStats: Record<string, TeamStanding> = {};
 
-    // Process all played matches
+    // First, initialize ALL teams from teams collection (ensures all 27 teams appear)
+    teams.forEach(team => {
+      if (!teamStats[team.name]) {
+        teamStats[team.name] = {
+          position: 0,
+          team: team.name,
+          played: 0,
+          won: 0,
+          drawn: 0,
+          lost: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          goalDifference: 0,
+          points: 0,
+          form: []
+        };
+      }
+    });
+
+    // Also initialize teams from matchdays (in case some aren't in teams collection)
     matchdays.forEach(matchday => {
       matchday.matches?.forEach(match => {
-        if (match.status !== 'PLAYED') return;
-
-        // Initialize teams if not exists
         [match.home, match.away].forEach(team => {
           if (!teamStats[team]) {
             teamStats[team] = {
@@ -92,9 +108,18 @@ export function useLeagueData() {
             };
           }
         });
+      });
+    });
+
+    // Process all played matches
+    matchdays.forEach(matchday => {
+      matchday.matches?.forEach(match => {
+        if (match.status !== 'PLAYED') return;
 
         const homeTeam = teamStats[match.home];
         const awayTeam = teamStats[match.away];
+
+        if (!homeTeam || !awayTeam) return;
 
         // Update played count
         homeTeam.played++;
@@ -140,7 +165,9 @@ export function useLeagueData() {
     standingsArray.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      return b.goalsFor - a.goalsFor;
+      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+      // Alphabetical as final tiebreaker
+      return a.team.localeCompare(b.team);
     });
 
     // Assign positions
@@ -149,7 +176,7 @@ export function useLeagueData() {
     });
 
     return standingsArray;
-  }, [matchdays]);
+  }, [matchdays, teams]);
 
   // Get the leader team
   const leader = useMemo(() => standings[0] || null, [standings]);

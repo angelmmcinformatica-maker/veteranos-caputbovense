@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Users, Calendar, Trophy, Target, Shield, User } from 'lucide-react';
+import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, Team, MatchReport, MatchReportPlayer } from '@/types/league';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
@@ -174,6 +174,7 @@ export function TeamDetailModal({
                 {teamMatches.map((match, index) => {
                   const isHome = match.home === teamName;
                   const opponent = isHome ? match.away : match.home;
+                  const opponentShield = getTeamShield(opponent);
                   const goalsOwn = isHome ? match.homeGoals : match.awayGoals;
                   const goalsOpp = isHome ? match.awayGoals : match.homeGoals;
                   const isWin = match.status === 'PLAYED' && goalsOwn > goalsOpp;
@@ -202,10 +203,23 @@ export function TeamDetailModal({
                           )}>
                             J{match.jornada}
                           </div>
+                          {/* Home/Away icon */}
+                          <div className={cn(
+                            'w-6 h-6 rounded flex items-center justify-center',
+                            isHome ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
+                          )}>
+                            {isHome ? <Home className="w-3.5 h-3.5" /> : <Car className="w-3.5 h-3.5" />}
+                          </div>
+                          {/* Opponent shield */}
+                          {opponentShield ? (
+                            <img src={opponentShield} alt={opponent} className="w-6 h-6 object-contain rounded" />
+                          ) : (
+                            <div className="w-6 h-6 rounded bg-secondary/50 flex items-center justify-center">
+                              <Shield className="w-3 h-3 text-muted-foreground" />
+                            </div>
+                          )}
                           <div>
-                            <p className="text-sm font-medium">
-                              {isHome ? 'vs' : '@'} {opponent}
-                            </p>
+                            <p className="text-sm font-medium">{opponent}</p>
                             <p className="text-xs text-muted-foreground">{match.date}</p>
                           </div>
                         </div>

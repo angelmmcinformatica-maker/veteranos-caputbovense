@@ -34,18 +34,25 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
           <tbody>
             {standings.map((team, index) => {
               const shieldUrl = getTeamShield(team.team);
+              // League zones: 1-8 playoffs (title), 9-24 cup, 25-27 eliminated
+              const isPlayoff = team.position <= 8;
+              const isCup = team.position >= 9 && team.position <= 24;
+              const isRelegation = team.position >= 25;
+              
               return (
                 <tr 
                   key={team.team}
                   className={cn(
-                    index < 4 && 'bg-primary/5',
-                    index >= standings.length - 3 && 'bg-destructive/5'
+                    isPlayoff && 'bg-primary/5',
+                    isCup && 'bg-accent/5',
+                    isRelegation && 'bg-destructive/5'
                   )}
                 >
                   <td className={cn(
                     'font-semibold',
-                    index < 4 && 'text-primary',
-                    index >= standings.length - 3 && 'text-destructive'
+                    isPlayoff && 'text-primary',
+                    isCup && 'text-accent-foreground',
+                    isRelegation && 'text-destructive'
                   )}>
                     {team.position}
                   </td>
