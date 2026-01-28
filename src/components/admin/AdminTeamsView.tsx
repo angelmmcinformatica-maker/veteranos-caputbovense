@@ -149,9 +149,25 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
       
       if (teamSnap.exists()) {
         const teamData = teamSnap.data();
-        const updatedPlayers = (teamData.players || []).filter(
-          (p: Player) => p.id !== playerToDelete.id
+        const playersArray = teamData.players || [];
+        
+        // Find the EXACT player by matching id AND name to avoid deleting duplicates
+        const playerIndex = playersArray.findIndex(
+          (p: Player) => p.id === playerToDelete.id && p.name === playerToDelete.name
         );
+        
+        if (playerIndex === -1) {
+          alert('No se encontró el jugador');
+          setPlayerToDelete(null);
+          setIsSaving(false);
+          return;
+        }
+        
+        // Remove only ONE player at the found index
+        const updatedPlayers = [
+          ...playersArray.slice(0, playerIndex),
+          ...playersArray.slice(playerIndex + 1)
+        ];
         
         await updateDoc(teamRef, { players: updatedPlayers });
         
