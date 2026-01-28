@@ -20,6 +20,7 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
             <tr className="border-b border-white/10 bg-secondary/30">
               <th className="text-left w-8">#</th>
               <th className="text-left">Equipo</th>
+              <th className="text-center w-10 font-bold">PTS</th>
               <th className="text-center w-8">PJ</th>
               <th className="text-center w-8">G</th>
               <th className="text-center w-8">E</th>
@@ -27,7 +28,6 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
               <th className="text-center w-10">GF</th>
               <th className="text-center w-10">GC</th>
               <th className="text-center w-10">DG</th>
-              <th className="text-center w-10 font-bold">PTS</th>
               <th className="text-center hidden sm:table-cell">Racha</th>
             </tr>
           </thead>
@@ -83,6 +83,7 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                       )}
                     </div>
                   </td>
+                  <td className="text-center font-bold text-lg">{team.points}</td>
                   <td className="text-center text-muted-foreground">{team.played}</td>
                   <td className="text-center text-green-400">{team.won}</td>
                   <td className="text-center text-yellow-400">{team.drawn}</td>
@@ -96,7 +97,6 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                   )}>
                     {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
                   </td>
-                  <td className="text-center font-bold text-lg">{team.points}</td>
                   <td className="hidden sm:table-cell">
                     <div className="flex items-center justify-center gap-1">
                       {team.form.map((result, i) => (
