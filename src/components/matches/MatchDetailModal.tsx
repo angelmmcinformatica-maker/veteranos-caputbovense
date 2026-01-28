@@ -133,7 +133,10 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
       <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">Acta del Partido</h2>
+          <h2 className="text-lg font-bold">
+            {match.status === 'PENDING' ? 'Información del Partido' : 
+             match.status === 'LIVE' ? 'Partido en Directo' : 'Acta del Partido'}
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
@@ -162,19 +165,25 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                 </p>
               </div>
               <div className="flex items-center gap-2 px-4">
-                <span className={cn(
-                  "text-3xl font-bold tabular-nums",
-                  match.homeGoals > match.awayGoals && "text-primary"
-                )}>
-                  {match.homeGoals}
-                </span>
-                <span className="text-muted-foreground text-xl">-</span>
-                <span className={cn(
-                  "text-3xl font-bold tabular-nums",
-                  match.awayGoals > match.homeGoals && "text-primary"
-                )}>
-                  {match.awayGoals}
-                </span>
+                {match.status === 'PENDING' ? (
+                  <span className="text-muted-foreground text-xl">vs</span>
+                ) : (
+                  <>
+                    <span className={cn(
+                      "text-3xl font-bold tabular-nums",
+                      match.homeGoals > match.awayGoals && "text-primary"
+                    )}>
+                      {match.homeGoals}
+                    </span>
+                    <span className="text-muted-foreground text-xl">-</span>
+                    <span className={cn(
+                      "text-3xl font-bold tabular-nums",
+                      match.awayGoals > match.homeGoals && "text-primary"
+                    )}>
+                      {match.awayGoals}
+                    </span>
+                  </>
+                )}
               </div>
               <div className="flex-1 text-left flex items-center gap-2">
                 <p className={cn(
@@ -201,7 +210,11 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
           {!matchReport ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No hay acta disponible para este partido</p>
+              <p className="text-muted-foreground">
+                {match.status === 'PENDING' 
+                  ? 'Partido pendiente de disputarse. Para editar horarios, alineaciones y resultados, accede desde el panel de administración.'
+                  : 'No hay acta disponible para este partido'}
+              </p>
             </div>
           ) : (
             <>

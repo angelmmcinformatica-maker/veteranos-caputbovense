@@ -36,11 +36,13 @@ export function PlayerDetailModal({
 }: PlayerDetailModalProps) {
   const { getPlayerPhoto, getTeamShield } = useTeamImages();
 
-  // Find player ID from team
+  // Find player ID from team - search by name or alias
   const team = teams?.find(t => t.name === teamName);
-  const player = team?.players?.find(p => p.name === playerName);
+  const player = team?.players?.find(p => 
+    p.name === playerName || p.alias === playerName
+  );
   const playerId = player?.id;
-  const playerPhotoUrl = playerId ? getPlayerPhoto(teamName, playerId) : undefined;
+  const playerPhotoUrl = playerId !== undefined ? getPlayerPhoto(teamName, playerId) : undefined;
   const teamShieldUrl = getTeamShield(teamName);
   // Calculate player stats from all match reports
   const playerMatches: PlayerMatchData[] = [];
@@ -67,9 +69,14 @@ export function PlayerDetailModal({
     const teamData = report[teamName];
     if (typeof teamData === 'object' && teamData && 'players' in teamData) {
       const players = (teamData as { players: MatchReportPlayer[] }).players || [];
-      const player = players.find(p => p.name === playerName);
+      // Search by name OR alias
+      const foundPlayer = players.find(p => 
+        p.name === playerName || 
+        p.alias === playerName ||
+        (player && (p.name === player.name || p.alias === player.alias))
+      );
       
-      if (player) {
+      if (foundPlayer) {
         // Find the match details
         const [home, away] = report.id.split('-');
         const isHome = home === teamName;
@@ -91,7 +98,7 @@ export function PlayerDetailModal({
         if (match && matchday) {
           const ownGoals = isHome ? match.homeGoals : match.awayGoals;
           const oppGoals = isHome ? match.awayGoals : match.homeGoals;
-          const minutes = calculateMinutes(player.isStarting, player.substitutionMin || '');
+          const minutes = calculateMinutes(foundPlayer.isStarting, foundPlayer.substitutionMin || '');
 
           playerMatches.push({
             jornada: matchday.jornada,
@@ -99,22 +106,22 @@ export function PlayerDetailModal({
             isHome,
             date: match.date,
             result: `${ownGoals}-${oppGoals}`,
-            isStarting: player.isStarting,
-            substitutionMin: player.substitutionMin || '',
-            goals: player.goals || 0,
-            yellowCards: player.yellowCards || 0,
-            redCards: (player.redCards || 0) + (player.directRedCards || 0),
+            isStarting: foundPlayer.isStarting,
+            substitutionMin: foundPlayer.substitutionMin || '',
+            goals: foundPlayer.goals || 0,
+            yellowCards: foundPlayer.yellowCards || 0,
+            redCards: (foundPlayer.redCards || 0) + (foundPlayer.directRedCards || 0),
             minutesPlayed: minutes
           });
 
-          totalGoals += player.goals || 0;
-          totalYellowCards += player.yellowCards || 0;
-          totalRedCards += (player.redCards || 0) + (player.directRedCards || 0);
+          totalGoals += foundPlayer.goals || 0;
+          totalYellowCards += foundPlayer.yellowCards || 0;
+          totalRedCards += (foundPlayer.redCards || 0) + (foundPlayer.directRedCards || 0);
           totalMinutes += minutes;
           
-          if (player.isStarting) {
+          if (foundPlayer.isStarting) {
             gamesStarted++;
-          } else if (player.substitutionMin) {
+          } else if (foundPlayer.substitutionMin) {
             gamesSubstitute++;
           }
         }
