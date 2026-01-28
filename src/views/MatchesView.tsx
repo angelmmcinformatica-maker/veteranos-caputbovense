@@ -118,7 +118,7 @@ export function MatchesView({ matchdays, matchReports, teams, onTeamClick, onPla
               key={index} 
               match={match} 
               showTime 
-              onClick={match.status === 'PLAYED' ? () => setSelectedMatch(match) : undefined}
+              onClick={() => setSelectedMatch(match)}
               hasReport={!!getMatchReport(match)}
               onTeamClick={onTeamClick}
             />
