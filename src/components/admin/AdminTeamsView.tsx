@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2, Shield, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc, updateDoc, getDoc, setDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const [showDedupConfirm, setShowDedupConfirm] = useState(false);
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
   
   // Image upload hooks
   const { uploadImage } = useImageUpload();
@@ -309,10 +310,28 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
     }
   };
 
+  const deleteTeam = async () => {
+    if (!teamToDelete) return;
+    
+    setIsSaving(true);
+    try {
+      const teamRef = doc(db, 'teams', teamToDelete.id);
+      await deleteDoc(teamRef);
+      
+      setTeamToDelete(null);
+      onDataChange?.();
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      alert('Error al eliminar el equipo');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-8 pb-4 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col my-auto bg-background border border-border shadow-2xl">
+      <div className="fixed inset-0 z-[100] flex items-stretch justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div className="glass-card w-full max-w-6xl h-full overflow-hidden flex flex-col bg-background border border-border shadow-2xl rounded-xl">
           {/* Header */}
           <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
             <div>
@@ -598,16 +617,18 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                 )}
 
                 {/* Teams list */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredTeams.map((team) => {
                     const shieldUrl = getTeamShield(team.name);
                     return (
-                      <button
+                      <div
                         key={team.id}
-                        onClick={() => setSelectedTeam(team)}
-                        className="glass-card p-4 text-left hover:ring-1 hover:ring-primary/50 transition-all"
+                        className="glass-card p-4 hover:ring-1 hover:ring-primary/50 transition-all group relative"
                       >
-                        <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setSelectedTeam(team)}
+                          className="flex items-center gap-3 w-full text-left"
+                        >
                           {shieldUrl ? (
                             <img
                               src={shieldUrl}
@@ -619,14 +640,26 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                               <Users className="w-6 h-6 text-primary" />
                             </div>
                           )}
-                          <div>
-                            <p className="font-medium">{team.name}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{team.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {team.players?.length || 0} jugadores
                             </p>
                           </div>
-                        </div>
-                      </button>
+                        </button>
+                        {/* Delete button */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTeamToDelete(team);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     );
                   })}
                 </div>
@@ -718,6 +751,34 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete team confirmation dialog */}
+      <AlertDialog open={!!teamToDelete} onOpenChange={() => setTeamToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar equipo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres eliminar el equipo{' '}
+              <strong>{teamToDelete?.name}</strong>?
+              Se eliminarán todos los jugadores asociados. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={deleteTeam}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

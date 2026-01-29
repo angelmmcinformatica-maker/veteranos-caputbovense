@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { X, User, Goal, CreditCard, ArrowRightLeft, Shield } from 'lucide-react';
+import { X, User, Goal, CreditCard, ArrowRightLeft, Shield, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match, MatchReport, MatchReportPlayer, Team } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { TacticalField } from './TacticalField';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MatchDetailModalProps {
   match: Match;
@@ -53,16 +55,16 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
     const starters = players.filter(p => p.isStarting && p.substitutionMin);
     const subs = players.filter(p => !p.isStarting && p.substitutionMin);
     
-    // Group by minute
-    const minuteMap = new Map<string, SubstitutionPair>();
+    // Group by minute using object instead of Map
+    const minuteObj: Record<string, SubstitutionPair> = {};
     
     // Add players going out (starters with substitutionMin = minute they left)
     starters.forEach(player => {
       const min = player.substitutionMin!;
-      if (!minuteMap.has(min)) {
-        minuteMap.set(min, { minute: min });
+      if (!minuteObj[min]) {
+        minuteObj[min] = { minute: min };
       }
-      const pair = minuteMap.get(min)!;
+      const pair = minuteObj[min];
       if (!pair.playerOut) {
         pair.playerOut = player;
       }
@@ -71,17 +73,17 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
     // Add players coming in (subs with substitutionMin = minute they entered)
     subs.forEach(player => {
       const min = player.substitutionMin!;
-      if (!minuteMap.has(min)) {
-        minuteMap.set(min, { minute: min });
+      if (!minuteObj[min]) {
+        minuteObj[min] = { minute: min };
       }
-      const pair = minuteMap.get(min)!;
+      const pair = minuteObj[min];
       if (!pair.playerIn) {
         pair.playerIn = player;
       }
     });
     
     // Sort by minute
-    return Array.from(minuteMap.values()).sort((a, b) => 
+    return Object.values(minuteObj).sort((a, b) => 
       parseInt(a.minute) - parseInt(b.minute)
     );
   };
@@ -129,8 +131,8 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   const awaySubPairs = getSubstitutionPairs(awayPlayers);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="glass-card w-full max-w-2xl">
         {/* Header */}
         <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
@@ -306,130 +308,184 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                 </div>
               )}
 
-              {/* Lineups */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Home team */}
-                <div className="glass-card p-4 bg-secondary/20">
-                  <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
-                    <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
-                      {homeShield ? (
-                        <img src={homeShield} alt={match.home} className="w-6 h-6 object-contain" />
-                      ) : (
-                        <User className="w-4 h-4 text-muted-foreground" />
+              {/* Lineups with Tactical View Tabs */}
+              <Tabs defaultValue="list" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="list" className="flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    Alineaciones
+                  </TabsTrigger>
+                  <TabsTrigger value="field" className="flex items-center gap-1">
+                    <Map className="w-4 h-4" />
+                    Campo Táctico
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* List View */}
+                <TabsContent value="list" className="m-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Home team */}
+                    <div className="glass-card p-4 bg-secondary/20">
+                      <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
+                        <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
+                          {homeShield ? (
+                            <img src={homeShield} alt={match.home} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <User className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className="text-sm">{match.home}</span>
+                      </h3>
+                      
+                      {getStarters(homePlayers).length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
+                          <div className="space-y-1">
+                            {getStarters(homePlayers).map((player, i) => (
+                              <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                                <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
+                                  {player.matchNumber}
+                                </span>
+                                <PlayerName player={player} teamName={match.home} className="text-sm" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {homeSubPairs.length > 0 && (
+                        <div className="pt-2 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
+                            <ArrowRightLeft className="w-3 h-3" />
+                            Cambios
+                          </p>
+                          <div className="space-y-2">
+                            {homeSubPairs.map((pair, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
+                                {pair.playerIn && (
+                                  <span className="flex items-center gap-1 text-primary">
+                                    <span className="text-xs">↑</span>
+                                    <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
+                                      {pair.playerIn.matchNumber}
+                                    </span>
+                                    <PlayerName player={pair.playerIn} teamName={match.home} className="text-foreground" />
+                                  </span>
+                                )}
+                                <span className="text-muted-foreground text-xs">({pair.minute}')</span>
+                                {pair.playerOut && (
+                                  <span className="flex items-center gap-1 text-muted-foreground ml-auto">
+                                    <span className="text-xs">↓</span>
+                                    <PlayerName player={pair.playerOut} teamName={match.home} />
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <span className="text-sm">{match.home}</span>
-                  </h3>
-                  
-                  {getStarters(homePlayers).length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
-                      <div className="space-y-1">
-                        {getStarters(homePlayers).map((player, i) => (
-                          <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
-                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
-                              {player.matchNumber}
-                            </span>
-                            <PlayerName player={player} teamName={match.home} className="text-sm" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
-                  {homeSubPairs.length > 0 && (
-                    <div className="pt-2 border-t border-border/30">
-                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <ArrowRightLeft className="w-3 h-3" />
-                        Cambios
-                      </p>
-                      <div className="space-y-2">
-                        {homeSubPairs.map((pair, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
-                            {pair.playerIn && (
-                              <span className="flex items-center gap-1 text-primary">
-                                <span className="text-xs">↑</span>
-                                <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
-                                  {pair.playerIn.matchNumber}
+                    {/* Away team */}
+                    <div className="glass-card p-4 bg-secondary/20">
+                      <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
+                        <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
+                          {awayShield ? (
+                            <img src={awayShield} alt={match.away} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <User className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className="text-sm">{match.away}</span>
+                      </h3>
+                      
+                      {getStarters(awayPlayers).length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
+                          <div className="space-y-1">
+                            {getStarters(awayPlayers).map((player, i) => (
+                              <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                                <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
+                                  {player.matchNumber}
                                 </span>
-                                <PlayerName player={pair.playerIn} teamName={match.home} className="text-foreground" />
-                              </span>
-                            )}
-                            <span className="text-muted-foreground text-xs">({pair.minute}')</span>
-                            {pair.playerOut && (
-                              <span className="flex items-center gap-1 text-muted-foreground ml-auto">
-                                <span className="text-xs">↓</span>
-                                <PlayerName player={pair.playerOut} teamName={match.home} />
-                              </span>
-                            )}
+                                <PlayerName player={player} teamName={match.away} className="text-sm" />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                        </div>
+                      )}
 
-                {/* Away team */}
-                <div className="glass-card p-4 bg-secondary/20">
-                  <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
-                    <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center overflow-hidden">
-                      {awayShield ? (
-                        <img src={awayShield} alt={match.away} className="w-6 h-6 object-contain" />
-                      ) : (
-                        <User className="w-4 h-4 text-muted-foreground" />
+                      {awaySubPairs.length > 0 && (
+                        <div className="pt-2 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
+                            <ArrowRightLeft className="w-3 h-3" />
+                            Cambios
+                          </p>
+                          <div className="space-y-2">
+                            {awaySubPairs.map((pair, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
+                                {pair.playerIn && (
+                                  <span className="flex items-center gap-1 text-primary">
+                                    <span className="text-xs">↑</span>
+                                    <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
+                                      {pair.playerIn.matchNumber}
+                                    </span>
+                                    <PlayerName player={pair.playerIn} teamName={match.away} className="text-foreground" />
+                                  </span>
+                                )}
+                                <span className="text-muted-foreground text-xs">({pair.minute}')</span>
+                                {pair.playerOut && (
+                                  <span className="flex items-center gap-1 text-muted-foreground ml-auto">
+                                    <span className="text-xs">↓</span>
+                                    <PlayerName player={pair.playerOut} teamName={match.away} />
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <span className="text-sm">{match.away}</span>
-                  </h3>
-                  
-                  {getStarters(awayPlayers).length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Titulares</p>
-                      <div className="space-y-1">
-                        {getStarters(awayPlayers).map((player, i) => (
-                          <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
-                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
-                              {player.matchNumber}
-                            </span>
-                            <PlayerName player={player} teamName={match.away} className="text-sm" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  </div>
+                </TabsContent>
 
-                  {awaySubPairs.length > 0 && (
-                    <div className="pt-2 border-t border-border/30">
-                      <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <ArrowRightLeft className="w-3 h-3" />
-                        Cambios
-                      </p>
-                      <div className="space-y-2">
-                        {awaySubPairs.map((pair, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm bg-secondary/20 rounded-lg p-2">
-                            {pair.playerIn && (
-                              <span className="flex items-center gap-1 text-primary">
-                                <span className="text-xs">↑</span>
-                                <span className="w-5 h-5 rounded-full bg-primary/20 text-[10px] font-bold flex items-center justify-center">
-                                  {pair.playerIn.matchNumber}
-                                </span>
-                                <PlayerName player={pair.playerIn} teamName={match.away} className="text-foreground" />
-                              </span>
-                            )}
-                            <span className="text-muted-foreground text-xs">({pair.minute}')</span>
-                            {pair.playerOut && (
-                              <span className="flex items-center gap-1 text-muted-foreground ml-auto">
-                                <span className="text-xs">↓</span>
-                                <PlayerName player={pair.playerOut} teamName={match.away} />
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                {/* Field View */}
+                <TabsContent value="field" className="m-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h3 className="flex items-center gap-2 font-semibold text-sm">
+                        {homeShield ? (
+                          <img src={homeShield} alt={match.home} className="w-6 h-6 object-contain" />
+                        ) : (
+                          <Shield className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        {match.home}
+                      </h3>
+                      <TacticalField
+                        teamName={match.home}
+                        formation="1-4-4-2"
+                        players={homePlayers}
+                        homeTeamPlayers={homeTeam?.players}
+                      />
                     </div>
-                  )}
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <h3 className="flex items-center gap-2 font-semibold text-sm">
+                        {awayShield ? (
+                          <img src={awayShield} alt={match.away} className="w-6 h-6 object-contain" />
+                        ) : (
+                          <Shield className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        {match.away}
+                      </h3>
+                      <TacticalField
+                        teamName={match.away}
+                        formation="1-4-4-2"
+                        players={awayPlayers}
+                        homeTeamPlayers={awayTeam?.players}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
 
               {/* Observations */}
               {matchReport.observations && typeof matchReport.observations === 'string' && matchReport.observations.trim() && (
