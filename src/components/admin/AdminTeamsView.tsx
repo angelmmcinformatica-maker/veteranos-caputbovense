@@ -48,9 +48,15 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const [editAlias, setEditAlias] = useState('');
   const [editId, setEditId] = useState<string>('');
 
-  const filteredTeams = teams.filter(team =>
-    team.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Deduplicate teams by id and filter by search term
+  const filteredTeams = useMemo(() => {
+    const seenIds = new Set<string>();
+    return teams.filter(team => {
+      if (seenIds.has(team.id)) return false;
+      seenIds.add(team.id);
+      return team.name.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [teams, searchTerm]);
 
   const toNumeric = (v: string | number) => {
     const n = Number(v);
@@ -305,8 +311,8 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-        <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-8 pb-4 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col my-auto bg-background border border-border shadow-2xl">
           {/* Header */}
           <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
             <div>
