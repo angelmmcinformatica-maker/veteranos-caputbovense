@@ -36,8 +36,17 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
     return (teamData as { players: MatchReportPlayer[] }).players || [];
   };
 
+  const getTeamFormation = (teamName: string): string => {
+    if (!matchReport) return '1-4-4-2';
+    const teamData = matchReport[teamName];
+    if (typeof teamData === 'string' || !teamData) return '1-4-4-2';
+    return (teamData as any).formation || '1-4-4-2';
+  };
+
   const homePlayers = getTeamPlayers(match.home);
   const awayPlayers = getTeamPlayers(match.away);
+  const homeFormation = getTeamFormation(match.home);
+  const awayFormation = getTeamFormation(match.away);
 
   // Sort starters by matchNumber
   const getStarters = (players: MatchReportPlayer[]) => 
@@ -462,7 +471,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                       </h3>
                       <TacticalField
                         teamName={match.home}
-                        formation="1-4-4-2"
+                        formation={homeFormation}
                         players={homePlayers}
                         homeTeamPlayers={homeTeam?.players}
                       />
@@ -478,7 +487,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                       </h3>
                       <TacticalField
                         teamName={match.away}
-                        formation="1-4-4-2"
+                        formation={awayFormation}
                         players={awayPlayers}
                         homeTeamPlayers={awayTeam?.players}
                       />

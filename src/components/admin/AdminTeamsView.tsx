@@ -330,12 +330,12 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-stretch justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-        <div className="glass-card w-full max-w-6xl h-full overflow-hidden flex flex-col bg-background border border-border shadow-2xl rounded-xl">
-          {/* Header */}
-          <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-4 pb-4 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-6xl flex flex-col bg-background border border-border shadow-2xl rounded-xl" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+          {/* Header - always visible */}
+          <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold truncate">
                 {selectedTeam ? selectedTeam.name : 'Gestión de Equipos'}
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -347,7 +347,7 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              className="shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>

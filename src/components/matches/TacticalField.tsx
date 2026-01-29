@@ -12,48 +12,81 @@ interface TacticalFieldProps {
 }
 
 // Formation positions mapping (from right to left as per user request)
-// Each position is [row (0-4 bottom to top), column (0-10 left to right)]
+// Each position is [row (0-4.5 bottom to top), column (0-10 left to right)]
+// Row 0 = GK, Row 4.5 = Strikers
+// Column: 0=left touchline, 10=right touchline (right-to-left means RB at 9, LB at 1)
 const FORMATION_POSITIONS: Record<string, number[][]> = {
   '1-4-4-2': [
     // GK
     [0, 5],
-    // Defense (RB, RCB, LCB, LB) - right to left
+    // Defense (RB, RCB, LCB, LB)
     [1, 9], [1, 6.5], [1, 3.5], [1, 1],
     // Midfield (RM, RCM, LCM, LM)
     [2.5, 9], [2.5, 6.5], [2.5, 3.5], [2.5, 1],
     // Attack (RS, LS)
-    [4, 6.5], [4, 3.5]
+    [4.2, 6.5], [4.2, 3.5]
   ],
   '1-4-3-3': [
+    // GK
     [0, 5],
+    // Defense (RB, RCB, LCB, LB)
     [1, 9], [1, 6.5], [1, 3.5], [1, 1],
-    [2.2, 7], [2.2, 5], [2.2, 3],
-    [4, 8], [4, 5], [4, 2]
+    // Midfield (RCM, CM, LCM)
+    [2.3, 7], [2.3, 5], [2.3, 3],
+    // Attack (RW, ST, LW)
+    [4.2, 8.5], [4.2, 5], [4.2, 1.5]
   ],
   '1-4-2-3-1': [
+    // GK
     [0, 5],
+    // Defense (RB, RCB, LCB, LB)
     [1, 9], [1, 6.5], [1, 3.5], [1, 1],
+    // Double pivot (RDM, LDM)
     [2, 6.5], [2, 3.5],
-    [3, 8], [3, 5], [3, 2],
-    [4, 5]
+    // Attacking midfield (RW, CAM, LW)
+    [3.2, 8.5], [3.2, 5], [3.2, 1.5],
+    // Striker (CF)
+    [4.5, 5]
   ],
   '1-3-5-2': [
+    // GK
     [0, 5],
+    // Defense (RCB, CB, LCB)
     [1, 7], [1, 5], [1, 3],
+    // Midfield 5 (RWB, RCM, CM, LCM, LWB)
     [2.3, 9], [2.3, 7], [2.3, 5], [2.3, 3], [2.3, 1],
-    [4, 6.5], [4, 3.5]
+    // Attack (RS, LS)
+    [4.2, 6.5], [4.2, 3.5]
   ],
   '1-5-3-2': [
+    // GK
     [0, 5],
+    // Defense 5 (RWB, RCB, CB, LCB, LWB)
     [1, 9], [1, 7], [1, 5], [1, 3], [1, 1],
+    // Midfield (RCM, CM, LCM)
     [2.5, 7], [2.5, 5], [2.5, 3],
-    [4, 6.5], [4, 3.5]
+    // Attack (RS, LS)
+    [4.2, 6.5], [4.2, 3.5]
   ],
   '1-5-4-1': [
+    // GK
     [0, 5],
+    // Defense 5 (RWB, RCB, CB, LCB, LWB)
     [1, 9], [1, 7], [1, 5], [1, 3], [1, 1],
+    // Midfield 4 (RM, RCM, LCM, LM)
     [2.5, 8], [2.5, 6], [2.5, 4], [2.5, 2],
-    [4, 5]
+    // Attack (CF)
+    [4.5, 5]
+  ],
+  '1-3-4-3': [
+    // GK
+    [0, 5],
+    // Defense (RCB, CB, LCB)
+    [1, 7], [1, 5], [1, 3],
+    // Midfield 4 (RM, RCM, LCM, LM)
+    [2.3, 9], [2.3, 6.5], [2.3, 3.5], [2.3, 1],
+    // Attack (RW, ST, LW)
+    [4.2, 8.5], [4.2, 5], [4.2, 1.5]
   ]
 };
 
