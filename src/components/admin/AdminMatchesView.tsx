@@ -80,50 +80,49 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-2 pb-2 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-5xl flex flex-col h-[calc(100vh-1rem)]">
-          {/* Header - always visible */}
-          <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between gap-4">
+      <div className="fixed inset-0 z-50 flex items-start justify-center pt-1 pb-1 px-2 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-6xl flex flex-col h-[calc(100vh-0.5rem)]">
+          {/* Header - compact */}
+          <div className="shrink-0 border-b border-border/50 px-3 py-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="text-lg font-bold">Gestión de Partidos</h2>
-              <p className="text-sm text-muted-foreground truncate">Editar resultados, alineaciones y actas</p>
+              <h2 className="text-base font-bold">Gestión de Partidos</h2>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" size="sm" onClick={onDataChange}>
-                <RefreshCw className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={onDataChange} className="h-7 text-xs px-2">
+                <RefreshCw className="w-3 h-3 mr-1" />
                 Actualizar
               </Button>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+                className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Jornada selector with arrows */}
-          <div className="p-4 border-b border-border/30">
-            <div className="flex items-center justify-center gap-4">
+          {/* Jornada selector - compact */}
+          <div className="px-3 py-2 border-b border-border/30">
+            <div className="flex items-center justify-center gap-3">
               <button
                 onClick={goToPrevJornada}
                 disabled={selectedJornada === sortedMatchdays[0]?.jornada}
-                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors disabled:opacity-30"
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors disabled:opacity-30"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <h3 className="text-lg font-bold min-w-[140px] text-center">Jornada {selectedJornada}</h3>
+              <h3 className="text-base font-bold min-w-[120px] text-center">Jornada {selectedJornada}</h3>
               <button
                 onClick={goToNextJornada}
                 disabled={selectedJornada === sortedMatchdays[sortedMatchdays.length - 1]?.jornada}
-                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors disabled:opacity-30"
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors disabled:opacity-30"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
             
-            {/* Quick jornada pills */}
-            <div className="flex gap-1 overflow-x-auto hide-scrollbar mt-3 justify-center">
+            {/* Quick jornada pills - compact */}
+            <div className="flex gap-0.5 overflow-x-auto hide-scrollbar mt-2 justify-center">
               {sortedMatchdays.map(md => {
                 const hasLiveMatch = md.matches?.some(m => m.status === 'LIVE');
                 return (
@@ -131,7 +130,7 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                     key={md.jornada}
                     onClick={() => setSelectedJornada(md.jornada)}
                     className={cn(
-                      'flex-shrink-0 w-8 h-8 rounded-full text-xs font-medium transition-all relative',
+                      'flex-shrink-0 w-7 h-7 rounded-full text-xs font-medium transition-all relative',
                       selectedJornada === md.jornada
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary text-muted-foreground hover:text-foreground'
@@ -147,8 +146,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
             </div>
           </div>
 
-          {/* Matches list - compact grid that fills space */}
-          <div className="flex-1 overflow-y-auto p-3">
+          {/* Matches list - maximized space usage */}
+          <div className="flex-1 overflow-y-auto p-2">
             {selectedMatchday?.matches && selectedMatchday.matches.length > 0 ? (
               <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: 'min-content' }}>
                 {selectedMatchday.matches.map((match, index) => {
