@@ -80,8 +80,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-1 pb-1 px-2 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-6xl flex flex-col h-[calc(100vh-0.5rem)]">
+      <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div className="glass-card w-full h-full max-w-none rounded-none flex flex-col">
           {/* Header - compact */}
           <div className="shrink-0 border-b border-border/50 px-3 py-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
@@ -355,8 +355,8 @@ function ReportViewModal({ report, match, onClose, onEdit }: ReportViewModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-4 pb-4 px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="glass-card w-full max-w-2xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+    <div className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="glass-card w-full h-full max-w-none rounded-none flex flex-col">
         <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="text-lg font-bold">Acta del Partido</h2>
