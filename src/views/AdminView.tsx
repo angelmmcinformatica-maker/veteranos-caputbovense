@@ -141,7 +141,7 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
   const canViewTacticalField = isAdmin || isReferee || isDelegate;
 
   return (
-    <div className="animate-fade-up">
+    <div className="animate-fade-up flex flex-col min-h-[85vh]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold">Panel de Administración</h2>
@@ -183,7 +183,7 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 flex-1 content-start">
         <AdminCard 
           title="Gestión de Partidos y Actas"
           description={`${matchdays.length} jornadas • Resultados, alineaciones y actas`}
