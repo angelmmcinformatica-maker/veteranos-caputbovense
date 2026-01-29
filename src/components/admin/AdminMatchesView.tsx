@@ -147,10 +147,10 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
             </div>
           </div>
 
-          {/* Matches list */}
+          {/* Matches list - compact grid */}
           <div className="flex-1 overflow-y-auto p-4">
             {selectedMatchday?.matches && selectedMatchday.matches.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
                 {selectedMatchday.matches.map((match, index) => {
                   const report = getMatchReport(match);
                   const hasReport = !!report;
@@ -163,68 +163,71 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                         match.status === 'LIVE' ? 'ring-2 ring-destructive/50' : ''
                       )}
                     >
-                      {/* Match info */}
-                      <div className="p-4">
-                        {/* Teams and score */}
-                        <div className="text-center mb-4">
-                          <p className={cn(
-                            'font-semibold',
-                            match.status === 'PLAYED' && match.homeGoals > match.awayGoals && 'text-primary'
-                          )}>
-                            {match.home}
-                          </p>
-                          
-                          <div className="flex items-center justify-center gap-3 my-3">
-                            <div className={cn(
-                              'w-14 h-14 rounded-lg bg-secondary flex items-center justify-center text-2xl font-bold',
-                              match.status === 'PLAYED' || match.status === 'LIVE' ? '' : 'text-muted-foreground'
+                      <div className="p-3">
+                        {/* Compact match row */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              'text-sm font-medium truncate',
+                              match.status === 'PLAYED' && match.homeGoals > match.awayGoals && 'text-primary'
+                            )}>
+                              {match.home}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className={cn(
+                              'w-8 h-8 rounded bg-secondary flex items-center justify-center text-lg font-bold',
+                              match.status === 'PENDING' && 'text-muted-foreground text-base'
                             )}>
                               {match.status === 'PLAYED' || match.status === 'LIVE' ? match.homeGoals : '-'}
-                            </div>
-                            <span className="text-muted-foreground text-xl">-</span>
-                            <div className={cn(
-                              'w-14 h-14 rounded-lg bg-secondary flex items-center justify-center text-2xl font-bold',
-                              match.status === 'PLAYED' || match.status === 'LIVE' ? '' : 'text-muted-foreground'
+                            </span>
+                            <span className="text-muted-foreground text-sm">:</span>
+                            <span className={cn(
+                              'w-8 h-8 rounded bg-secondary flex items-center justify-center text-lg font-bold',
+                              match.status === 'PENDING' && 'text-muted-foreground text-base'
                             )}>
                               {match.status === 'PLAYED' || match.status === 'LIVE' ? match.awayGoals : '-'}
-                            </div>
+                            </span>
                           </div>
-                          
-                          <p className={cn(
-                            'font-semibold',
-                            match.status === 'PLAYED' && match.awayGoals > match.homeGoals && 'text-primary'
-                          )}>
-                            {match.away}
-                          </p>
+                          <div className="flex-1 min-w-0 text-right">
+                            <p className={cn(
+                              'text-sm font-medium truncate',
+                              match.status === 'PLAYED' && match.awayGoals > match.homeGoals && 'text-primary'
+                            )}>
+                              {match.away}
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Date, time and status */}
-                        <div className="flex items-center justify-center gap-3 mb-4">
+                        {/* Status and meta */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
                           {getStatusBadge(match.status)}
                           <span className="text-xs text-muted-foreground">
                             {match.date} {match.time && `• ${match.time}`}
                           </span>
                         </div>
 
-                        {/* Action buttons */}
-                        <div className="flex flex-col gap-2">
+                        {/* Action buttons - horizontal */}
+                        <div className="flex gap-2">
                           {hasReport && (
                             <Button
                               variant="outline"
-                              className="w-full"
+                              size="sm"
+                              className="flex-1"
                               onClick={() => setViewingReport({ report: report!, match })}
                             >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver Acta
+                              <Eye className="w-3 h-3 mr-1" />
+                              Ver
                             </Button>
                           )}
                           <Button
                             variant="default"
-                            className="w-full"
+                            size="sm"
+                            className={hasReport ? 'flex-1' : 'w-full'}
                             onClick={() => setEditingMatch({ match, matchday: selectedMatchday })}
                           >
-                            <Edit2 className="w-4 h-4 mr-2" />
-                            {hasReport ? 'Editar Partido' : 'Rellenar Acta'}
+                            <Edit2 className="w-3 h-3 mr-1" />
+                            {hasReport ? 'Editar' : 'Acta'}
                           </Button>
                         </div>
                       </div>
@@ -239,7 +242,7 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
             )}
 
             {selectedMatchday?.rest && (
-              <div className="glass-card p-4 mt-4 text-center">
+              <div className="glass-card p-3 mt-3 text-center">
                 <p className="text-sm text-muted-foreground">
                   Descansa: <span className="font-medium text-foreground">{selectedMatchday.rest}</span>
                 </p>
@@ -353,16 +356,16 @@ function ReportViewModal({ report, match, onClose, onEdit }: ReportViewModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
-          <div>
+    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-4 pb-4 px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="glass-card w-full max-w-2xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+        <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
+          <div className="min-w-0">
             <h2 className="text-lg font-bold">Acta del Partido</h2>
-            <p className="text-sm text-muted-foreground">{match.home} vs {match.away}</p>
+            <p className="text-sm text-muted-foreground truncate">{match.home} vs {match.away}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            className="shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
