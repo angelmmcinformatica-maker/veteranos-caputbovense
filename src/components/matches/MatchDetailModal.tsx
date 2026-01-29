@@ -48,13 +48,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   const homeFormation = getTeamFormation(match.home);
   const awayFormation = getTeamFormation(match.away);
 
-  // Sort starters by matchNumber
+  // Keep starters in original array order (matches the order entered in the report)
   const getStarters = (players: MatchReportPlayer[]) => 
-    players.filter(p => p.isStarting).sort((a, b) => {
-      const numA = typeof a.matchNumber === 'number' ? a.matchNumber : parseInt(String(a.matchNumber)) || 0;
-      const numB = typeof b.matchNumber === 'number' ? b.matchNumber : parseInt(String(b.matchNumber)) || 0;
-      return numA - numB;
-    });
+    players.filter(p => p.isStarting);
   
   const getSubstitutes = (players: MatchReportPlayer[]) => 
     players.filter(p => !p.isStarting && p.substitutionMin);

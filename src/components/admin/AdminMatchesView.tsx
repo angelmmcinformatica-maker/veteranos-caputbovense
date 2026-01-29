@@ -80,8 +80,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-4xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+      <div className="fixed inset-0 z-50 flex items-start justify-center pt-2 pb-2 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-5xl flex flex-col h-[calc(100vh-1rem)]">
           {/* Header - always visible */}
           <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
@@ -147,10 +147,10 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
             </div>
           </div>
 
-          {/* Matches list - compact grid */}
-          <div className="flex-1 overflow-y-auto p-4">
+          {/* Matches list - compact grid that fills space */}
+          <div className="flex-1 overflow-y-auto p-3">
             {selectedMatchday?.matches && selectedMatchday.matches.length > 0 ? (
-              <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: 'min-content' }}>
                 {selectedMatchday.matches.map((match, index) => {
                   const report = getMatchReport(match);
                   const hasReport = !!report;
