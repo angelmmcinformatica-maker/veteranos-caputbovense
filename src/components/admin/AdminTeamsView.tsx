@@ -330,31 +330,31 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-2 pb-2 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-6xl flex flex-col bg-background border border-border shadow-2xl rounded-xl h-[calc(100vh-1rem)]">
-          {/* Header - always visible */}
-          <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between gap-4">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-1 pb-1 px-2 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-6xl flex flex-col bg-background border border-border shadow-2xl rounded-xl h-[calc(100vh-0.5rem)]">
+          {/* Header - compact */}
+          <div className="shrink-0 border-b border-border/50 px-3 py-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="text-lg font-bold truncate">
+              <h2 className="text-base font-bold truncate">
                 {selectedTeam ? selectedTeam.name : 'Gestión de Equipos'}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {selectedTeam 
                   ? `${selectedTeam.players?.length || 0} jugadores`
-                  : `${teams.length} equipos registrados`
+                  : `${teams.length} equipos`
                 }
               </p>
             </div>
             <button
               onClick={onClose}
-              className="shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              className="shrink-0 w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          {/* Content - maximized */}
+          <div className="flex-1 overflow-y-auto p-2">
             {selectedTeam ? (
             <div className="space-y-4">
                 {/* Team header with shield upload */}

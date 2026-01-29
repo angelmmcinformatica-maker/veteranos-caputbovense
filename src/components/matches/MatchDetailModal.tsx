@@ -55,42 +55,45 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   const getSubstitutes = (players: MatchReportPlayer[]) => 
     players.filter(p => !p.isStarting && p.substitutionMin);
 
-  // Get substitution pairs grouped by minute
+  // Get ALL substitution pairs - each sub that entered gets its own entry
   const getSubstitutionPairs = (players: MatchReportPlayer[]): SubstitutionPair[] => {
     const starters = players.filter(p => p.isStarting && p.substitutionMin);
     const subs = players.filter(p => !p.isStarting && p.substitutionMin);
     
-    // Group by minute using object instead of Map
-    const minuteObj: Record<string, SubstitutionPair> = {};
+    const pairs: SubstitutionPair[] = [];
+    const usedStarters = new Set<string>();
     
-    // Add players going out (starters with substitutionMin = minute they left)
-    starters.forEach(player => {
-      const min = player.substitutionMin!;
-      if (!minuteObj[min]) {
-        minuteObj[min] = { minute: min };
+    // For each substitute that entered, create a pair with a starter that left at the same minute
+    subs.forEach(subPlayer => {
+      const min = subPlayer.substitutionMin!;
+      // Find a starter who left at the same minute and hasn't been paired yet
+      const starterOut = starters.find(s => 
+        s.substitutionMin === min && !usedStarters.has(`${s.id}-${s.name}`)
+      );
+      
+      if (starterOut) {
+        usedStarters.add(`${starterOut.id}-${starterOut.name}`);
       }
-      const pair = minuteObj[min];
-      if (!pair.playerOut) {
-        pair.playerOut = player;
-      }
+      
+      pairs.push({
+        minute: min,
+        playerIn: subPlayer,
+        playerOut: starterOut
+      });
     });
     
-    // Add players coming in (subs with substitutionMin = minute they entered)
-    subs.forEach(player => {
-      const min = player.substitutionMin!;
-      if (!minuteObj[min]) {
-        minuteObj[min] = { minute: min };
-      }
-      const pair = minuteObj[min];
-      if (!pair.playerIn) {
-        pair.playerIn = player;
+    // Add any starters that left but weren't paired (edge cases)
+    starters.forEach(starter => {
+      if (!usedStarters.has(`${starter.id}-${starter.name}`)) {
+        pairs.push({
+          minute: starter.substitutionMin!,
+          playerOut: starter
+        });
       }
     });
     
     // Sort by minute
-    return Object.values(minuteObj).sort((a, b) => 
-      parseInt(a.minute) - parseInt(b.minute)
-    );
+    return pairs.sort((a, b) => parseInt(a.minute) - parseInt(b.minute));
   };
 
   const getScorers = (players: MatchReportPlayer[]) =>
