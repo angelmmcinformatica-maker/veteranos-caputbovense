@@ -15,13 +15,14 @@ interface LineupFormEditorProps {
   teamName: string;
   teamRoster: Player[];
   players: MatchReportPlayer[];
+  formation: string;
   onPlayersChange: (players: MatchReportPlayer[]) => void;
+  onFormationChange: (formation: string) => void;
 }
 
-const FORMATIONS = ['1-4-3-3', '1-4-4-2', '1-4-2-3-1', '1-3-5-2', '1-5-3-2', '1-5-4-1'];
+const FORMATIONS = ['1-4-3-3', '1-4-4-2', '1-4-2-3-1', '1-3-5-2', '1-5-3-2', '1-5-4-1', '1-3-4-3'];
 
-export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChange }: LineupFormEditorProps) {
-  const [formation, setFormation] = useState('1-4-2-3-1');
+export function LineupFormEditor({ teamName, teamRoster, players, formation, onPlayersChange, onFormationChange }: LineupFormEditorProps) {
   const [numSubstitutes, setNumSubstitutes] = useState(9);
 
   // Separate starters (first 11) and subs
@@ -97,8 +98,8 @@ export function LineupFormEditor({ teamName, teamRoster, players, onPlayersChang
 
       {/* Formation selector */}
       <div className="glass-card p-3 bg-primary/10 border border-primary/30">
-        <Label className="text-xs text-primary font-semibold uppercase">Táctica por defecto</Label>
-        <Select value={formation} onValueChange={setFormation}>
+        <Label className="text-xs text-primary font-semibold uppercase">Sistema de juego</Label>
+        <Select value={formation} onValueChange={onFormationChange}>
           <SelectTrigger className="mt-2 bg-secondary/50">
             <SelectValue />
           </SelectTrigger>

@@ -80,15 +80,15 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-        <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          {/* Header */}
-          <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
-            <div>
+      <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="glass-card w-full max-w-4xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+          {/* Header - always visible */}
+          <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
               <h2 className="text-lg font-bold">Gestión de Partidos</h2>
-              <p className="text-sm text-muted-foreground">Editar resultados, alineaciones y actas</p>
+              <p className="text-sm text-muted-foreground truncate">Editar resultados, alineaciones y actas</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Button variant="outline" size="sm" onClick={onDataChange}>
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualizar

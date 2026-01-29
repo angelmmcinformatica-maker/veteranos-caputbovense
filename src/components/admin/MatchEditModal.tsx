@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, Mic, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -42,11 +42,19 @@ export function MatchEditModal({
   const [observations, setObservations] = useState(existingReport?.observations || '');
   const [homePlayers, setHomePlayers] = useState<MatchReportPlayer[]>([]);
   const [awayPlayers, setAwayPlayers] = useState<MatchReportPlayer[]>([]);
+  
+  // Formation state
+  const [homeFormation, setHomeFormation] = useState<string>('1-4-2-3-1');
+  const [awayFormation, setAwayFormation] = useState<string>('1-4-2-3-1');
+  
+  // Voice dictation state
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const homeTeam = teams.find(t => t.name === match.home);
   const awayTeam = teams.find(t => t.name === match.away);
 
-  // Initialize players from existing report or team roster
+  // Initialize players and formations from existing report or team roster
   useEffect(() => {
     if (existingReport) {
       const homeData = existingReport[match.home];
@@ -54,12 +62,81 @@ export function MatchEditModal({
       
       if (typeof homeData === 'object' && homeData && 'players' in homeData) {
         setHomePlayers((homeData as { players: MatchReportPlayer[] }).players || []);
+        if ((homeData as any).formation) {
+          setHomeFormation((homeData as any).formation);
+        }
       }
       if (typeof awayData === 'object' && awayData && 'players' in awayData) {
         setAwayPlayers((awayData as { players: MatchReportPlayer[] }).players || []);
+        if ((awayData as any).formation) {
+          setAwayFormation((awayData as any).formation);
+        }
       }
     }
   }, [existingReport, match.home, match.away]);
+
+  // Voice dictation handlers
+  const startListening = useCallback(() => {
+    const win = window as any;
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
+      return;
+    }
+
+    const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionClass();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'es-ES';
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      if (finalTranscript) {
+        setObservations(prev => prev + finalTranscript);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -111,8 +188,8 @@ export function MatchEditModal({
         const reportData = {
           id: reportId,
           observations: observations || '',
-          [match.home]: { players: cleanPlayerData(homePlayers) },
-          [match.away]: { players: cleanPlayerData(awayPlayers) }
+          [match.home]: { players: cleanPlayerData(homePlayers), formation: homeFormation },
+          [match.away]: { players: cleanPlayerData(awayPlayers), formation: awayFormation }
         };
 
         await setDoc(reportRef, reportData, { merge: true });
@@ -279,16 +356,41 @@ export function MatchEditModal({
                 </div>
               </div>
 
-              {/* Observations */}
+              {/* Observations with voice dictation */}
               <div className="space-y-2">
-                <Label htmlFor="observations">Observaciones del partido</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="observations">Observaciones del partido</Label>
+                  <Button
+                    type="button"
+                    variant={isListening ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleListening}
+                    className="flex items-center gap-2"
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="w-4 h-4" />
+                        Detener
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-4 h-4" />
+                        Dictar
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Textarea
                   id="observations"
                   value={observations}
                   onChange={(e) => setObservations(e.target.value)}
-                  placeholder="Incidencias, comentarios del árbitro..."
+                  placeholder="Incidencias, comentarios del árbitro... (puedes dictar con el micrófono)"
                   rows={3}
+                  className={isListening ? 'ring-2 ring-destructive' : ''}
                 />
+                {isListening && (
+                  <p className="text-xs text-destructive animate-pulse">🎤 Escuchando... Habla ahora</p>
+                )}
               </div>
             </TabsContent>
 
@@ -298,7 +400,9 @@ export function MatchEditModal({
                 teamName={match.home}
                 teamRoster={homeTeam?.players || []}
                 players={homePlayers}
+                formation={homeFormation}
                 onPlayersChange={setHomePlayers}
+                onFormationChange={setHomeFormation}
               />
             </TabsContent>
 
@@ -308,7 +412,9 @@ export function MatchEditModal({
                 teamName={match.away}
                 teamRoster={awayTeam?.players || []}
                 players={awayPlayers}
+                formation={awayFormation}
                 onPlayersChange={setAwayPlayers}
+                onFormationChange={setAwayFormation}
               />
             </TabsContent>
           </div>
