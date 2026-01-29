@@ -1,20 +1,23 @@
 import { useState, forwardRef } from 'react';
-import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel } from 'lucide-react';
+import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Matchday, Team, MatchReport } from '@/types/league';
+import type { Matchday, Team, MatchReport, TopScorer, CardRanking } from '@/types/league';
 import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
+import { AdminReportsManager } from '@/components/admin/AdminReportsManager';
 
 interface AdminViewProps {
   matchdays: Matchday[];
   teams: Team[];
   matchReports: MatchReport[];
+  topScorers: TopScorer[];
+  cardRankings: CardRanking[];
   onDataRefresh: () => void;
 }
 
-type AdminModal = 'matches' | 'teams' | null;
+type AdminModal = 'matches' | 'teams' | 'reports' | null;
 
-export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: AdminViewProps) {
+export function AdminView({ matchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -201,6 +204,14 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
           disabledMessage={!canManageTeams ? 'Requiere rol de administrador o delegado' : undefined}
         />
         <AdminCard 
+          title="Actas y Estadísticas"
+          description={`${matchReports.length} actas • Ver goleadores y tarjetas`}
+          icon="📊"
+          onClick={() => setActiveModal('reports')}
+          disabled={!isAdmin}
+          disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
+        />
+        <AdminCard 
           title="Campo Táctico"
           description="Visualización de formaciones"
           icon="🏟️"
@@ -233,6 +244,16 @@ export function AdminView({ matchdays, teams, matchReports, onDataRefresh }: Adm
         <AdminTeamsView 
           teams={teams} 
           matchReports={matchReports}
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
+        />
+      )}
+      {activeModal === 'reports' && isAdmin && (
+        <AdminReportsManager 
+          matchdays={matchdays}
+          matchReports={matchReports}
+          topScorers={topScorers}
+          cardRankings={cardRankings}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
         />
