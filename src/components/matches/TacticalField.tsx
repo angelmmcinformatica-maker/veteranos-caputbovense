@@ -93,18 +93,15 @@ const FORMATION_POSITIONS: Record<string, number[][]> = {
 export function TacticalField({ teamName, formation, players, homeTeamPlayers, className }: TacticalFieldProps) {
   const { getPlayerPhoto } = useTeamImages();
   
-  const starters = useMemo(() => 
-    players
-      .filter(p => p.isStarting)
-      .sort((a, b) => {
-        const numA = typeof a.matchNumber === 'number' ? a.matchNumber : parseInt(String(a.matchNumber)) || 0;
-        const numB = typeof b.matchNumber === 'number' ? b.matchNumber : parseInt(String(b.matchNumber)) || 0;
-        return numA - numB;
-      })
-      .slice(0, 11),
-    [players]
-  );
+  // IMPORTANT: Players MUST be positioned in the EXACT order they appear in the match report array
+  // The array order defines tactical positions: index 0 = GK, index 1-4 = Defense (R to L), etc.
+  // We should NOT sort by matchNumber - the original array order is the tactical order
+  const starters = useMemo(() => {
+    // Filter starters only, maintaining their original order from the match report
+    return players.filter(p => p.isStarting).slice(0, 11);
+  }, [players]);
 
+  // Get the correct formation positions based on the formation saved in the match report
   const positions = FORMATION_POSITIONS[formation] || FORMATION_POSITIONS['1-4-4-2'];
 
   const getPlayerId = (playerName: string): string | number | undefined => {

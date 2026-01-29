@@ -141,32 +141,32 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="glass-card w-full max-w-2xl">
-        {/* Header */}
-        <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+      <div className="glass-card w-full max-w-2xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+        {/* Header - always visible */}
+        <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Shield className="w-5 h-5 text-primary" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold truncate">
                 {match.status === 'PENDING' ? 'Información del Partido' : 
                  match.status === 'LIVE' ? 'Partido en Directo' : 'Acta Digital'}
               </h2>
               {match.date && (
-                <p className="text-xs text-muted-foreground">{match.date} {match.time && `• ${match.time}`}</p>
+                <p className="text-xs text-muted-foreground truncate">{match.date} {match.time && `• ${match.time}`}</p>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            className="shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {/* Match Result - Professional scoreboard */}
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-secondary/40 via-secondary/20 to-secondary/40 border border-border/30">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
