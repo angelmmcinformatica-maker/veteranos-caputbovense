@@ -104,6 +104,8 @@ const Index = () => {
             matchdays={matchdays}
             teams={teams}
             matchReports={matchReports}
+            topScorers={topScorers}
+            cardRankings={cardRankings}
             onDataRefresh={refetch}
           />
         );
