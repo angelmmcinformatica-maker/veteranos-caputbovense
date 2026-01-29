@@ -215,8 +215,8 @@ export function MatchEditModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="glass-card w-full h-full max-w-none rounded-none overflow-hidden flex flex-col">
         {/* Header */}
         <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
           <div>

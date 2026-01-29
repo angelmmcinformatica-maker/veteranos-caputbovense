@@ -33,8 +33,8 @@ export function AdminReportsView({ matchdays, matchReports, onClose }: AdminRepo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="glass-card w-full h-full max-w-none rounded-none overflow-hidden flex flex-col">
         {/* Header */}
         <div className="sticky top-0 glass-card border-b border-border/50 p-4 flex items-center justify-between">
           <div>

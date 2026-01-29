@@ -330,8 +330,8 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-1 pb-1 px-2 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-        <div className="glass-card w-full max-w-6xl flex flex-col bg-background border border-border shadow-2xl rounded-xl h-[calc(100vh-0.5rem)]">
+      <div className="fixed inset-0 z-[100] flex items-stretch justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div className="glass-card w-full h-full max-w-none rounded-none flex flex-col bg-background border border-border shadow-2xl">
           {/* Header - compact */}
           <div className="shrink-0 border-b border-border/50 px-3 py-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
