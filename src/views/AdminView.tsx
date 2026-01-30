@@ -1,10 +1,11 @@
 import { useState, forwardRef } from 'react';
-import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel, FileText } from 'lucide-react';
+import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Matchday, Team, MatchReport, TopScorer, CardRanking } from '@/types/league';
 import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
 import { AdminReportsManager } from '@/components/admin/AdminReportsManager';
+import { AdminUsersManager } from '@/components/admin/AdminUsersManager';
 
 interface AdminViewProps {
   matchdays: Matchday[];
@@ -15,7 +16,7 @@ interface AdminViewProps {
   onDataRefresh: () => void;
 }
 
-type AdminModal = 'matches' | 'teams' | 'reports' | null;
+type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | null;
 
 export function AdminView({ matchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
@@ -141,7 +142,6 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
   // Determine which features are available based on role
   const canManageMatches = isAdmin || isReferee;
   const canManageTeams = isAdmin || isDelegate;
-  const canViewTacticalField = isAdmin || isReferee || isDelegate;
 
   return (
     <div className="animate-fade-up flex flex-col min-h-[85vh]">
@@ -212,12 +212,12 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
         />
         <AdminCard 
-          title="Campo Táctico"
-          description="Visualización de formaciones"
-          icon="🏟️"
-          onClick={() => {}}
-          disabled={!canViewTacticalField}
-          disabledMessage="Próximamente disponible"
+          title="Gestión de Usuarios"
+          description="Crear delegados y árbitros"
+          icon="👤"
+          onClick={() => setActiveModal('users')}
+          disabled={!isAdmin}
+          disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
         />
       </div>
 
@@ -254,6 +254,13 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           matchReports={matchReports}
           topScorers={topScorers}
           cardRankings={cardRankings}
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
+        />
+      )}
+      {activeModal === 'users' && isAdmin && (
+        <AdminUsersManager 
+          teams={teams}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
         />
