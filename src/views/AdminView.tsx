@@ -88,13 +88,13 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5">Email</label>
+              <label className="block text-sm font-medium mb-1.5">Usuario</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
-                placeholder="tu@email.com"
+                placeholder="Nombre de usuario"
                 disabled={isSubmitting}
               />
             </div>
