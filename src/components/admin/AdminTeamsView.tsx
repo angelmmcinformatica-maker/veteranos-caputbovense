@@ -26,9 +26,18 @@ interface AdminTeamsViewProps {
   matchReports: MatchReport[];
   onClose: () => void;
   onDataChange?: () => void;
+  userRole?: 'admin' | 'delegate';
+  userTeamName?: string | null;
 }
 
-export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: AdminTeamsViewProps) {
+export function AdminTeamsView({ 
+  teams, 
+  matchReports, 
+  onClose, 
+  onDataChange,
+  userRole = 'admin',
+  userTeamName = null
+}: AdminTeamsViewProps) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<{ player: Player; occurrence: number } | null>(null);
@@ -50,14 +59,25 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
   const [editId, setEditId] = useState<string>('');
 
   // Deduplicate teams by id and filter by search term
+  // For delegates, only show their assigned team
   const filteredTeams = useMemo(() => {
     const seenIds = new Set<string>();
     return teams.filter(team => {
       if (seenIds.has(team.id)) return false;
       seenIds.add(team.id);
+      
+      // Delegates can only see their own team
+      if (userRole === 'delegate' && userTeamName) {
+        if (team.name !== userTeamName) return false;
+      }
+      
       return team.name.toLowerCase().includes(searchTerm.toLowerCase());
     });
-  }, [teams, searchTerm]);
+  }, [teams, searchTerm, userRole, userTeamName]);
+
+  // Check if user can add new teams (only admin)
+  const canAddTeam = userRole === 'admin';
+  const canDeleteTeam = userRole === 'admin';
 
   const toNumeric = (v: string | number) => {
     const n = Number(v);
@@ -570,10 +590,12 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
                     />
                   </div>
-                  <Button size="sm" onClick={() => setShowAddTeam(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Añadir equipo
-                  </Button>
+                  {canAddTeam && (
+                    <Button size="sm" onClick={() => setShowAddTeam(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Añadir equipo
+                    </Button>
+                  )}
                 </div>
 
                 {/* Add Team form */}
@@ -647,18 +669,20 @@ export function AdminTeamsView({ teams, matchReports, onClose, onDataChange }: A
                             </p>
                           </div>
                         </button>
-                        {/* Delete button */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTeamToDelete(team);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {/* Delete button - only for admins */}
+                        {canDeleteTeam && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTeamToDelete(team);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     );
                   })}

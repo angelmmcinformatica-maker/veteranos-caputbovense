@@ -11,9 +11,21 @@ interface AdminMatchesViewProps {
   teams: Team[];
   onClose: () => void;
   onDataChange: () => void;
+  userRole?: 'admin' | 'referee' | 'delegate';
+  userTeamName?: string | null;
+  userId?: string | null;
 }
 
-export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDataChange }: AdminMatchesViewProps) {
+export function AdminMatchesView({ 
+  matchdays, 
+  matchReports, 
+  teams, 
+  onClose, 
+  onDataChange,
+  userRole = 'admin',
+  userTeamName = null,
+  userId = null
+}: AdminMatchesViewProps) {
   const [selectedJornada, setSelectedJornada] = useState<number>(() => {
     const playedMatchdays = matchdays.filter(md => 
       md.matches?.some(m => m.status === 'PLAYED')
@@ -22,6 +34,28 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
   });
   const [editingMatch, setEditingMatch] = useState<{ match: Match; matchday: Matchday } | null>(null);
   const [viewingReport, setViewingReport] = useState<{ report: MatchReport; match: Match } | null>(null);
+
+  // Filter matches based on user role
+  const canEditMatch = (match: Match): boolean => {
+    if (userRole === 'admin') return true;
+    if (userRole === 'referee') {
+      // Referee can only edit matches they are assigned to
+      return match.referee === userId;
+    }
+    if (userRole === 'delegate') {
+      // Delegate can only edit matches where their team plays
+      return match.home === userTeamName || match.away === userTeamName;
+    }
+    return false;
+  };
+
+  // For delegates, determine which team's lineup they can edit
+  const getDelegateEditableTeam = (match: Match): string | null => {
+    if (userRole !== 'delegate' || !userTeamName) return null;
+    if (match.home === userTeamName) return match.home;
+    if (match.away === userTeamName) return match.away;
+    return null;
+  };
 
   const selectedMatchday = matchdays.find(md => md.jornada === selectedJornada);
   const sortedMatchdays = [...matchdays].sort((a, b) => a.jornada - b.jornada);
@@ -153,13 +187,16 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                 {selectedMatchday.matches.map((match, index) => {
                   const report = getMatchReport(match);
                   const hasReport = !!report;
+                  const canEdit = canEditMatch(match);
+                  const delegateTeam = getDelegateEditableTeam(match);
                   
                   return (
                     <div
                       key={index}
                       className={cn(
                         'glass-card overflow-hidden',
-                        match.status === 'LIVE' ? 'ring-2 ring-destructive/50' : ''
+                        match.status === 'LIVE' ? 'ring-2 ring-destructive/50' : '',
+                        !canEdit && 'opacity-60'
                       )}
                     >
                       <div className="p-3">
@@ -168,7 +205,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                           <div className="flex-1 min-w-0">
                             <p className={cn(
                               'text-sm font-medium truncate',
-                              match.status === 'PLAYED' && match.homeGoals > match.awayGoals && 'text-primary'
+                              match.status === 'PLAYED' && match.homeGoals > match.awayGoals && 'text-primary',
+                              delegateTeam === match.home && 'text-primary font-bold'
                             )}>
                               {match.home}
                             </p>
@@ -191,7 +229,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                           <div className="flex-1 min-w-0 text-right">
                             <p className={cn(
                               'text-sm font-medium truncate',
-                              match.status === 'PLAYED' && match.awayGoals > match.homeGoals && 'text-primary'
+                              match.status === 'PLAYED' && match.awayGoals > match.homeGoals && 'text-primary',
+                              delegateTeam === match.away && 'text-primary font-bold'
                             )}>
                               {match.away}
                             </p>
@@ -227,15 +266,21 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                               Ver
                             </Button>
                           )}
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className={hasReport ? 'flex-1' : 'w-full'}
-                            onClick={() => setEditingMatch({ match, matchday: selectedMatchday })}
-                          >
-                            <Edit2 className="w-3 h-3 mr-1" />
-                            {hasReport ? 'Editar' : 'Acta'}
-                          </Button>
+                          {canEdit ? (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className={hasReport ? 'flex-1' : 'w-full'}
+                              onClick={() => setEditingMatch({ match, matchday: selectedMatchday })}
+                            >
+                              <Edit2 className="w-3 h-3 mr-1" />
+                              {hasReport ? 'Editar' : 'Acta'}
+                            </Button>
+                          ) : (
+                            <span className="flex-1 text-xs text-muted-foreground text-center py-1">
+                              Sin acceso
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -283,6 +328,8 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
           existingReport={getMatchReport(editingMatch.match)}
           onClose={() => setEditingMatch(null)}
           onSave={onDataChange}
+          userRole={userRole}
+          userTeamName={userTeamName}
         />
       )}
     </>
