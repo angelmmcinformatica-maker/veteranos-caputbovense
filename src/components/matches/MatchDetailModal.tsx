@@ -139,8 +139,8 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   const awaySubPairs = getSubstitutionPairs(awayPlayers);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="glass-card w-full max-w-2xl flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-2 sm:px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="glass-card w-full max-w-2xl flex flex-col max-h-[95vh] sm:max-h-[calc(100vh-2rem)]">
         {/* Header - always visible */}
         <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3 min-w-0">
@@ -257,20 +257,20 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                     <Goal className="w-4 h-4 text-primary" />
                     Goleadores
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1">
                       {getScorers(homePlayers).map((player, i) => (
-                        <p key={i} className="text-sm flex items-center gap-1">
-                          <span className="text-primary font-medium">{player.goals}x</span>
-                          <PlayerName player={player} teamName={match.home} />
+                        <p key={i} className="text-sm flex items-center gap-1 flex-wrap">
+                          <span className="text-primary font-medium shrink-0">{player.goals}x</span>
+                          <PlayerName player={player} teamName={match.home} className="break-words" />
                         </p>
                       ))}
                     </div>
-                    <div className="space-y-1 text-right">
+                    <div className="space-y-1 sm:text-right">
                       {getScorers(awayPlayers).map((player, i) => (
-                        <p key={i} className="text-sm flex items-center justify-end gap-1">
-                          <PlayerName player={player} teamName={match.away} />
-                          <span className="text-primary font-medium">{player.goals}x</span>
+                        <p key={i} className="text-sm flex items-center sm:justify-end gap-1 flex-wrap">
+                          <PlayerName player={player} teamName={match.away} className="break-words" />
+                          <span className="text-primary font-medium shrink-0">{player.goals}x</span>
                         </p>
                       ))}
                     </div>
@@ -285,29 +285,29 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                     <CreditCard className="w-4 h-4 text-warning" />
                     Tarjetas
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1">
                       {getCardedPlayers(homePlayers).map((player, i) => (
-                        <p key={i} className="text-sm flex items-center gap-1">
+                        <p key={i} className="text-sm flex items-center gap-1 flex-wrap">
                           {player.yellowCards > 0 && (
-                            <span className="inline-block w-3 h-4 bg-warning rounded-sm" />
+                            <span className="inline-block w-3 h-4 bg-warning rounded-sm shrink-0" />
                           )}
                           {(player.redCards > 0 || player.directRedCards > 0) && (
-                            <span className="inline-block w-3 h-4 bg-destructive rounded-sm" />
+                            <span className="inline-block w-3 h-4 bg-destructive rounded-sm shrink-0" />
                           )}
-                          <PlayerName player={player} teamName={match.home} />
+                          <PlayerName player={player} teamName={match.home} className="break-words" />
                         </p>
                       ))}
                     </div>
-                    <div className="space-y-1 text-right">
+                    <div className="space-y-1 sm:text-right">
                       {getCardedPlayers(awayPlayers).map((player, i) => (
-                        <p key={i} className="text-sm flex items-center justify-end gap-1">
-                          <PlayerName player={player} teamName={match.away} />
+                        <p key={i} className="text-sm flex items-center sm:justify-end gap-1 flex-wrap">
+                          <PlayerName player={player} teamName={match.away} className="break-words" />
                           {player.yellowCards > 0 && (
-                            <span className="inline-block w-3 h-4 bg-warning rounded-sm" />
+                            <span className="inline-block w-3 h-4 bg-warning rounded-sm shrink-0" />
                           )}
                           {(player.redCards > 0 || player.directRedCards > 0) && (
-                            <span className="inline-block w-3 h-4 bg-destructive rounded-sm" />
+                            <span className="inline-block w-3 h-4 bg-destructive rounded-sm shrink-0" />
                           )}
                         </p>
                       ))}
@@ -331,7 +331,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
                 {/* List View */}
                 <TabsContent value="list" className="m-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {/* Home team */}
                     <div className="glass-card p-4 bg-secondary/20">
                       <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">
@@ -458,7 +458,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
                 {/* Field View */}
                 <TabsContent value="field" className="m-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <h3 className="flex items-center gap-2 font-semibold text-sm">
                         {homeShield ? (

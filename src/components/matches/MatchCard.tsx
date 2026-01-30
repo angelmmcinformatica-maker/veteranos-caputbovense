@@ -84,15 +84,16 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             En directo
           </span>
         )}
-        {isPending && showTime && match.time && (
-          <span className="flex items-center gap-1 text-[10px] text-primary">
+        {isPending && (
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Clock className="w-3 h-3" />
-            {match.time}
-          </span>
-        )}
-        {isPending && !match.time && (
-          <span className="text-[10px] text-muted-foreground">
-            Pendiente
+            {match.date && <span>{match.date}</span>}
+            {match.date && match.time && <span>•</span>}
+            {match.time ? (
+              <span className="text-primary">{match.time}</span>
+            ) : (
+              <span>Hora por confirmar</span>
+            )}
           </span>
         )}
       </div>
