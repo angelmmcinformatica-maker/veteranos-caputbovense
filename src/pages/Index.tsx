@@ -115,9 +115,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 w-full overflow-x-hidden">
       <Header />
-      <main className="container px-4 py-4">
+      <main className="w-full px-2 sm:px-4 py-4 max-w-7xl mx-auto">
         {renderContent()}
       </main>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />

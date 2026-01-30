@@ -5,7 +5,7 @@ export interface Match {
   awayGoals: number;
   date: string;
   time: string;
-  status: 'PLAYED' | 'PENDING' | 'LIVE';
+  status: 'PLAYED' | 'PENDING' | 'LIVE' | 'SCHEDULED';
   referee: string | null;
   refereeName: string | null;
 }

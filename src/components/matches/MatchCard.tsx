@@ -16,7 +16,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
   const { getTeamShield } = useTeamImages();
   const isPlayed = match.status === 'PLAYED';
   const isLive = match.status === 'LIVE';
-  const isPending = match.status === 'PENDING';
+  const isPending = match.status === 'PENDING' || match.status === 'SCHEDULED';
 
   const homeShield = getTeamShield(match.home);
   const awayShield = getTeamShield(match.away);
@@ -43,14 +43,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
         src={url}
         alt={name}
         className={cn(
-          'object-contain rounded',
-          compact ? 'w-5 h-5' : 'w-7 h-7'
+          'object-contain rounded flex-shrink-0',
+          compact ? 'w-5 h-5' : 'w-6 h-6 sm:w-7 sm:h-7'
         )}
       />
     ) : (
       <div className={cn(
-        'rounded bg-secondary/50 flex items-center justify-center',
-        compact ? 'w-5 h-5' : 'w-7 h-7'
+        'rounded bg-secondary/50 flex items-center justify-center flex-shrink-0',
+        compact ? 'w-5 h-5' : 'w-6 h-6 sm:w-7 sm:h-7'
       )}>
         <Shield className={cn('text-muted-foreground', compact ? 'w-3 h-3' : 'w-4 h-4')} />
       </div>
@@ -102,21 +102,21 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       <div className="flex items-center justify-between gap-2">
         {/* Home team */}
         <div className={cn(
-          'flex-1 flex items-center justify-end gap-2 min-w-0',
+          'flex-1 flex items-center justify-end gap-1 sm:gap-2 min-w-0',
           isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
         )}>
           {onTeamClick ? (
             <button
               onClick={(e) => handleTeamClick(e, match.home)}
               className={cn(
-                'truncate hover:text-primary hover:underline transition-colors',
-                compact ? 'text-xs' : 'text-sm'
+                'text-right leading-tight hover:text-primary hover:underline transition-colors line-clamp-2',
+                compact ? 'text-xs' : 'text-xs sm:text-sm'
               )}
             >
               {formatTeamName(match.home)}
             </button>
           ) : (
-            <p className={cn('truncate', compact ? 'text-xs' : 'text-sm')}>
+            <p className={cn('text-right leading-tight line-clamp-2', compact ? 'text-xs' : 'text-xs sm:text-sm')}>
               {formatTeamName(match.home)}
             </p>
           )}
@@ -125,35 +125,35 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
 
         {/* Score */}
         <div className={cn(
-          'flex items-center justify-center gap-1 flex-shrink-0',
-          compact ? 'min-w-[50px]' : 'min-w-[70px]'
+          'flex items-center justify-center gap-0.5 sm:gap-1 flex-shrink-0 px-1',
+          compact ? 'min-w-[40px]' : 'min-w-[50px] sm:min-w-[70px]'
         )}>
           {isPlayed || isLive ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               <span className={cn(
                 'font-bold tabular-nums',
-                compact ? 'text-lg' : 'text-xl',
+                compact ? 'text-base' : 'text-lg sm:text-xl',
                 isPlayed && match.homeGoals > match.awayGoals && 'text-primary'
               )}>
                 {match.homeGoals}
               </span>
-              <span className="text-muted-foreground">-</span>
+              <span className="text-muted-foreground text-sm">-</span>
               <span className={cn(
                 'font-bold tabular-nums',
-                compact ? 'text-lg' : 'text-xl',
+                compact ? 'text-base' : 'text-lg sm:text-xl',
                 isPlayed && match.awayGoals > match.homeGoals && 'text-primary'
               )}>
                 {match.awayGoals}
               </span>
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">vs</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
           )}
         </div>
 
         {/* Away team */}
         <div className={cn(
-          'flex-1 flex items-center gap-2 min-w-0',
+          'flex-1 flex items-center gap-1 sm:gap-2 min-w-0',
           isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
         )}>
           <TeamShield url={awayShield} name={match.away} />
@@ -161,14 +161,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             <button
               onClick={(e) => handleTeamClick(e, match.away)}
               className={cn(
-                'truncate hover:text-primary hover:underline transition-colors',
-                compact ? 'text-xs' : 'text-sm'
+                'text-left leading-tight hover:text-primary hover:underline transition-colors line-clamp-2',
+                compact ? 'text-xs' : 'text-xs sm:text-sm'
               )}
             >
               {formatTeamName(match.away)}
             </button>
           ) : (
-            <p className={cn('truncate', compact ? 'text-xs' : 'text-sm')}>
+            <p className={cn('text-left leading-tight line-clamp-2', compact ? 'text-xs' : 'text-xs sm:text-sm')}>
               {formatTeamName(match.away)}
             </p>
           )}
