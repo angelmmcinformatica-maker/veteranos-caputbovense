@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Calendar, CheckCircle2, FileText, Edit2, Play, Clock, RefreshCw, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Calendar, CheckCircle2, FileText, Edit2, Play, Clock, RefreshCw, Eye, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, MatchReport, Team, MatchReportPlayer } from '@/types/league';
 import { MatchEditModal } from './MatchEditModal';
@@ -205,6 +205,14 @@ export function AdminMatchesView({ matchdays, matchReports, teams, onClose, onDa
                             {match.date} {match.time && `• ${match.time}`}
                           </span>
                         </div>
+
+                        {/* Referee info */}
+                        {match.refereeName && (
+                          <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
+                            <Gavel className="w-3 h-3" />
+                            <span>{match.refereeName}</span>
+                          </div>
+                        )}
 
                         {/* Action buttons - horizontal */}
                         <div className="flex gap-2">
