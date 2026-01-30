@@ -18,6 +18,8 @@ interface MatchEditModalProps {
   existingReport: MatchReport | null;
   onClose: () => void;
   onSave: () => void;
+  userRole?: 'admin' | 'referee' | 'delegate';
+  userTeamName?: string | null;
 }
 
 export function MatchEditModal({ 
@@ -26,10 +28,19 @@ export function MatchEditModal({
   teams, 
   existingReport,
   onClose, 
-  onSave 
+  onSave,
+  userRole = 'admin',
+  userTeamName = null
 }: MatchEditModalProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('result');
+  // Set initial tab based on role - delegates go directly to their team's lineup
+  const [activeTab, setActiveTab] = useState(() => {
+    if (userRole === 'delegate') {
+      if (userTeamName === match.home) return 'home';
+      if (userTeamName === match.away) return 'away';
+    }
+    return 'result';
+  });
   
   // Match result state
   const [homeGoals, setHomeGoals] = useState(match.homeGoals || 0);
@@ -55,6 +66,14 @@ export function MatchEditModal({
 
   const homeTeam = teams.find(t => t.name === match.home);
   const awayTeam = teams.find(t => t.name === match.away);
+
+  // Determine what the user can edit based on their role
+  const canEditResult = userRole === 'admin' || userRole === 'referee';
+  const canEditReferee = userRole === 'admin';
+  const canEditHomeLineup = userRole === 'admin' || userRole === 'referee' || 
+    (userRole === 'delegate' && userTeamName === match.home);
+  const canEditAwayLineup = userRole === 'admin' || userRole === 'referee' || 
+    (userRole === 'delegate' && userTeamName === match.away);
 
   // Fetch referees from Firestore
   useEffect(() => {
@@ -258,18 +277,22 @@ export function MatchEditModal({
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - show only accessible tabs for delegates */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-4 pt-4">
-            <TabsList className="grid w-full grid-cols-3 bg-secondary">
-              <TabsTrigger value="result">Resultado</TabsTrigger>
-              <TabsTrigger value="home">{match.home.split(' ').slice(0, 2).join(' ')}</TabsTrigger>
-              <TabsTrigger value="away">{match.away.split(' ').slice(0, 2).join(' ')}</TabsTrigger>
+            <TabsList className={cn(
+              "grid w-full bg-secondary",
+              userRole === 'delegate' ? 'grid-cols-2' : 'grid-cols-3'
+            )}>
+              {canEditResult && <TabsTrigger value="result">Resultado</TabsTrigger>}
+              {canEditHomeLineup && <TabsTrigger value="home">{match.home.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
+              {canEditAwayLineup && <TabsTrigger value="away">{match.away.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
             </TabsList>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
-            {/* Result Tab */}
+            {/* Result Tab - only for admin and referee */}
+            {canEditResult && (
             <TabsContent value="result" className="m-0 space-y-6">
               {/* Status selector */}
               <div className="space-y-2">
@@ -381,7 +404,8 @@ export function MatchEditModal({
                 </div>
               </div>
 
-              {/* Referee selector */}
+              {/* Referee selector - only for admins */}
+              {canEditReferee && (
               <div className="space-y-2">
                 <Label htmlFor="referee">Árbitro asignado</Label>
                 <div className="relative">
@@ -406,6 +430,7 @@ export function MatchEditModal({
                   </p>
                 )}
               </div>
+              )}
 
               {/* Observations with voice dictation */}
               <div className="space-y-2">
@@ -444,8 +469,10 @@ export function MatchEditModal({
                 )}
               </div>
             </TabsContent>
+            )}
 
             {/* Home Team Tab */}
+            {canEditHomeLineup && (
             <TabsContent value="home" className="m-0">
               <LineupFormEditor
                 teamName={match.home}
@@ -456,8 +483,10 @@ export function MatchEditModal({
                 onFormationChange={setHomeFormation}
               />
             </TabsContent>
+            )}
 
             {/* Away Team Tab */}
+            {canEditAwayLineup && (
             <TabsContent value="away" className="m-0">
               <LineupFormEditor
                 teamName={match.away}
@@ -468,6 +497,7 @@ export function MatchEditModal({
                 onFormationChange={setAwayFormation}
               />
             </TabsContent>
+            )}
           </div>
         </Tabs>
 

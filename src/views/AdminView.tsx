@@ -140,7 +140,9 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
   }
 
   // Determine which features are available based on role
-  const canManageMatches = isAdmin || isReferee;
+  // Delegates can manage matches where their team plays
+  // Referees can manage matches they are assigned to
+  const canManageMatches = isAdmin || isReferee || isDelegate;
   const canManageTeams = isAdmin || isDelegate;
 
   return (
@@ -189,11 +191,16 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
       <div className="grid gap-4 md:grid-cols-2 flex-1 content-start">
         <AdminCard 
           title="Gestión de Partidos y Actas"
-          description={`${matchdays.length} jornadas • Resultados, alineaciones y actas`}
+          description={isDelegate 
+            ? `Partidos de ${userData?.teamName || 'tu equipo'}` 
+            : isReferee 
+              ? 'Partidos asignados'
+              : `${matchdays.length} jornadas • Resultados, alineaciones y actas`
+          }
           icon="⚽"
           onClick={() => setActiveModal('matches')}
           disabled={!canManageMatches}
-          disabledMessage={!canManageMatches ? 'Requiere rol de administrador o árbitro' : undefined}
+          disabledMessage={!canManageMatches ? 'Requiere rol de administrador, árbitro o delegado' : undefined}
         />
         <AdminCard 
           title="Equipos y Jugadores"
@@ -238,6 +245,9 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           teams={teams}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
+          userRole={isAdmin ? 'admin' : isReferee ? 'referee' : 'delegate'}
+          userTeamName={userData?.teamName || null}
+          userId={userData?.id || null}
         />
       )}
       {activeModal === 'teams' && canManageTeams && (
@@ -246,6 +256,8 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           matchReports={matchReports}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
+          userRole={isAdmin ? 'admin' : 'delegate'}
+          userTeamName={userData?.teamName || null}
         />
       )}
       {activeModal === 'reports' && isAdmin && (
