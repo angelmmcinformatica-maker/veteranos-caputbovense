@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Loader2, Users, Gavel, UserCheck, AlertTriangle, Eye, EyeOff, Save, RefreshCw } from 'lucide-react';
+import { X, Plus, Trash2, Loader2, Users, Gavel, UserCheck, AlertTriangle, Eye, EyeOff, Save, RefreshCw, Pencil } from 'lucide-react';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import type { User, Team } from '@/types/league';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,10 +20,20 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
   
   // Form state
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
+    password: '',
+    fullName: '',
+    role: 'delegate' as 'admin' | 'referee' | 'delegate',
+    teamName: ''
+  });
+  
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
     password: '',
     fullName: '',
     role: 'delegate' as 'admin' | 'referee' | 'delegate',
@@ -53,7 +62,7 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
   };
 
   const handleCreateUser = async () => {
-    if (!formData.email || !formData.password || !formData.fullName) {
+    if (!formData.username || !formData.password || !formData.fullName) {
       setError('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -63,8 +72,15 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (formData.password.length < 4) {
+      setError('La contraseña debe tener al menos 4 caracteres');
+      return;
+    }
+
+    // Check if username already exists
+    const existingUser = users.find(u => u.username.toLowerCase() === formData.username.toLowerCase());
+    if (existingUser) {
+      setError('Este nombre de usuario ya existe');
       return;
     }
 
@@ -72,32 +88,18 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
     setError(null);
 
     try {
-      const auth = getAuth();
-      const currentUserEmail = currentUser?.email;
-      
-      // Store current admin credentials temporarily
-      // Note: We'll need to re-authenticate the admin after creating the new user
-      
-      // Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      
-      // Create user document in Firestore
+      // Create user document in Firestore (no Firebase Auth needed)
       await addDoc(collection(db, 'users'), {
-        username: formData.email,
-        password: formData.password, // Note: In production, don't store plain text passwords
+        username: formData.username,
+        password: formData.password,
         fullName: formData.fullName,
         role: formData.role,
-        teamName: formData.role === 'delegate' ? formData.teamName : null,
-        firebaseUid: userCredential.user.uid
+        teamName: formData.role === 'delegate' ? formData.teamName : null
       });
 
       setSuccess(`Usuario ${formData.fullName} creado correctamente`);
       setFormData({
-        email: '',
+        username: '',
         password: '',
         fullName: '',
         role: 'delegate',
@@ -107,23 +109,39 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
       fetchUsers();
       onDataChange();
       
-      // Note: After creating a user with Firebase Auth, the new user is automatically signed in
-      // The admin will need to log in again
-      setError('IMPORTANTE: Has sido deslogueado porque Firebase cambió la sesión al nuevo usuario. Por favor, vuelve a iniciar sesión.');
-      
     } catch (err: any) {
       console.error('Error creating user:', err);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Este email ya está registrado en Firebase Auth');
-      } else if (err.code === 'auth/weak-password') {
-        setError('La contraseña es demasiado débil');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('El email no es válido');
-      } else {
-        setError(`Error: ${err.message}`);
-      }
+      setError(`Error: ${err.message}`);
     }
     setIsCreating(false);
+  };
+
+  const handleUpdateUser = async (userId: string) => {
+    if (!editFormData.password || !editFormData.fullName) {
+      setError('La contraseña y el nombre son obligatorios');
+      return;
+    }
+
+    if (editFormData.role === 'delegate' && !editFormData.teamName) {
+      setError('Los delegados deben tener un equipo asignado');
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        password: editFormData.password,
+        fullName: editFormData.fullName,
+        role: editFormData.role,
+        teamName: editFormData.role === 'delegate' ? editFormData.teamName : null
+      });
+      setSuccess('Usuario actualizado correctamente');
+      setEditingUser(null);
+      fetchUsers();
+      onDataChange();
+    } catch (err: any) {
+      console.error('Error updating user:', err);
+      setError(`Error: ${err.message}`);
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -137,6 +155,28 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
       console.error('Error deleting user:', err);
       setError('Error al eliminar usuario');
     }
+  };
+
+  const togglePasswordVisibility = (userId: string) => {
+    setVisiblePasswords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const startEditing = (user: User) => {
+    setEditingUser(user.id);
+    setEditFormData({
+      password: user.password,
+      fullName: user.fullName,
+      role: user.role,
+      teamName: user.teamName || ''
+    });
   };
 
   const getRoleIcon = (role: string) => {
@@ -223,15 +263,15 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
         </div>
 
         {/* Info about user creation */}
-        <div className="glass-card p-4 mb-4 bg-warning/5 border-warning/20">
-          <h4 className="font-semibold text-warning mb-2 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Información importante
+        <div className="glass-card p-4 mb-4 bg-blue-500/5 border-blue-500/20">
+          <h4 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Información sobre roles
           </h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• <strong>Delegados:</strong> Solo pueden acceder a su equipo asignado</li>
             <li>• <strong>Árbitros:</strong> Solo pueden ver/editar actas de partidos donde estén asignados</li>
-            <li>• Al crear un usuario, Firebase cambiará la sesión. Tendrás que volver a iniciar sesión.</li>
+            <li>• Los usuarios usan nombre de usuario y contraseña (sin necesidad de email)</li>
           </ul>
         </div>
 
@@ -241,13 +281,13 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
             <h3 className="font-semibold mb-4">Crear nuevo usuario</h3>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium mb-1.5">Email *</label>
+                <label className="block text-sm font-medium mb-1.5">Usuario *</label>
                 <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none"
-                  placeholder="usuario@email.com"
+                  placeholder="Nombre de usuario"
                 />
               </div>
               
@@ -259,7 +299,7 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-3 py-2 pr-10 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 4 caracteres"
                   />
                   <button
                     type="button"
@@ -324,7 +364,7 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
               <button
                 onClick={() => {
                   setShowCreateForm(false);
-                  setFormData({ email: '', password: '', fullName: '', role: 'delegate', teamName: '' });
+                  setFormData({ username: '', password: '', fullName: '', role: 'delegate', teamName: '' });
                 }}
                 className="px-4 py-2 rounded-lg bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors"
               >
@@ -346,53 +386,148 @@ export function AdminUsersManager({ teams, onClose, onDataChange }: AdminUsersMa
               <p className="text-muted-foreground text-center py-8">No hay usuarios registrados</p>
             ) : (
               users.map(user => (
-                <div key={user.id} className="glass-card p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      user.role === 'admin' ? 'bg-primary/20' : 
-                      user.role === 'referee' ? 'bg-warning/20' : 'bg-blue-500/20'
-                    }`}>
-                      {getRoleIcon(user.role)}
-                    </div>
-                    <div>
-                      <p className="font-medium">{user.fullName}</p>
-                      <p className="text-sm text-muted-foreground">{user.username}</p>
-                      {user.role === 'delegate' && user.teamName && (
-                        <p className="text-xs text-blue-400">Equipo: {user.teamName}</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className={`px-2 py-1 rounded-full border text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                      {getRoleName(user.role)}
-                    </div>
-                    
-                    {deleteConfirm === user.id ? (
+                <div key={user.id} className="glass-card p-4">
+                  {editingUser === user.id ? (
+                    // Edit mode
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm text-muted-foreground">Editando:</span>
+                        <span className="font-medium">{user.username}</span>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Nombre completo</label>
+                          <input
+                            type="text"
+                            value={editFormData.fullName}
+                            onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Contraseña</label>
+                          <input
+                            type="text"
+                            value={editFormData.password}
+                            onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Rol</label>
+                          <select
+                            value={editFormData.role}
+                            onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as 'admin' | 'referee' | 'delegate' })}
+                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none text-sm"
+                          >
+                            <option value="delegate">Delegado</option>
+                            <option value="referee">Árbitro</option>
+                            <option value="admin">Administrador</option>
+                          </select>
+                        </div>
+                        {editFormData.role === 'delegate' && (
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Equipo</label>
+                            <select
+                              value={editFormData.teamName}
+                              onChange={(e) => setEditFormData({ ...editFormData, teamName: e.target.value })}
+                              className="w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none text-sm"
+                            >
+                              <option value="">Seleccionar...</option>
+                              {teams.sort((a, b) => a.name.localeCompare(b.name)).map(team => (
+                                <option key={team.id} value={team.name}>{team.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="px-3 py-1 rounded bg-destructive text-destructive-foreground text-xs"
+                          onClick={() => handleUpdateUser(user.id)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm"
                         >
-                          Confirmar
+                          <Save className="w-3 h-3" />
+                          Guardar
                         </button>
                         <button
-                          onClick={() => setDeleteConfirm(null)}
-                          className="px-3 py-1 rounded bg-secondary text-xs"
+                          onClick={() => setEditingUser(null)}
+                          className="px-3 py-1.5 rounded-lg bg-secondary text-sm"
                         >
                           Cancelar
                         </button>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirm(user.id)}
-                        className="p-2 rounded-lg hover:bg-destructive/20 text-destructive transition-colors"
-                        title="Eliminar usuario"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    // View mode
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          user.role === 'admin' ? 'bg-primary/20' : 
+                          user.role === 'referee' ? 'bg-warning/20' : 'bg-blue-500/20'
+                        }`}>
+                          {getRoleIcon(user.role)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{user.fullName}</p>
+                          <p className="text-sm text-muted-foreground">{user.username}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-muted-foreground">Contraseña:</span>
+                            <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded">
+                              {visiblePasswords.has(user.id) ? user.password : '••••••'}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(user.id)}
+                              className="p-0.5 text-muted-foreground hover:text-foreground"
+                            >
+                              {visiblePasswords.has(user.id) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                            </button>
+                          </div>
+                          {user.role === 'delegate' && user.teamName && (
+                            <p className="text-xs text-blue-400 mt-1">Equipo: {user.teamName}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <div className={`px-2 py-1 rounded-full border text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                          {getRoleName(user.role)}
+                        </div>
+                        
+                        <button
+                          onClick={() => startEditing(user)}
+                          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                          title="Editar usuario"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        
+                        {deleteConfirm === user.id ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="px-3 py-1 rounded bg-destructive text-destructive-foreground text-xs"
+                            >
+                              Confirmar
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              className="px-3 py-1 rounded bg-secondary text-xs"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirm(user.id)}
+                            className="p-2 rounded-lg hover:bg-destructive/20 text-destructive transition-colors"
+                            title="Eliminar usuario"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             )}
