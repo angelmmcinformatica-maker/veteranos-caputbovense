@@ -25,10 +25,25 @@ export function useLeagueData() {
       // Fetch matchdays
       const matchdaysRef = collection(db, 'matchdays');
       const matchdaysSnap = await getDocs(matchdaysRef);
-      const matchdaysData = matchdaysSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Matchday[];
+      const matchdaysData = matchdaysSnap.docs.map(doc => {
+        const data = doc.data();
+        const matchdayDate = data.date || '';
+        
+        // Inherit matchday date to all matches and normalize SCHEDULED to PENDING
+        const matches = (data.matches || []).map((match: any) => ({
+          ...match,
+          // Use matchday's date if match doesn't have its own date
+          date: match.date || matchdayDate,
+          // Normalize SCHEDULED status to PENDING
+          status: match.status === 'SCHEDULED' ? 'PENDING' : match.status
+        }));
+        
+        return {
+          id: doc.id,
+          ...data,
+          matches
+        };
+      }) as Matchday[];
       
       // Sort matchdays by jornada number
       matchdaysData.sort((a, b) => a.jornada - b.jornada);
@@ -265,10 +280,10 @@ export function useLeagueData() {
     return playedMatchdays[playedMatchdays.length - 1] || null;
   }, [matchdays]);
 
-  // Get next matchday
+  // Get next matchday (PENDING or SCHEDULED)
   const nextMatchday = useMemo(() => {
     return matchdays.find(md => 
-      md.matches?.some(m => m.status === 'PENDING')
+      md.matches?.some(m => m.status === 'PENDING' || m.status === 'SCHEDULED')
     ) || null;
   }, [matchdays]);
 

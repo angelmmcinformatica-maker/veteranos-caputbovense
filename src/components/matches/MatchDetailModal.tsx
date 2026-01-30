@@ -139,8 +139,8 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   const awaySubPairs = getSubstitutionPairs(awayPlayers);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 px-2 sm:px-4 bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="glass-card w-full max-w-2xl flex flex-col max-h-[95vh] sm:max-h-[calc(100vh-2rem)]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="glass-card w-full min-h-screen sm:min-h-0 sm:max-w-2xl sm:my-4 sm:mx-4 flex flex-col sm:max-h-[calc(100vh-2rem)] sm:rounded-xl rounded-none">
         {/* Header - always visible */}
         <div className="shrink-0 glass-card border-b border-border/50 p-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-3 min-w-0">
@@ -165,23 +165,23 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-6">
           {/* Match Result - Professional scoreboard */}
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-secondary/40 via-secondary/20 to-secondary/40 border border-border/30">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
-            <div className="relative p-6">
-              <div className="flex items-center justify-between gap-4">
+            <div className="relative p-3 sm:p-6">
+              <div className="flex items-center justify-between gap-2 sm:gap-4">
                 {/* Home Team */}
-                <div className="flex-1 flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden">
+                <div className="flex-1 flex flex-col items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden flex-shrink-0">
                     {homeShield ? (
-                      <img src={homeShield} alt={match.home} className="w-12 h-12 object-contain" />
+                      <img src={homeShield} alt={match.home} className="w-7 h-7 sm:w-12 sm:h-12 object-contain" />
                     ) : (
-                      <Shield className="w-8 h-8 text-muted-foreground" />
+                      <Shield className="w-5 h-5 sm:w-8 sm:h-8 text-muted-foreground" />
                     )}
                   </div>
                   <p className={cn(
-                    "font-bold text-sm text-center leading-tight",
+                    "font-bold text-xs sm:text-sm text-center leading-tight break-words w-full",
                     match.homeGoals > match.awayGoals && "text-primary"
                   )}>
                     {match.home}
@@ -189,27 +189,27 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                 </div>
                 
                 {/* Score */}
-                <div className="flex items-center gap-3 px-6">
-                  {match.status === 'PENDING' ? (
+                <div className="flex items-center gap-1 sm:gap-3 px-1 sm:px-6 flex-shrink-0">
+                  {match.status === 'PENDING' || match.status === 'SCHEDULED' ? (
                     <div className="text-center">
-                      <span className="text-muted-foreground text-2xl font-medium">vs</span>
+                      <span className="text-muted-foreground text-lg sm:text-2xl font-medium">vs</span>
                       {match.time && (
-                        <p className="text-sm text-muted-foreground mt-1">{match.time}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">{match.time}</p>
                       )}
                     </div>
                   ) : (
                     <>
                       <div className={cn(
-                        "w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black tabular-nums",
+                        "w-10 h-12 sm:w-16 sm:h-20 rounded-lg flex items-center justify-center text-2xl sm:text-4xl font-black tabular-nums",
                         match.homeGoals > match.awayGoals 
                           ? "bg-primary/20 text-primary ring-2 ring-primary/30" 
                           : "bg-secondary/50 text-foreground"
                       )}>
                         {match.homeGoals}
                       </div>
-                      <span className="text-muted-foreground text-2xl font-bold">:</span>
+                      <span className="text-muted-foreground text-lg sm:text-2xl font-bold">:</span>
                       <div className={cn(
-                        "w-16 h-20 rounded-lg flex items-center justify-center text-4xl font-black tabular-nums",
+                        "w-10 h-12 sm:w-16 sm:h-20 rounded-lg flex items-center justify-center text-2xl sm:text-4xl font-black tabular-nums",
                         match.awayGoals > match.homeGoals 
                           ? "bg-primary/20 text-primary ring-2 ring-primary/30" 
                           : "bg-secondary/50 text-foreground"
@@ -221,16 +221,16 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                 </div>
                 
                 {/* Away Team */}
-                <div className="flex-1 flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden">
+                <div className="flex-1 flex flex-col items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-secondary/50 flex items-center justify-center ring-2 ring-border/30 overflow-hidden flex-shrink-0">
                     {awayShield ? (
-                      <img src={awayShield} alt={match.away} className="w-12 h-12 object-contain" />
+                      <img src={awayShield} alt={match.away} className="w-7 h-7 sm:w-12 sm:h-12 object-contain" />
                     ) : (
-                      <Shield className="w-8 h-8 text-muted-foreground" />
+                      <Shield className="w-5 h-5 sm:w-8 sm:h-8 text-muted-foreground" />
                     )}
                   </div>
                   <p className={cn(
-                    "font-bold text-sm text-center leading-tight",
+                    "font-bold text-xs sm:text-sm text-center leading-tight break-words w-full",
                     match.awayGoals > match.homeGoals && "text-primary"
                   )}>
                     {match.away}
@@ -331,7 +331,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
                 {/* List View */}
                 <TabsContent value="list" className="m-0">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
                     {/* Home team */}
                     <div className="glass-card p-4 bg-secondary/20">
                       <h3 className="flex items-center gap-2 font-semibold mb-3 pb-2 border-b border-border/30">

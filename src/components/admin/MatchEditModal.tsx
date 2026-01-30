@@ -47,7 +47,7 @@ export function MatchEditModal({
   const [awayGoals, setAwayGoals] = useState(match.awayGoals || 0);
   const [matchDate, setMatchDate] = useState(match.date || '');
   const [matchTime, setMatchTime] = useState(match.time || '');
-  const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED'>(match.status);
+  const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED'>(match.status === 'SCHEDULED' ? 'PENDING' : match.status);
   const [selectedReferee, setSelectedReferee] = useState<string>(match.referee || '');
   const [referees, setReferees] = useState<User[]>([]);
   
