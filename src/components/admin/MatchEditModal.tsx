@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, Mic, MicOff } from 'lucide-react';
+import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, Mic, MicOff, Gavel } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Match, Matchday, Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
+import type { Match, Matchday, Team, MatchReport, MatchReportPlayer, Player, User } from '@/types/league';
 import { LineupFormEditor } from './LineupFormEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,8 @@ export function MatchEditModal({
   const [matchDate, setMatchDate] = useState(match.date || '');
   const [matchTime, setMatchTime] = useState(match.time || '');
   const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED'>(match.status);
+  const [selectedReferee, setSelectedReferee] = useState<string>(match.referee || '');
+  const [referees, setReferees] = useState<User[]>([]);
   
   // Lineup state
   const [observations, setObservations] = useState(existingReport?.observations || '');
@@ -53,6 +55,25 @@ export function MatchEditModal({
 
   const homeTeam = teams.find(t => t.name === match.home);
   const awayTeam = teams.find(t => t.name === match.away);
+
+  // Fetch referees from Firestore
+  useEffect(() => {
+    const fetchReferees = async () => {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('role', '==', 'referee'));
+        const snapshot = await getDocs(q);
+        const refereesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as User[];
+        setReferees(refereesData);
+      } catch (err) {
+        console.error('Error fetching referees:', err);
+      }
+    };
+    fetchReferees();
+  }, []);
 
   // Initialize players and formations from existing report or team roster
   useEffect(() => {
@@ -147,6 +168,8 @@ export function MatchEditModal({
       
       if (matchdaySnap.exists()) {
         const matchdayData = matchdaySnap.data();
+        // Find the selected referee's full name
+        const refereeUser = referees.find(r => r.id === selectedReferee);
         const updatedMatches = matchdayData.matches.map((m: Match) => {
           if (m.home === match.home && m.away === match.away) {
             return {
@@ -155,7 +178,9 @@ export function MatchEditModal({
               awayGoals: awayGoals || 0,
               date: matchDate || '',
               time: matchTime || '',
-              status: matchStatus
+              status: matchStatus,
+              referee: selectedReferee || null,
+              refereeName: refereeUser?.fullName || null
             };
           }
           return m;
@@ -354,6 +379,32 @@ export function MatchEditModal({
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Referee selector */}
+              <div className="space-y-2">
+                <Label htmlFor="referee">Árbitro asignado</Label>
+                <div className="relative">
+                  <Gavel className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <select
+                    id="referee"
+                    value={selectedReferee}
+                    onChange={(e) => setSelectedReferee(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none appearance-none"
+                  >
+                    <option value="">Sin árbitro asignado</option>
+                    {referees.map(referee => (
+                      <option key={referee.id} value={referee.id}>
+                        {referee.fullName} ({referee.username})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {referees.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No hay árbitros registrados. Créalos en Gestión de Usuarios.
+                  </p>
+                )}
               </div>
 
               {/* Observations with voice dictation */}
