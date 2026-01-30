@@ -92,29 +92,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return unsubscribe;
   }, [auth]);
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (username: string, password: string): Promise<boolean> => {
     setError(null);
     setLoading(true);
     
-    console.log('Attempting login with email:', email);
+    console.log('Attempting login with username:', username);
     
     try {
-      // First, try to authenticate with Firebase Auth
-      console.log('Calling Firebase signInWithEmailAndPassword...');
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // FIRST: Try to authenticate with Firestore (for delegates/referees)
+      console.log('Trying Firestore authentication...');
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = { id: userDoc.id, ...userDoc.data() } as User;
+        
+        // Check password
+        if (userData.password === password) {
+          console.log('Firestore auth success:', userData.fullName);
+          setCurrentUser({ uid: userData.id, email: username } as any);
+          setUserData(userData);
+          setLoading(false);
+          return true;
+        } else {
+          setError('Contraseña incorrecta');
+          setLoading(false);
+          return false;
+        }
+      }
+      
+      // SECOND: Try Firebase Auth (for admins with email)
+      console.log('User not found in Firestore, trying Firebase Auth...');
+      
+      // Check if input looks like an email
+      const isEmail = username.includes('@');
+      if (!isEmail) {
+        setError('Usuario no encontrado');
+        setLoading(false);
+        return false;
+      }
+      
+      const userCredential = await signInWithEmailAndPassword(auth, username, password);
       console.log('Firebase Auth success:', userCredential.user.email);
       
       // Fetch user data from Firestore to get role
       if (userCredential.user.email) {
-        console.log('Fetching user data from Firestore...');
         const data = await fetchUserData(userCredential.user.email);
-        console.log('Firestore user data:', data);
         
         if (!data) {
-          // User authenticated but not found in users collection
-          console.log('User not found in Firestore users collection');
           await firebaseSignOut(auth);
-          setError('Usuario autenticado pero no encontrado en la base de datos. Verifica que el campo "username" en Firestore coincida con tu email.');
+          setError('Usuario autenticado pero no encontrado en la base de datos');
           setLoading(false);
           return false;
         }
@@ -126,31 +155,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return true;
     } catch (err: any) {
       console.error('Sign in error:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
       
       // Handle specific Firebase Auth errors
       switch (err.code) {
         case 'auth/user-not-found':
-          setError('Usuario no encontrado en Firebase Authentication');
+          setError('Usuario no encontrado');
           break;
         case 'auth/wrong-password':
           setError('Contraseña incorrecta');
           break;
         case 'auth/invalid-email':
-          setError('Email inválido');
+          setError('Usuario no encontrado');
           break;
         case 'auth/too-many-requests':
-          setError('Demasiados intentos. Espera unos minutos e intenta de nuevo');
+          setError('Demasiados intentos. Espera unos minutos');
           break;
         case 'auth/invalid-credential':
-          setError('Email o contraseña incorrectos. Verifica tus credenciales de Firebase Authentication');
+          setError('Usuario o contraseña incorrectos');
           break;
         case 'auth/network-request-failed':
-          setError('Error de red. Verifica tu conexión a internet');
+          setError('Error de red. Verifica tu conexión');
           break;
         default:
-          setError(`Error: ${err.code || err.message}`);
+          setError('Usuario o contraseña incorrectos');
       }
       
       setLoading(false);
