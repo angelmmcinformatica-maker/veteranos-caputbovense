@@ -237,68 +237,72 @@ export function PlayerDetailModal({
                 return (
                   <div
                     key={index}
-                    className="glass-card p-3 bg-secondary/20"
+                    className="glass-card p-2 sm:p-3 bg-secondary/20"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold">
+                    <div className="flex items-center gap-2">
+                      {/* Left section: Jornada + Home/Away + Shield */}
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] sm:text-xs font-bold">
                           J{match.jornada}
                         </div>
-                        {/* Home/Away icon */}
                         <div className={cn(
-                          'w-6 h-6 rounded flex items-center justify-center',
+                          'w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center',
                           match.isHome ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
                         )}>
-                          {match.isHome ? <Home className="w-3.5 h-3.5" /> : <Car className="w-3.5 h-3.5" />}
+                          {match.isHome ? <Home className="w-3 h-3" /> : <Car className="w-3 h-3" />}
                         </div>
-                        {/* Opponent shield */}
                         {opponentShield ? (
-                          <img src={opponentShield} alt={match.opponent} className="w-6 h-6 object-contain rounded" />
+                          <img src={opponentShield} alt={match.opponent} className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded flex-shrink-0" />
                         ) : (
-                          <div className="w-6 h-6 rounded bg-secondary/50 flex items-center justify-center">
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-secondary/50 flex items-center justify-center flex-shrink-0">
                             <Shield className="w-3 h-3 text-muted-foreground" />
                           </div>
                         )}
-                        <div>
-                          <p className="text-sm font-medium">{match.opponent}</p>
-                          <p className="text-xs text-muted-foreground">{match.date}</p>
-                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {/* Minutes played */}
-                        <div className="text-xs text-muted-foreground">
+                      {/* Center: Opponent name - flexible with truncation */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium truncate">{match.opponent}</p>
+                        <p className="text-[10px] text-muted-foreground">{match.date}</p>
+                      </div>
+
+                      {/* Right section: Stats + Result - compact for mobile */}
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        {/* Minutes played - hidden on very small screens */}
+                        <div className="hidden xs:block text-[10px] sm:text-xs text-muted-foreground">
                           {match.minutesPlayed}'
                         </div>
 
-                        {/* Starting/Substitute status */}
+                        {/* Starting/Substitute status - abbreviated on mobile */}
                         <div className={cn(
-                          'px-2 py-1 rounded text-[10px] font-medium',
+                          'px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[8px] sm:text-[10px] font-medium whitespace-nowrap',
                           match.isStarting 
                             ? 'bg-primary/20 text-primary' 
                             : 'bg-secondary text-muted-foreground'
                         )}>
-                          {match.isStarting ? 'Titular' : `Sup. ${match.substitutionMin}'`}
+                          {match.isStarting ? 'TIT' : `${match.substitutionMin}'`}
                         </div>
 
                         {/* Goals */}
                         {match.goals > 0 && (
-                          <div className="flex items-center gap-1 text-primary">
+                          <div className="flex items-center gap-0.5 text-primary">
                             <Target className="w-3 h-3" />
-                            <span className="text-sm font-bold">{match.goals}</span>
+                            <span className="text-xs font-bold">{match.goals}</span>
                           </div>
                         )}
 
-                        {/* Cards */}
+                        {/* Cards - smaller on mobile */}
                         {match.yellowCards > 0 && (
-                          <span className="w-3 h-4 bg-warning rounded-sm" />
+                          <span className="w-2 h-3 sm:w-3 sm:h-4 bg-warning rounded-sm flex-shrink-0" />
                         )}
                         {match.redCards > 0 && (
-                          <span className="w-3 h-4 bg-destructive rounded-sm" />
+                          <span className="w-2 h-3 sm:w-3 sm:h-4 bg-destructive rounded-sm flex-shrink-0" />
                         )}
 
-                        {/* Result */}
-                        <span className="text-sm font-bold">{match.result}</span>
+                        {/* Result - priority, fixed width */}
+                        <span className="text-xs sm:text-sm font-bold whitespace-nowrap tabular-nums min-w-[28px] text-right">
+                          {match.result}
+                        </span>
                       </div>
                     </div>
                   </div>
