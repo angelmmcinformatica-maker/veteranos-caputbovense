@@ -187,15 +187,16 @@ export function TeamDetailModal({
                       key={index}
                       onClick={() => match.status === 'PLAYED' ? setSelectedMatch(match) : undefined}
                       className={cn(
-                        'w-full glass-card p-3 text-left transition-all',
+                        'w-full glass-card p-2 sm:p-3 text-left transition-all',
                         match.status === 'PLAYED' && 'cursor-pointer hover:ring-1 hover:ring-primary/50',
                         match.status !== 'PLAYED' && 'opacity-60'
                       )}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {/* Left: Jornada + Home/Away + Shield */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                           <div className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold',
+                            'w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold',
                             isWin && 'bg-primary/20 text-primary',
                             isDraw && 'bg-warning/20 text-warning',
                             isLoss && 'bg-destructive/20 text-destructive',
@@ -203,42 +204,44 @@ export function TeamDetailModal({
                           )}>
                             J{match.jornada}
                           </div>
-                          {/* Home/Away icon */}
                           <div className={cn(
-                            'w-6 h-6 rounded flex items-center justify-center',
+                            'w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center',
                             isHome ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
                           )}>
-                            {isHome ? <Home className="w-3.5 h-3.5" /> : <Car className="w-3.5 h-3.5" />}
+                            {isHome ? <Home className="w-3 h-3" /> : <Car className="w-3 h-3" />}
                           </div>
-                          {/* Opponent shield */}
                           {opponentShield ? (
-                            <img src={opponentShield} alt={opponent} className="w-6 h-6 object-contain rounded" />
+                            <img src={opponentShield} alt={opponent} className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded flex-shrink-0" />
                           ) : (
-                            <div className="w-6 h-6 rounded bg-secondary/50 flex items-center justify-center">
+                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-secondary/50 flex items-center justify-center flex-shrink-0">
                               <Shield className="w-3 h-3 text-muted-foreground" />
                             </div>
                           )}
-                          <div>
-                            <p className="text-sm font-medium">{opponent}</p>
-                            <p className="text-xs text-muted-foreground">{match.date}</p>
-                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+
+                        {/* Center: Opponent name - flexible with truncation */}
+                        <div className="flex-1 min-w-0 px-1">
+                          <p className="text-xs sm:text-sm font-medium truncate">{opponent}</p>
+                          <p className="text-[10px] text-muted-foreground">{match.date}</p>
+                        </div>
+
+                        {/* Right: Result - fixed width, priority */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                           {match.status === 'PLAYED' ? (
                             <span className={cn(
-                              'text-lg font-bold',
+                              'text-sm sm:text-base font-bold whitespace-nowrap tabular-nums',
                               isWin && 'text-primary',
                               isLoss && 'text-destructive'
                             )}>
-                              {goalsOwn} - {goalsOpp}
+                              {goalsOwn}-{goalsOpp}
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">
-                              {match.time || 'Pendiente'}
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {match.time || 'Pend.'}
                             </span>
                           )}
                           {hasReport && (
-                            <div className="w-2 h-2 rounded-full bg-primary" />
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary flex-shrink-0" />
                           )}
                         </div>
                       </div>

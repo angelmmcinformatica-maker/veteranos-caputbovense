@@ -1,7 +1,8 @@
-import { Clock, CheckCircle2, Radio, FileText, Shield } from 'lucide-react';
+import { Clock, CheckCircle2, Radio, FileText, Shield, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { useMatchStatus, formatElapsedMinutes } from '@/hooks/useMatchStatus';
 
 interface MatchCardProps {
   match: Match;
@@ -14,9 +15,12 @@ interface MatchCardProps {
 
 export function MatchCard({ match, compact = false, showTime = false, onClick, hasReport = false, onTeamClick }: MatchCardProps) {
   const { getTeamShield } = useTeamImages();
-  const isPlayed = match.status === 'PLAYED';
-  const isLive = match.status === 'LIVE';
-  const isPending = match.status === 'PENDING' || match.status === 'SCHEDULED';
+  const { displayStatus, elapsedMinutes } = useMatchStatus(match);
+
+  const isPlayed = displayStatus === 'PLAYED';
+  const isLive = displayStatus === 'LIVE';
+  const isPendingResult = displayStatus === 'PENDING_RESULT';
+  const isPending = displayStatus === 'PENDING';
 
   const homeShield = getTeamShield(match.home);
   const awayShield = getTeamShield(match.away);
@@ -44,15 +48,15 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
         alt={name}
         className={cn(
           'object-contain rounded flex-shrink-0',
-          compact ? 'w-5 h-5' : 'w-6 h-6 sm:w-7 sm:h-7'
+          compact ? 'w-4 h-4 sm:w-5 sm:h-5' : 'w-5 h-5 sm:w-6 sm:h-6'
         )}
       />
     ) : (
       <div className={cn(
         'rounded bg-secondary/50 flex items-center justify-center flex-shrink-0',
-        compact ? 'w-5 h-5' : 'w-6 h-6 sm:w-7 sm:h-7'
+        compact ? 'w-4 h-4 sm:w-5 sm:h-5' : 'w-5 h-5 sm:w-6 sm:h-6'
       )}>
-        <Shield className={cn('text-muted-foreground', compact ? 'w-3 h-3' : 'w-4 h-4')} />
+        <Shield className={cn('text-muted-foreground', compact ? 'w-2.5 h-2.5' : 'w-3 h-3 sm:w-4 sm:h-4')} />
       </div>
     )
   );
@@ -62,13 +66,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       onClick={onClick}
       className={cn(
         'w-full rounded-lg transition-all text-left',
-        compact ? 'p-3 bg-secondary/50' : 'glass-card-hover p-4',
-        isLive && 'border-l-2 border-l-green-500',
+        compact ? 'p-2 sm:p-3 bg-secondary/50' : 'glass-card-hover p-3 sm:p-4',
+        isLive && 'border-l-2 border-l-status-win',
+        isPendingResult && 'border-l-2 border-l-warning',
         onClick && 'cursor-pointer hover:ring-1 hover:ring-primary/50'
       )}
     >
       {/* Status badge */}
-      <div className="flex justify-center mb-2">
+      <div className="flex justify-center mb-1.5 sm:mb-2">
         {isPlayed && (
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <CheckCircle2 className="w-3 h-3" />
@@ -79,9 +84,20 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </span>
         )}
         {isLive && (
-          <span className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
-            <Radio className="w-3 h-3" />
-            En directo
+          <span className="flex items-center gap-1 text-[10px] text-status-win font-medium">
+            <Radio className="w-3 h-3 animate-pulse" />
+            En juego
+            {elapsedMinutes !== null && (
+              <span className="ml-1 px-1.5 py-0.5 rounded bg-status-win/20 text-status-win font-bold">
+                {formatElapsedMinutes(elapsedMinutes)}
+              </span>
+            )}
+          </span>
+        )}
+        {isPendingResult && (
+          <span className="flex items-center gap-1 text-[10px] text-warning font-medium">
+            <AlertCircle className="w-3 h-3" />
+            Finalizado - Resultado Pendiente
           </span>
         )}
         {isPending && (
@@ -109,38 +125,38 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             <button
               onClick={(e) => handleTeamClick(e, match.home)}
               className={cn(
-                'text-right leading-tight hover:text-primary hover:underline transition-colors line-clamp-2',
-                compact ? 'text-xs' : 'text-xs sm:text-sm'
+                'text-right leading-tight hover:text-primary hover:underline transition-colors truncate',
+                compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
               )}
             >
               {formatTeamName(match.home)}
             </button>
           ) : (
-            <p className={cn('text-right leading-tight line-clamp-2', compact ? 'text-xs' : 'text-xs sm:text-sm')}>
+            <p className={cn('text-right leading-tight truncate', compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm')}>
               {formatTeamName(match.home)}
             </p>
           )}
           <TeamShield url={homeShield} name={match.home} />
         </div>
 
-        {/* Score */}
+        {/* Score - PRIORITY: fixed width, never shrinks */}
         <div className={cn(
-          'flex items-center justify-center gap-0.5 sm:gap-1 flex-shrink-0 px-1',
-          compact ? 'min-w-[40px]' : 'min-w-[50px] sm:min-w-[70px]'
+          'flex items-center justify-center flex-shrink-0',
+          compact ? 'min-w-[36px] sm:min-w-[44px]' : 'min-w-[44px] sm:min-w-[60px]'
         )}>
-          {isPlayed || isLive ? (
-            <div className="flex items-center gap-0.5 sm:gap-1">
+          {isPlayed || isLive || isPendingResult ? (
+            <div className="flex items-center gap-0.5">
               <span className={cn(
                 'font-bold tabular-nums',
-                compact ? 'text-base' : 'text-lg sm:text-xl',
+                compact ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
                 isPlayed && match.homeGoals > match.awayGoals && 'text-primary'
               )}>
                 {match.homeGoals}
               </span>
-              <span className="text-muted-foreground text-sm">-</span>
+              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
               <span className={cn(
                 'font-bold tabular-nums',
-                compact ? 'text-base' : 'text-lg sm:text-xl',
+                compact ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
                 isPlayed && match.awayGoals > match.homeGoals && 'text-primary'
               )}>
                 {match.awayGoals}
@@ -161,14 +177,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             <button
               onClick={(e) => handleTeamClick(e, match.away)}
               className={cn(
-                'text-left leading-tight hover:text-primary hover:underline transition-colors line-clamp-2',
-                compact ? 'text-xs' : 'text-xs sm:text-sm'
+                'text-left leading-tight hover:text-primary hover:underline transition-colors truncate',
+                compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
               )}
             >
               {formatTeamName(match.away)}
             </button>
           ) : (
-            <p className={cn('text-left leading-tight line-clamp-2', compact ? 'text-xs' : 'text-xs sm:text-sm')}>
+            <p className={cn('text-left leading-tight truncate', compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm')}>
               {formatTeamName(match.away)}
             </p>
           )}
