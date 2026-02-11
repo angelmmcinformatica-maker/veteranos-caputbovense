@@ -1,6 +1,12 @@
 import { Trophy } from 'lucide-react';
+import { NotificationSettings } from '@/components/notifications/NotificationSettings';
+import type { Team } from '@/types/league';
 
-export function Header() {
+interface HeaderProps {
+  teams?: Team[];
+}
+
+export function Header({ teams = [] }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-white/5">
       <div className="container flex items-center justify-between h-14 px-4">
@@ -13,6 +19,7 @@ export function Header() {
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Liga Veteranos</p>
           </div>
         </div>
+        <NotificationSettings teams={teams} />
       </div>
     </header>
   );

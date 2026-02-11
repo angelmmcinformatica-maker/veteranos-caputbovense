@@ -95,6 +95,12 @@ export function AdminMatchesView({
             En Directo
           </span>
         );
+      case 'POSTPONED':
+        return (
+          <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-warning/20 text-warning font-bold">
+            ⚠️ APLAZADO
+          </span>
+        );
       case 'PENDING':
       default:
         return (

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, Mic, MicOff, Gavel } from 'lucide-react';
+import { toast } from 'sonner';
+import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, Mic, MicOff, Gavel, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, setDoc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -47,7 +48,7 @@ export function MatchEditModal({
   const [awayGoals, setAwayGoals] = useState(match.awayGoals || 0);
   const [matchDate, setMatchDate] = useState(match.date || '');
   const [matchTime, setMatchTime] = useState(match.time || '');
-  const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED'>(match.status === 'SCHEDULED' ? 'PENDING' : match.status);
+  const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED' | 'POSTPONED'>(match.status === 'SCHEDULED' ? 'PENDING' : match.status as any);
   const [selectedReferee, setSelectedReferee] = useState<string>(match.referee || '');
   const [referees, setReferees] = useState<User[]>([]);
   
@@ -240,7 +241,7 @@ export function MatchEditModal({
       }
 
       onSave();
-      onClose();
+      toast.success('Partido guardado correctamente');
     } catch (error) {
       console.error('Error saving match:', error);
       alert('Error al guardar los cambios: ' + (error instanceof Error ? error.message : 'Error desconocido'));
@@ -253,6 +254,7 @@ export function MatchEditModal({
     switch (status) {
       case 'PLAYED': return 'bg-primary text-primary-foreground';
       case 'LIVE': return 'bg-destructive text-destructive-foreground';
+      case 'POSTPONED': return 'bg-warning text-warning-foreground';
       case 'PENDING': return 'bg-secondary text-secondary-foreground';
       default: return 'bg-secondary text-secondary-foreground';
     }
@@ -297,17 +299,18 @@ export function MatchEditModal({
               {/* Status selector */}
               <div className="space-y-2">
                 <Label>Estado del partido</Label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { value: 'PENDING', label: 'Pendiente', icon: Calendar },
                     { value: 'LIVE', label: 'En Directo', icon: Play },
-                    { value: 'PLAYED', label: 'Finalizado', icon: CheckCircle2 }
+                    { value: 'PLAYED', label: 'Finalizado', icon: CheckCircle2 },
+                    { value: 'POSTPONED', label: 'Aplazado', icon: Ban }
                   ].map(({ value, label, icon: Icon }) => (
                     <button
                       key={value}
-                      onClick={() => setMatchStatus(value as 'PENDING' | 'LIVE' | 'PLAYED')}
+                      onClick={() => setMatchStatus(value as 'PENDING' | 'LIVE' | 'PLAYED' | 'POSTPONED')}
                       className={cn(
-                        'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all',
+                        'flex items-center justify-center gap-2 px-3 py-3 rounded-lg border transition-all',
                         matchStatus === value
                           ? getStatusColor(value)
                           : 'border-border bg-secondary/50 hover:bg-secondary'
@@ -322,6 +325,12 @@ export function MatchEditModal({
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <AlertTriangle className="w-4 h-4 text-destructive" />
                     <p className="text-sm text-destructive">Partido en directo - Los cambios se verán inmediatamente</p>
+                  </div>
+                )}
+                {matchStatus === 'POSTPONED' && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
+                    <Ban className="w-4 h-4 text-warning" />
+                    <p className="text-sm text-warning">Partido aplazado - No se jugará en la fecha prevista</p>
                   </div>
                 )}
               </div>
@@ -356,7 +365,8 @@ export function MatchEditModal({
                 </div>
               </div>
 
-              {/* Score */}
+              {/* Score - hidden when POSTPONED */}
+              {matchStatus !== 'POSTPONED' && (
               <div className="space-y-2">
                 <Label>Resultado</Label>
                 <div className="glass-card p-6 bg-secondary/30">
@@ -403,6 +413,7 @@ export function MatchEditModal({
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Referee selector - only for admins */}
               {canEditReferee && (

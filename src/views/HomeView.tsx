@@ -6,6 +6,7 @@ import { StandingsTable } from '@/components/standings/StandingsTable';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { Calendar, CheckCircle2, Radio } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { InstallPWA } from '@/components/pwa/InstallPWA';
 import type { TeamStanding, TopScorer, Matchday, Match, MatchReport, Team } from '@/types/league';
 
 interface HomeViewProps {
@@ -71,6 +72,9 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
 
   return (
     <div className="space-y-4 animate-fade-up">
+      {/* PWA Install Banner */}
+      <InstallPWA />
+
       {/* Hero section */}
       <div className="grid gap-4 md:grid-cols-2">
         <LeaderCard leader={leader} shieldUrl={leaderShield} />
