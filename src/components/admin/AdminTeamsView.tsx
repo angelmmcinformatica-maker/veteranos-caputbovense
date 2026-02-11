@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { X, Users, User, Search, Edit2, Trash2, Save, Plus, Loader2, Shield, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -237,10 +238,19 @@ export function AdminTeamsView({
         }
         
         onDataChange?.();
+        
+        if (editingPlayer) {
+          toast.success('Jugador actualizado correctamente');
+          setEditingPlayer(null);
+        } else {
+          toast.success('Jugador añadido correctamente');
+          // Clear form for next player but keep add form open
+          setEditName('');
+          setEditAlias('');
+          const maxId = Math.max(0, ...(updatedPlayers.map(p => Number(p.id)).filter(n => Number.isFinite(n))));
+          setEditId(String(maxId + 1));
+        }
       }
-      
-         setEditingPlayer(null);
-      setShowAddPlayer(false);
     } catch (error) {
       console.error('Error saving player:', error);
       alert('Error al guardar el jugador');

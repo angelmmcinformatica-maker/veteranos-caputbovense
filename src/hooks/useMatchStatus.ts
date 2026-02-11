@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Match } from '@/types/league';
 
 interface MatchLiveStatus {
-  displayStatus: 'PLAYED' | 'PENDING' | 'LIVE' | 'PENDING_RESULT';
+  displayStatus: 'PLAYED' | 'PENDING' | 'LIVE' | 'PENDING_RESULT' | 'POSTPONED';
   elapsedMinutes: number | null;
 }
 
@@ -24,6 +24,11 @@ export function useMatchStatus(match: Match): MatchLiveStatus {
 
     return () => clearInterval(interval);
   }, []);
+
+  // If postponed, return immediately
+  if (match.status === 'POSTPONED') {
+    return { displayStatus: 'POSTPONED', elapsedMinutes: null };
+  }
 
   // If already played, return immediately
   if (match.status === 'PLAYED') {

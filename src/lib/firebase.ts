@@ -2,6 +2,7 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getMessaging, getToken, onMessage, Messaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "AIzaSyC_b21wRYQNFmDYvOcAlcMmbqvRU1kAjVo",
@@ -23,4 +24,18 @@ if (!getApps().length) {
 export const db: Firestore = getFirestore(app);
 export const auth: Auth = getAuth(app);
 export const storage: FirebaseStorage = getStorage(app);
+
+// Firebase Cloud Messaging - only initialize if supported
+let messaging: Messaging | null = null;
+
+export async function initMessaging(): Promise<Messaging | null> {
+  if (messaging) return messaging;
+  const supported = await isSupported();
+  if (supported) {
+    messaging = getMessaging(app);
+  }
+  return messaging;
+}
+
+export { getToken, onMessage };
 export default app;

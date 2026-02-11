@@ -1,4 +1,4 @@
-import { Clock, CheckCircle2, Radio, FileText, Shield, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle2, Radio, FileText, Shield, AlertCircle, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
@@ -21,6 +21,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
   const isLive = displayStatus === 'LIVE';
   const isPendingResult = displayStatus === 'PENDING_RESULT';
   const isPending = displayStatus === 'PENDING';
+  const isPostponed = displayStatus === 'POSTPONED';
 
   const homeShield = getTeamShield(match.home);
   const awayShield = getTeamShield(match.away);
@@ -69,6 +70,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
         compact ? 'p-2 sm:p-3 bg-secondary/50' : 'glass-card-hover p-3 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
+        isPostponed && 'border-l-2 border-l-warning',
         onClick && 'cursor-pointer hover:ring-1 hover:ring-primary/50'
       )}
     >
@@ -98,6 +100,12 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           <span className="flex items-center gap-1 text-[10px] text-warning font-medium">
             <AlertCircle className="w-3 h-3" />
             Finalizado - Resultado Pendiente
+          </span>
+        )}
+        {isPostponed && (
+          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-warning/20 text-warning border border-warning/30">
+            <Ban className="w-3 h-3" />
+            APLAZADO
           </span>
         )}
         {isPending && (
@@ -144,7 +152,9 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           'flex items-center justify-center flex-shrink-0',
           compact ? 'min-w-[36px] sm:min-w-[44px]' : 'min-w-[44px] sm:min-w-[60px]'
         )}>
-          {isPlayed || isLive || isPendingResult ? (
+          {isPostponed ? (
+            <span className="text-warning font-bold text-xs sm:text-sm">APL</span>
+          ) : (isPlayed || isLive || isPendingResult) ? (
             <div className="flex items-center gap-0.5">
               <span className={cn(
                 'font-bold tabular-nums',
