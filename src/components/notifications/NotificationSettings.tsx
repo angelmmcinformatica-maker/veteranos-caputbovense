@@ -43,9 +43,10 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
         const messaging = await initMessaging();
         if (messaging) {
           try {
-            const token = await getToken(messaging, {
-              vapidKey: '' // Needs VAPID key from Firebase Console
-            });
+              const token = await getToken(messaging, {
+                vapidKey: 'BMJk3r633eqaJdbWXgIBKKd1PaUQK0IyFKVwrdfUTQ2Rf0EKzDUYIKdD2IUR5EJ8MKeOhE78hDfES-nDq8HUX6c',
+                serviceWorkerRegistration: await navigator.serviceWorker.getRegistration()
+              });
             if (token) {
               // Save token to Firestore for server-side push
               await setDoc(doc(db, 'notification_tokens', token), {
@@ -68,6 +69,26 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
     setLoading(false);
   };
 
+  const syncTokenToFirestore = async (teams: string[]) => {
+    try {
+      const messaging = await initMessaging();
+      if (!messaging) return;
+      const token = await getToken(messaging, {
+        vapidKey: 'BMJk3r633eqaJdbWXgIBKKd1PaUQK0IyFKVwrdfUTQ2Rf0EKzDUYIKdD2IUR5EJ8MKeOhE78hDfES-nDq8HUX6c',
+        serviceWorkerRegistration: await navigator.serviceWorker.getRegistration()
+      });
+      if (token) {
+        await setDoc(doc(db, 'notification_tokens', token), {
+          token,
+          teams,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch {
+      // Token sync failed silently
+    }
+  };
+
   const toggleTeam = (teamName: string) => {
     const updated = subscribedTeams.includes(teamName)
       ? subscribedTeams.filter(t => t !== teamName)
@@ -75,6 +96,7 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
     
     setSubscribedTeams(updated);
     localStorage.setItem('notification-teams', JSON.stringify(updated));
+    if (notificationsEnabled) syncTokenToFirestore(updated);
   };
 
   const toggleAll = () => {
@@ -83,6 +105,7 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
     const updated = allSelected ? [] : allTeamNames;
     setSubscribedTeams(updated);
     localStorage.setItem('notification-teams', JSON.stringify(updated));
+    if (notificationsEnabled) syncTokenToFirestore(updated);
   };
 
   if (!('Notification' in window)) return null;
