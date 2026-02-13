@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { LoadingScreen } from '@/components/ui/loading-spinner';
@@ -10,6 +10,9 @@ import { AdminView } from '@/views/AdminView';
 import { TeamDetailModal } from '@/components/teams/TeamDetailModal';
 import { PlayerDetailModal } from '@/components/players/PlayerDetailModal';
 import { useLeagueData } from '@/hooks/useLeagueData';
+import { useAutoLiveStatus } from '@/hooks/useAutoLiveStatus';
+import { initMessaging, onMessage } from '@/lib/firebase';
+import { toast } from 'sonner';
 
 type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'admin';
 
@@ -33,6 +36,23 @@ const Index = () => {
     error,
     refetch
   } = useLeagueData();
+
+  // Auto-update PENDING matches to LIVE in Firebase when time matches
+  useAutoLiveStatus(matchdays, refetch);
+
+  // Listen for foreground push notifications
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    initMessaging().then((messaging) => {
+      if (messaging) {
+        unsubscribe = onMessage(messaging, (payload) => {
+          const { title, body } = payload.notification || {};
+          toast(title || 'Liga Veteranos', { description: body });
+        });
+      }
+    });
+    return () => unsubscribe?.();
+  }, []);
 
   const handleTeamClick = (teamName: string) => {
     setSelectedTeam(teamName);

@@ -26,12 +26,6 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
   const homeShield = getTeamShield(match.home);
   const awayShield = getTeamShield(match.away);
 
-  const formatTeamName = (name: string) => {
-    if (compact && name.length > 18) {
-      return name.substring(0, 16) + '...';
-    }
-    return name;
-  };
 
   const handleTeamClick = (e: React.MouseEvent, teamName: string) => {
     if (onTeamClick) {
@@ -123,7 +117,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       </div>
 
       {/* Match info */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1 sm:gap-2">
         {/* Home team */}
         <div className={cn(
           'flex-1 flex items-center justify-end gap-1 sm:gap-2 min-w-0',
@@ -133,15 +127,19 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             <button
               onClick={(e) => handleTeamClick(e, match.home)}
               className={cn(
-                'text-right leading-tight hover:text-primary hover:underline transition-colors truncate',
-                compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
+                'text-right leading-snug hover:text-primary hover:underline transition-colors',
+                'line-clamp-2 break-words',
+                compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
               )}
             >
-              {formatTeamName(match.home)}
+              {match.home}
             </button>
           ) : (
-            <p className={cn('text-right leading-tight truncate', compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm')}>
-              {formatTeamName(match.home)}
+            <p className={cn(
+              'text-right leading-snug line-clamp-2 break-words',
+              compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
+            )}>
+              {match.home}
             </p>
           )}
           <TeamShield url={homeShield} name={match.home} />
@@ -187,15 +185,19 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             <button
               onClick={(e) => handleTeamClick(e, match.away)}
               className={cn(
-                'text-left leading-tight hover:text-primary hover:underline transition-colors truncate',
-                compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
+                'text-left leading-snug hover:text-primary hover:underline transition-colors',
+                'line-clamp-2 break-words',
+                compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
               )}
             >
-              {formatTeamName(match.away)}
+              {match.away}
             </button>
           ) : (
-            <p className={cn('text-left leading-tight truncate', compact ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm')}>
-              {formatTeamName(match.away)}
+            <p className={cn(
+              'text-left leading-snug line-clamp-2 break-words',
+              compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
+            )}>
+              {match.away}
             </p>
           )}
         </div>
