@@ -82,85 +82,111 @@ export function LineupPlayerSlot({
       </div>
 
       {player && (
-        <div className="grid grid-cols-4 gap-2 text-center">
-          <div>
-            <Label className="text-xs text-muted-foreground">Nº</Label>
-            <div className="mt-1 px-2 py-1 rounded bg-secondary/50 text-sm font-medium">{player.matchNumber}</div>
-          </div>
+        <div className="space-y-2">
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div>
+              <Label className="text-xs text-muted-foreground">Nº</Label>
+              <div className="mt-1 px-2 py-1 rounded bg-secondary/50 text-sm font-medium">{player.matchNumber}</div>
+            </div>
 
-          <div>
-            <Label className="text-xs text-muted-foreground">Goles</Label>
-            <div className="mt-1 flex items-center justify-center gap-1">
-              <button
-                onClick={() => onPatchPlayer(player.id, { goals: Math.max(0, (player.goals || 0) - 1) })}
-                className="w-6 h-6 rounded bg-secondary hover:bg-secondary/80 flex items-center justify-center"
-                type="button"
+            <div>
+              <Label className="text-xs text-muted-foreground">Goles</Label>
+              <div className="mt-1 flex items-center justify-center gap-1">
+                <button
+                  onClick={() => onPatchPlayer(player.id, { goals: Math.max(0, (player.goals || 0) - 1) })}
+                  className="w-6 h-6 rounded bg-secondary hover:bg-secondary/80 flex items-center justify-center"
+                  type="button"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+                <span className="w-6 text-center text-sm font-bold">{player.goals || 0}</span>
+                <button
+                  onClick={() => onPatchPlayer(player.id, { goals: (player.goals || 0) + 1 })}
+                  className="w-6 h-6 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center"
+                  type="button"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground">Tarjetas</Label>
+              <Select
+                value={cardValue}
+                onValueChange={(value) => {
+                  if (!player) return;
+                  if (value === 'none') {
+                    onPatchPlayer(player.id, { yellowCards: 0, directRedCards: 0, redCards: 0 });
+                  } else if (value === 'yellow') {
+                    onPatchPlayer(player.id, { yellowCards: 1, directRedCards: 0, redCards: 0 });
+                  } else if (value === 'double-yellow') {
+                    onPatchPlayer(player.id, { yellowCards: 2, directRedCards: 0, redCards: 0 });
+                  } else if (value === 'red') {
+                    onPatchPlayer(player.id, { yellowCards: 0, directRedCards: 1, redCards: 0 });
+                  }
+                }}
               >
-                <Minus className="w-3 h-3" />
-              </button>
-              <span className="w-6 text-center text-sm font-bold">{player.goals || 0}</span>
-              <button
-                onClick={() => onPatchPlayer(player.id, { goals: (player.goals || 0) + 1 })}
-                className="w-6 h-6 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center"
-                type="button"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
+                <SelectTrigger className="mt-1 h-7 bg-secondary/50 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin</SelectItem>
+                  <SelectItem value="yellow">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-3 bg-warning rounded-sm" /> Amarilla
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="double-yellow">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-3 bg-warning rounded-sm" />
+                      <span className="w-2 h-3 bg-warning rounded-sm" /> Doble
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="red">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-3 bg-destructive rounded-sm" /> Roja
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground">{isStarter ? 'Min Sust.' : 'Entra'}</Label>
+              <Input
+                value={player.substitutionMin || ''}
+                onChange={(e) => onPatchPlayer(player.id, { substitutionMin: e.target.value })}
+                placeholder={isStarter ? "Ej: 65'" : "Ej: 60'"}
+                className="mt-1 h-7 text-xs px-2 bg-secondary/50"
+                inputMode="numeric"
+              />
             </div>
           </div>
 
-          <div>
-            <Label className="text-xs text-muted-foreground">Tarjetas</Label>
-            <Select
-              value={cardValue}
-              onValueChange={(value) => {
-                if (!player) return;
-                if (value === 'none') {
-                  onPatchPlayer(player.id, { yellowCards: 0, directRedCards: 0, redCards: 0 });
-                } else if (value === 'yellow') {
-                  onPatchPlayer(player.id, { yellowCards: 1, directRedCards: 0, redCards: 0 });
-                } else if (value === 'double-yellow') {
-                  onPatchPlayer(player.id, { yellowCards: 2, directRedCards: 0, redCards: 0 });
-                } else if (value === 'red') {
-                  onPatchPlayer(player.id, { yellowCards: 0, directRedCards: 1, redCards: 0 });
-                }
-              }}
-            >
-              <SelectTrigger className="mt-1 h-7 bg-secondary/50 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin</SelectItem>
-                <SelectItem value="yellow">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-3 bg-warning rounded-sm" /> Amarilla
-                  </span>
-                </SelectItem>
-                <SelectItem value="double-yellow">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-3 bg-warning rounded-sm" />
-                    <span className="w-2 h-3 bg-warning rounded-sm" /> Doble
-                  </span>
-                </SelectItem>
-                <SelectItem value="red">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-3 bg-destructive rounded-sm" /> Roja
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label className="text-xs text-muted-foreground">{isStarter ? 'Min Sust.' : 'Entra'}</Label>
-            <Input
-              value={player.substitutionMin || ''}
-              onChange={(e) => onPatchPlayer(player.id, { substitutionMin: e.target.value })}
-              placeholder={isStarter ? "Ej: 65'" : "Ej: 60'"}
-              className="mt-1 h-7 text-xs px-2 bg-secondary/50"
-              inputMode="numeric"
-            />
-          </div>
+          {/* Own goals row */}
+          {(player.goals > 0 || (player.ownGoals || 0) > 0) && (
+            <div className="flex items-center gap-2 px-1">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">Goles en propia puerta (pp):</Label>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onPatchPlayer(player.id, { ownGoals: Math.max(0, (player.ownGoals || 0) - 1) })}
+                  className="w-6 h-6 rounded bg-secondary hover:bg-secondary/80 flex items-center justify-center"
+                  type="button"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+                <span className="w-6 text-center text-sm font-bold text-warning">{player.ownGoals || 0}</span>
+                <button
+                  onClick={() => onPatchPlayer(player.id, { ownGoals: (player.ownGoals || 0) + 1 })}
+                  className="w-6 h-6 rounded bg-warning text-warning-foreground hover:bg-warning/90 flex items-center justify-center"
+                  type="button"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

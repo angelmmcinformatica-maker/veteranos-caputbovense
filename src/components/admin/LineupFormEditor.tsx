@@ -67,6 +67,7 @@ export function LineupFormEditor({ teamName, teamRoster, players, formation, onP
       isStarting: isStarter,
       substitutionMin: '',
       goals: 0,
+      ownGoals: 0,
       yellowCards: 0,
       redCards: 0,
       directRedCards: 0
