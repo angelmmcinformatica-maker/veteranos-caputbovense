@@ -104,12 +104,13 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
                 Jornada {featuredMatchday.jornada}
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {featuredMatchday.matches?.map((match, index) => (
                 <MatchCard 
                   key={index} 
                   match={match} 
-                  compact 
+                  compact
+                  showTime
                   onClick={() => setSelectedMatch(match)}
                   hasReport={!!getMatchReport(match)}
                 />

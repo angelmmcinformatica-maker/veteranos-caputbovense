@@ -13,12 +13,63 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Intercept background messages and show custom notification
 messaging.onBackgroundMessage((payload) => {
-  const { title, body, icon } = payload.notification || {};
-  self.registration.showNotification(title || 'Liga Veteranos', {
-    body: body || '',
-    icon: icon || '/icons/icon-192.png',
+  // Prevent default notification - we handle it manually
+  const title = payload.notification?.title || payload.data?.title || 'Liga Veteranos';
+  const body = payload.notification?.body || payload.data?.body || '';
+
+  const options = {
+    body,
+    icon: payload.notification?.icon || '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
-    vibrate: [200, 100, 200]
-  });
+    vibrate: [200, 100, 200],
+    data: payload.data || {},
+    tag: payload.data?.matchId || 'liga-notification',
+    renotify: true
+  };
+
+  return self.registration.showNotification(title, options);
+});
+
+// Fallback: raw push event for cases where FCM doesn't trigger onBackgroundMessage
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    let payload;
+    try {
+      payload = event.data.json();
+    } catch (e) {
+      payload = { notification: { title: 'Liga Veteranos', body: event.data.text() } };
+    }
+
+    // Only show if FCM didn't already handle it (check if notification key exists in data)
+    const title = payload.notification?.title || payload.data?.title || 'Liga Veteranos';
+    const body = payload.notification?.body || payload.data?.body || '';
+
+    if (title && title !== 'Liga Veteranos' || body) {
+      const options = {
+        body,
+        icon: payload.notification?.icon || '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: payload.data?.matchId || 'liga-push',
+        renotify: true
+      };
+
+      event.waitUntil(self.registration.showNotification(title, options));
+    }
+  }
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        return clientList[0].focus();
+      }
+      return clients.openWindow('/');
+    })
+  );
 });
