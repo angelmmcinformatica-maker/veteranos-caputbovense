@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, BellOff, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { initMessaging, getToken } from '@/lib/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Team } from '@/types/league';
 import { toast } from 'sonner';
@@ -11,65 +11,23 @@ interface NotificationSettingsProps {
   teams: Team[];
 }
 
-interface SubscriptionData {
-  token: string;
-  teams: string[];
-  updatedAt: string;
-}
-
 export function NotificationSettings({ teams }: NotificationSettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [subscribedTeams, setSubscribedTeams] = useState<string[]>([]);
+  const [subscribedTeamIds, setSubscribedTeamIds] = useState<string[]>([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Load saved subscriptions from localStorage
-    const saved = localStorage.getItem('notification-teams');
+    const saved = localStorage.getItem('notification-team-ids');
     if (saved) {
       try {
-        setSubscribedTeams(JSON.parse(saved));
+        setSubscribedTeamIds(JSON.parse(saved));
       } catch {}
     }
     setNotificationsEnabled(Notification.permission === 'granted');
   }, []);
 
-  const requestPermission = async () => {
-    setLoading(true);
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        setNotificationsEnabled(true);
-        const messaging = await initMessaging();
-        if (messaging) {
-          try {
-              const token = await getToken(messaging, {
-                vapidKey: 'BMJk3r633eqaJdbWXgIBKKd1PaUQK0IyFKVwrdfUTQ2Rf0EKzDUYIKdD2IUR5EJ8MKeOhE78hDfES-nDq8HUX6c',
-                serviceWorkerRegistration: await navigator.serviceWorker.getRegistration()
-              });
-            if (token) {
-              // Save token to Firestore for server-side push
-              await setDoc(doc(db, 'notification_tokens', token), {
-                token,
-                teams: subscribedTeams,
-                updatedAt: new Date().toISOString()
-              });
-            }
-          } catch {
-            // FCM token retrieval may fail without VAPID key - still allow local notifications
-          }
-        }
-        toast.success('Notificaciones activadas');
-      } else {
-        toast.error('Permiso de notificaciones denegado');
-      }
-    } catch {
-      toast.error('Error al activar notificaciones');
-    }
-    setLoading(false);
-  };
-
-  const syncTokenToFirestore = async (teams: string[]) => {
+  const syncTokenToFirestore = async (teamIds: string[]) => {
     try {
       const messaging = await initMessaging();
       if (!messaging) return;
@@ -80,7 +38,7 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
       if (token) {
         await setDoc(doc(db, 'notification_tokens', token), {
           token,
-          teams,
+          teams: teamIds,
           updatedAt: new Date().toISOString()
         });
       }
@@ -89,22 +47,39 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
     }
   };
 
-  const toggleTeam = (teamName: string) => {
-    const updated = subscribedTeams.includes(teamName)
-      ? subscribedTeams.filter(t => t !== teamName)
-      : [...subscribedTeams, teamName];
+  const requestPermission = async () => {
+    setLoading(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        await syncTokenToFirestore(subscribedTeamIds);
+        toast.success('Notificaciones activadas');
+      } else {
+        toast.error('Permiso de notificaciones denegado');
+      }
+    } catch {
+      toast.error('Error al activar notificaciones');
+    }
+    setLoading(false);
+  };
+
+  const toggleTeam = (teamId: string) => {
+    const updated = subscribedTeamIds.includes(teamId)
+      ? subscribedTeamIds.filter(id => id !== teamId)
+      : [...subscribedTeamIds, teamId];
     
-    setSubscribedTeams(updated);
-    localStorage.setItem('notification-teams', JSON.stringify(updated));
+    setSubscribedTeamIds(updated);
+    localStorage.setItem('notification-team-ids', JSON.stringify(updated));
     if (notificationsEnabled) syncTokenToFirestore(updated);
   };
 
   const toggleAll = () => {
-    const allTeamNames = teams.map(t => t.name);
-    const allSelected = allTeamNames.every(t => subscribedTeams.includes(t));
-    const updated = allSelected ? [] : allTeamNames;
-    setSubscribedTeams(updated);
-    localStorage.setItem('notification-teams', JSON.stringify(updated));
+    const allIds = teams.map(t => t.id);
+    const allSelected = allIds.every(id => subscribedTeamIds.includes(id));
+    const updated = allSelected ? [] : allIds;
+    setSubscribedTeamIds(updated);
+    localStorage.setItem('notification-team-ids', JSON.stringify(updated));
     if (notificationsEnabled) syncTokenToFirestore(updated);
   };
 
@@ -116,19 +91,19 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'relative w-10 h-10 rounded-xl flex items-center justify-center transition-all',
-          subscribedTeams.length > 0 && notificationsEnabled
+          subscribedTeamIds.length > 0 && notificationsEnabled
             ? 'bg-primary/20 text-primary'
             : 'bg-secondary text-muted-foreground hover:text-foreground'
         )}
       >
-        {subscribedTeams.length > 0 && notificationsEnabled ? (
+        {subscribedTeamIds.length > 0 && notificationsEnabled ? (
           <Bell className="w-5 h-5" />
         ) : (
           <BellOff className="w-5 h-5" />
         )}
-        {subscribedTeams.length > 0 && notificationsEnabled && (
+        {subscribedTeamIds.length > 0 && notificationsEnabled && (
           <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-[9px] font-bold flex items-center justify-center text-primary-foreground">
-            {subscribedTeams.length}
+            {subscribedTeamIds.length}
           </span>
         )}
       </button>
@@ -160,11 +135,11 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
               >
                 <div className={cn(
                   'w-5 h-5 rounded border flex items-center justify-center flex-shrink-0',
-                  teams.every(t => subscribedTeams.includes(t.name))
+                  teams.every(t => subscribedTeamIds.includes(t.id))
                     ? 'bg-primary border-primary'
                     : 'border-border'
                 )}>
-                  {teams.every(t => subscribedTeams.includes(t.name)) && (
+                  {teams.every(t => subscribedTeamIds.includes(t.id)) && (
                     <Check className="w-3 h-3 text-primary-foreground" />
                   )}
                 </div>
@@ -173,16 +148,16 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
               {teams.map(team => (
                 <button
                   key={team.id}
-                  onClick={() => toggleTeam(team.name)}
+                  onClick={() => toggleTeam(team.id)}
                   className="w-full p-2.5 flex items-center gap-2 hover:bg-secondary/50 transition-colors"
                 >
                   <div className={cn(
                     'w-5 h-5 rounded border flex items-center justify-center flex-shrink-0',
-                    subscribedTeams.includes(team.name)
+                    subscribedTeamIds.includes(team.id)
                       ? 'bg-primary border-primary'
                       : 'border-border'
                   )}>
-                    {subscribedTeams.includes(team.name) && (
+                    {subscribedTeamIds.includes(team.id) && (
                       <Check className="w-3 h-3 text-primary-foreground" />
                     )}
                   </div>
@@ -194,7 +169,6 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
         </div>
       )}
 
-      {/* Click outside to close */}
       {isOpen && (
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}

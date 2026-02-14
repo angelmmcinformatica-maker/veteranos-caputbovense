@@ -33,6 +33,7 @@ export function LineupEditor({ teamName, teamRoster, players, onPlayersChange }:
       isStarting,
       substitutionMin: '',
       goals: 0,
+      ownGoals: 0,
       yellowCards: 0,
       redCards: 0,
       directRedCards: 0

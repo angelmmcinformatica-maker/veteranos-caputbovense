@@ -97,7 +97,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
   };
 
   const getScorers = (players: MatchReportPlayer[]) =>
-    players.filter(p => p.goals > 0);
+    players.filter(p => p.goals > 0 || (p.ownGoals || 0) > 0);
 
   const getCardedPlayers = (players: MatchReportPlayer[]) =>
     players.filter(p => p.yellowCards > 0 || p.redCards > 0 || p.directRedCards > 0);
@@ -263,6 +263,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                         <p key={i} className="text-sm flex items-center gap-1 flex-wrap">
                           <span className="text-primary font-medium shrink-0">{player.goals}x</span>
                           <PlayerName player={player} teamName={match.home} className="break-words" />
+                          {(player.ownGoals || 0) > 0 && (
+                            <span className="text-warning text-xs font-medium">(+{player.ownGoals} pp)</span>
+                          )}
                         </p>
                       ))}
                     </div>
@@ -271,6 +274,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                         <p key={i} className="text-sm flex items-center sm:justify-end gap-1 flex-wrap">
                           <PlayerName player={player} teamName={match.away} className="break-words" />
                           <span className="text-primary font-medium shrink-0">{player.goals}x</span>
+                          {(player.ownGoals || 0) > 0 && (
+                            <span className="text-warning text-xs font-medium">(+{player.ownGoals} pp)</span>
+                          )}
                         </p>
                       ))}
                     </div>

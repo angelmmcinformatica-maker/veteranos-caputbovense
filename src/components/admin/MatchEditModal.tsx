@@ -224,6 +224,7 @@ export function MatchEditModal({
             isStarting: Boolean(player.isStarting),
             substitutionMin: player.substitutionMin || '',
             goals: Number(player.goals) || 0,
+            ownGoals: Number(player.ownGoals) || 0,
             yellowCards: Number(player.yellowCards) || 0,
             redCards: Number(player.redCards) || 0,
             directRedCards: Number(player.directRedCards) || 0

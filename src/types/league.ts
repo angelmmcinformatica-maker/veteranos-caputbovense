@@ -46,6 +46,7 @@ export interface MatchReportPlayer {
   isStarting: boolean;
   substitutionMin: string;
   goals: number;
+  ownGoals: number;
   yellowCards: number;
   redCards: number;
   directRedCards: number;
