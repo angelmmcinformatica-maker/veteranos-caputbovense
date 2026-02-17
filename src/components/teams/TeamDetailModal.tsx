@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, Team, MatchReport, MatchReportPlayer } from '@/types/league';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
@@ -15,6 +15,7 @@ interface TeamDetailModalProps {
 }
 
 type Tab = 'matches' | 'roster';
+type SortOption = 'dorsal' | 'games' | 'goals' | 'cards';
 
 export function TeamDetailModal({ 
   teamName, 
@@ -26,6 +27,7 @@ export function TeamDetailModal({
 }: TeamDetailModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('matches');
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('dorsal');
   const { getTeamShield, getPlayerPhoto } = useTeamImages();
 
   const teamShield = getTeamShield(teamName);
@@ -85,6 +87,19 @@ export function TeamDetailModal({
 
     return { goals, yellowCards, redCards, gamesPlayed, gamesStarted };
   };
+
+  // Sorted roster based on selected sort option
+  const sortedRoster = useMemo(() => {
+    if (sortBy === 'dorsal') return roster;
+    return [...roster].sort((a, b) => {
+      const statsA = getPlayerStats(a.name);
+      const statsB = getPlayerStats(b.name);
+      if (sortBy === 'games') return statsB.gamesPlayed - statsA.gamesPlayed;
+      if (sortBy === 'goals') return statsB.goals - statsA.goals;
+      if (sortBy === 'cards') return (statsB.yellowCards + statsB.redCards) - (statsA.yellowCards + statsA.redCards);
+      return 0;
+    });
+  }, [roster, sortBy]);
 
   return (
     <>
@@ -258,73 +273,99 @@ export function TeamDetailModal({
             )}
 
             {activeTab === 'roster' && (
-              <div className="space-y-2">
-                {roster.map((player) => {
-                  const stats = getPlayerStats(player.name);
-                  const photoUrl = getPlayerPhoto(teamName, player.id);
-                  
-                  return (
+              <div className="space-y-3">
+                {/* Sort options */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                  {([
+                    ['dorsal', 'Dorsal'],
+                    ['games', 'Partidos'],
+                    ['goals', 'Goles'],
+                    ['cards', 'Tarjetas'],
+                  ] as [SortOption, string][]).map(([key, label]) => (
                     <button
-                      key={player.id}
-                      onClick={() => onPlayerClick?.(player.name, teamName)}
-                      className="w-full glass-card p-3 text-left transition-all hover:ring-1 hover:ring-primary/50 cursor-pointer"
+                      key={key}
+                      onClick={() => setSortBy(key)}
+                      className={cn(
+                        'text-xs px-2.5 py-1 rounded-full transition-colors',
+                        sortBy === key
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-muted-foreground hover:text-foreground'
+                      )}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {photoUrl ? (
-                            <img 
-                              src={photoUrl} 
-                              alt={player.name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary">
-                              {typeof player.id === 'number' ? player.id : '#'}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  {sortedRoster.map((player) => {
+                    const stats = getPlayerStats(player.name);
+                    const photoUrl = getPlayerPhoto(teamName, player.id);
+                    
+                    return (
+                      <button
+                        key={player.id}
+                        onClick={() => onPlayerClick?.(player.name, teamName)}
+                        className="w-full glass-card p-3 text-left transition-all hover:ring-1 hover:ring-primary/50 cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {photoUrl ? (
+                              <img 
+                                src={photoUrl} 
+                                alt={player.name}
+                                className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary">
+                                {typeof player.id === 'number' ? player.id : '#'}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium text-sm">
+                                {player.alias || player.name}
+                              </p>
+                              {player.alias && (
+                                <p className="text-xs text-muted-foreground">{player.name}</p>
+                              )}
                             </div>
-                          )}
-                          <div>
-                            <p className="font-medium text-sm">
-                              {player.alias || player.name}
-                            </p>
-                            {player.alias && (
-                              <p className="text-xs text-muted-foreground">{player.name}</p>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="text-center">
+                              <p className="font-bold">{stats.gamesPlayed}</p>
+                              <p className="text-muted-foreground">PJ</p>
+                            </div>
+                            {stats.goals > 0 && (
+                              <div className="text-center">
+                                <p className="font-bold text-primary">{stats.goals}</p>
+                                <p className="text-muted-foreground">Goles</p>
+                              </div>
+                            )}
+                            {stats.yellowCards > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span className="w-3 h-4 bg-warning rounded-sm" />
+                                <span className="font-medium">{stats.yellowCards}</span>
+                              </div>
+                            )}
+                            {stats.redCards > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span className="w-3 h-4 bg-destructive rounded-sm" />
+                                <span className="font-medium">{stats.redCards}</span>
+                              </div>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-xs">
-                          <div className="text-center">
-                            <p className="font-bold">{stats.gamesPlayed}</p>
-                            <p className="text-muted-foreground">PJ</p>
-                          </div>
-                          {stats.goals > 0 && (
-                            <div className="text-center">
-                              <p className="font-bold text-primary">{stats.goals}</p>
-                              <p className="text-muted-foreground">Goles</p>
-                            </div>
-                          )}
-                          {stats.yellowCards > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="w-3 h-4 bg-warning rounded-sm" />
-                              <span className="font-medium">{stats.yellowCards}</span>
-                            </div>
-                          )}
-                          {stats.redCards > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="w-3 h-4 bg-destructive rounded-sm" />
-                              <span className="font-medium">{stats.redCards}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
 
-                {roster.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay jugadores registrados</p>
-                  </div>
-                )}
+                  {roster.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No hay jugadores registrados</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -116,90 +116,153 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
         )}
       </div>
 
-      {/* Match info */}
-      <div className="flex items-center justify-between gap-1 sm:gap-2">
-        {/* Home team */}
-        <div className={cn(
-          'flex-1 flex items-center justify-end gap-1 sm:gap-2 min-w-0',
-          isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
-        )}>
-          {onTeamClick ? (
-            <button
-              onClick={(e) => handleTeamClick(e, match.home)}
-              className={cn(
-                'text-right leading-snug hover:text-primary hover:underline transition-colors',
-                'line-clamp-2 break-words',
-                compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
-              )}
-            >
-              {match.home}
-            </button>
-          ) : (
-            <p className={cn(
-              'text-right leading-snug line-clamp-2 break-words',
-              compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
-            )}>
-              {match.home}
-            </p>
-          )}
-          <TeamShield url={homeShield} name={match.home} />
+      {/* Match info - vertical on mobile, horizontal on sm+ */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        {/* Mobile: vertical stack */}
+        <div className="flex sm:hidden flex-col items-center gap-1 w-full">
+          {/* Home team */}
+          <div className={cn(
+            'flex items-center gap-1.5 w-full justify-center',
+            isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
+          )}>
+            <TeamShield url={homeShield} name={match.home} />
+            {onTeamClick ? (
+              <button
+                onClick={(e) => handleTeamClick(e, match.home)}
+                className={cn(
+                  'text-center leading-snug hover:text-primary transition-colors',
+                  compact ? 'text-xs' : 'text-sm'
+                )}
+              >
+                {match.home}
+              </button>
+            ) : (
+              <p className={cn('text-center leading-snug', compact ? 'text-xs' : 'text-sm')}>
+                {match.home}
+              </p>
+            )}
+          </div>
+
+          {/* Score */}
+          <div className="flex items-center justify-center">
+            {isPostponed ? (
+              <span className="text-warning font-bold text-xs">APL</span>
+            ) : (isPlayed || isLive || isPendingResult) ? (
+              <div className="flex items-center gap-1">
+                <span className={cn(
+                  'font-bold tabular-nums text-base',
+                  isPlayed && match.homeGoals > match.awayGoals && 'text-primary'
+                )}>
+                  {match.homeGoals}
+                </span>
+                <span className="text-muted-foreground text-sm">-</span>
+                <span className={cn(
+                  'font-bold tabular-nums text-base',
+                  isPlayed && match.awayGoals > match.homeGoals && 'text-primary'
+                )}>
+                  {match.awayGoals}
+                </span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-xs">vs</span>
+            )}
+          </div>
+
+          {/* Away team */}
+          <div className={cn(
+            'flex items-center gap-1.5 w-full justify-center',
+            isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
+          )}>
+            <TeamShield url={awayShield} name={match.away} />
+            {onTeamClick ? (
+              <button
+                onClick={(e) => handleTeamClick(e, match.away)}
+                className={cn(
+                  'text-center leading-snug hover:text-primary transition-colors',
+                  compact ? 'text-xs' : 'text-sm'
+                )}
+              >
+                {match.away}
+              </button>
+            ) : (
+              <p className={cn('text-center leading-snug', compact ? 'text-xs' : 'text-sm')}>
+                {match.away}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Score - PRIORITY: fixed width, never shrinks */}
-        <div className={cn(
-          'flex items-center justify-center flex-shrink-0',
-          compact ? 'min-w-[36px] sm:min-w-[44px]' : 'min-w-[44px] sm:min-w-[60px]'
-        )}>
-          {isPostponed ? (
-            <span className="text-warning font-bold text-xs sm:text-sm">APL</span>
-          ) : (isPlayed || isLive || isPendingResult) ? (
-            <div className="flex items-center gap-0.5">
-              <span className={cn(
-                'font-bold tabular-nums',
-                compact ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
-                isPlayed && match.homeGoals > match.awayGoals && 'text-primary'
-              )}>
-                {match.homeGoals}
-              </span>
-              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
-              <span className={cn(
-                'font-bold tabular-nums',
-                compact ? 'text-sm sm:text-base' : 'text-base sm:text-lg',
-                isPlayed && match.awayGoals > match.homeGoals && 'text-primary'
-              )}>
-                {match.awayGoals}
-              </span>
-            </div>
-          ) : (
-            <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
-          )}
-        </div>
+        {/* Desktop: horizontal layout (sm+) */}
+        <div className="hidden sm:flex items-center justify-between gap-2 w-full">
+          {/* Home team */}
+          <div className={cn(
+            'flex-1 flex items-center justify-end gap-2 min-w-0',
+            isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
+          )}>
+            {onTeamClick ? (
+              <button
+                onClick={(e) => handleTeamClick(e, match.home)}
+                className="text-right leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
+              >
+                {match.home}
+              </button>
+            ) : (
+              <p className="text-right leading-snug text-xs line-clamp-2 break-words">
+                {match.home}
+              </p>
+            )}
+            <TeamShield url={homeShield} name={match.home} />
+          </div>
 
-        {/* Away team */}
-        <div className={cn(
-          'flex-1 flex items-center gap-1 sm:gap-2 min-w-0',
-          isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
-        )}>
-          <TeamShield url={awayShield} name={match.away} />
-          {onTeamClick ? (
-            <button
-              onClick={(e) => handleTeamClick(e, match.away)}
-              className={cn(
-                'text-left leading-snug hover:text-primary hover:underline transition-colors',
-                'line-clamp-2 break-words',
-                compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
-              )}
-            >
-              {match.away}
-            </button>
-          ) : (
-            <p className={cn(
-              'text-left leading-snug line-clamp-2 break-words',
-              compact ? 'text-[10px] sm:text-xs' : 'text-[11px] sm:text-sm'
-            )}>
-              {match.away}
-            </p>
-          )}
+          {/* Score */}
+          <div className={cn(
+            'flex items-center justify-center flex-shrink-0',
+            compact ? 'min-w-[44px]' : 'min-w-[60px]'
+          )}>
+            {isPostponed ? (
+              <span className="text-warning font-bold text-sm">APL</span>
+            ) : (isPlayed || isLive || isPendingResult) ? (
+              <div className="flex items-center gap-0.5">
+                <span className={cn(
+                  'font-bold tabular-nums',
+                  compact ? 'text-base' : 'text-lg',
+                  isPlayed && match.homeGoals > match.awayGoals && 'text-primary'
+                )}>
+                  {match.homeGoals}
+                </span>
+                <span className="text-muted-foreground text-sm">-</span>
+                <span className={cn(
+                  'font-bold tabular-nums',
+                  compact ? 'text-base' : 'text-lg',
+                  isPlayed && match.awayGoals > match.homeGoals && 'text-primary'
+                )}>
+                  {match.awayGoals}
+                </span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-sm">vs</span>
+            )}
+          </div>
+
+          {/* Away team */}
+          <div className={cn(
+            'flex-1 flex items-center gap-2 min-w-0',
+            isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
+          )}>
+            <TeamShield url={awayShield} name={match.away} />
+            {onTeamClick ? (
+              <button
+                onClick={(e) => handleTeamClick(e, match.away)}
+                className="text-left leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
+              >
+                {match.away}
+              </button>
+            ) : (
+              <p className="text-left leading-snug text-xs line-clamp-2 break-words">
+                {match.away}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </CardWrapper>
