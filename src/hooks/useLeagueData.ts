@@ -275,18 +275,38 @@ export function useLeagueData() {
       .slice(0, 20);
   }, [matchReports]);
 
-  // Get last played matchday
+  // Helper: check if a matchday date is today or in the past
+  const isMatchdayTodayOrPast = (md: Matchday): boolean => {
+    if (!md.date) return false;
+    // Expect date format like "DD/MM/YYYY" or "YYYY-MM-DD"
+    let mdDate: Date | null = null;
+    if (md.date.includes('/')) {
+      const parts = md.date.split('/');
+      if (parts.length === 3) {
+        mdDate = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+      }
+    } else {
+      mdDate = new Date(md.date);
+    }
+    if (!mdDate || isNaN(mdDate.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    mdDate.setHours(0, 0, 0, 0);
+    return mdDate <= today;
+  };
+
+  // Get last played matchday - includes matchdays whose date is today (match day logic)
   const lastPlayedMatchday = useMemo(() => {
-    const playedMatchdays = matchdays.filter(md => 
-      md.matches?.some(m => m.status === 'PLAYED')
+    const relevantMatchdays = matchdays.filter(md => 
+      md.matches?.some(m => m.status === 'PLAYED' || m.status === 'LIVE') || isMatchdayTodayOrPast(md)
     );
-    return playedMatchdays[playedMatchdays.length - 1] || null;
+    return relevantMatchdays[relevantMatchdays.length - 1] || null;
   }, [matchdays]);
 
-  // Get next matchday (PENDING or SCHEDULED)
+  // Get next matchday (PENDING or SCHEDULED, and date is in the future)
   const nextMatchday = useMemo(() => {
     return matchdays.find(md => 
-      md.matches?.some(m => m.status === 'PENDING' || m.status === 'SCHEDULED')
+      md.matches?.some(m => m.status === 'PENDING' || m.status === 'SCHEDULED') && !isMatchdayTodayOrPast(md)
     ) || null;
   }, [matchdays]);
 
