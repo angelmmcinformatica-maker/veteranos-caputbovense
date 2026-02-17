@@ -85,26 +85,26 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Featured Matchday (LIVE takes priority, otherwise Last Played) */}
         {featuredMatchday && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+          <div className="glass-card p-3 sm:p-5 overflow-hidden">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 min-w-0">
                 {hasLiveMatch ? (
                   <>
-                    <Radio className="w-4 h-4 text-red-500 animate-pulse" />
+                    <Radio className="w-4 h-4 text-red-500 animate-pulse flex-shrink-0" />
                     <h3 className="text-sm font-semibold text-red-500">En Directo</h3>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                     <h3 className="text-sm font-semibold">Última Jornada</h3>
                   </>
                 )}
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full ${hasLiveMatch ? 'bg-red-500/20 text-red-400' : 'bg-secondary text-muted-foreground'}`}>
+              <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${hasLiveMatch ? 'bg-red-500/20 text-red-400' : 'bg-secondary text-muted-foreground'}`}>
                 Jornada {featuredMatchday.jornada}
               </span>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
               {featuredMatchday.matches?.map((match, index) => (
                 <MatchCard 
                   key={index} 

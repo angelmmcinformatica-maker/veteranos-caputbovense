@@ -18,9 +18,12 @@ export function useLeagueData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (isRefetch = false) => {
     try {
-      setLoading(true);
+      // Only show loading screen on initial load, not on refetch
+      if (!isRefetch) {
+        setLoading(true);
+      }
       
       // Fetch matchdays
       const matchdaysRef = collection(db, 'matchdays');
@@ -300,6 +303,6 @@ export function useLeagueData() {
     nextMatchday,
     loading,
     error,
-    refetch: fetchData
+    refetch: () => fetchData(true)
   };
 }
