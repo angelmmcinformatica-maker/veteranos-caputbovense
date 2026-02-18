@@ -119,7 +119,16 @@ export function MatchesView({ matchdays, matchReports, teams, onTeamClick, onPla
       {/* Matches list */}
       {selectedMatchday?.matches && selectedMatchday.matches.length > 0 ? (
         <div className="space-y-3">
-          {[...selectedMatchday.matches].sort((a, b) => (a.time || '').localeCompare(b.time || '')).map((match, index) => (
+          {[...selectedMatchday.matches].sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            if (dateA !== dateB) return dateA.localeCompare(dateB);
+            const timeA = a.time || '';
+            const timeB = b.time || '';
+            if (!timeA && timeB) return 1;
+            if (timeA && !timeB) return -1;
+            return timeA.localeCompare(timeB);
+          }).map((match, index) => (
             <MatchCard 
               key={index} 
               match={match} 

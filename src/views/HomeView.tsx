@@ -48,16 +48,26 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
   // Get featured matchday: if there's a live one, show that instead of last played
   const featuredMatchday = liveMatchday || lastPlayedMatchday;
 
-  // Sort matches by time helper
-  const sortByTime = (matches: Match[]) => 
-    [...matches].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  // Sort matches by date then time, "Hora por confirmar" last within each day
+  const sortByDateTime = (matches: Match[]) => 
+    [...matches].sort((a, b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      // Within same day: matches without time go last
+      const timeA = a.time || '';
+      const timeB = b.time || '';
+      if (!timeA && timeB) return 1;
+      if (timeA && !timeB) return -1;
+      return timeA.localeCompare(timeB);
+    });
 
   const sortedFeaturedMatches = useMemo(() => 
-    featuredMatchday?.matches ? sortByTime(featuredMatchday.matches) : [], 
+    featuredMatchday?.matches ? sortByDateTime(featuredMatchday.matches) : [], 
     [featuredMatchday]);
 
   const sortedNextMatches = useMemo(() => 
-    nextMatchday?.matches ? sortByTime(nextMatchday.matches) : [], 
+    nextMatchday?.matches ? sortByDateTime(nextMatchday.matches) : [], 
     [nextMatchday]);
 
   // Get pichichi player ID from teams data
@@ -97,9 +107,9 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Featured Matchday (LIVE takes priority, otherwise Last Played) */}
         {featuredMatchday && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+          <div className="glass-card p-3 sm:p-5 w-full max-w-full overflow-hidden box-border">
+            <div className="flex items-center justify-between mb-4 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 {hasLiveMatch ? (
                   <>
                     <Radio className="w-4 h-4 text-red-500 animate-pulse" />
@@ -112,7 +122,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
                   </>
                 )}
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full ${hasLiveMatch ? 'bg-red-500/20 text-red-400' : 'bg-secondary text-muted-foreground'}`}>
+              <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${hasLiveMatch ? 'bg-red-500/20 text-red-400' : 'bg-secondary text-muted-foreground'}`}>
                 Jornada {featuredMatchday.jornada}
               </span>
             </div>
