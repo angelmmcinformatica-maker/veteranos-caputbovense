@@ -13,15 +13,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Intercept background messages and show custom notification
-messaging.onBackgroundMessage((payload) => {
-  // Prevent default notification - we handle it manually
+// Primary: native push event listener — handles ALL push messages reliably on Android
+self.addEventListener('push', function(event) {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    payload = { notification: { title: 'Liga Veteranos', body: event.data.text() } };
+  }
+
   const title = payload.notification?.title || payload.data?.title || 'Liga Veteranos';
   const body = payload.notification?.body || payload.data?.body || '';
 
   const options = {
-    body,
-    icon: payload.notification?.icon || '/icons/icon-192.png',
+    body: body,
+    icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     vibrate: [200, 100, 200],
     data: payload.data || {},
@@ -29,43 +37,16 @@ messaging.onBackgroundMessage((payload) => {
     renotify: true
   };
 
-  return self.registration.showNotification(title, options);
-});
-
-// Fallback: raw push event for cases where FCM doesn't trigger onBackgroundMessage
-self.addEventListener('push', (event) => {
-  if (event.data) {
-    let payload;
-    try {
-      payload = event.data.json();
-    } catch (e) {
-      payload = { notification: { title: 'Liga Veteranos', body: event.data.text() } };
-    }
-
-    // Only show if FCM didn't already handle it (check if notification key exists in data)
-    const title = payload.notification?.title || payload.data?.title || 'Liga Veteranos';
-    const body = payload.notification?.body || payload.data?.body || '';
-
-    if (title && title !== 'Liga Veteranos' || body) {
-      const options = {
-        body,
-        icon: payload.notification?.icon || '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        vibrate: [200, 100, 200],
-        tag: payload.data?.matchId || 'liga-push',
-        renotify: true
-      };
-
-      event.waitUntil(self.registration.showNotification(title, options));
-    }
-  }
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
 });
 
 // Handle notification click
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       if (clientList.length > 0) {
         return clientList[0].focus();
       }

@@ -107,7 +107,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Featured Matchday (LIVE takes priority, otherwise Last Played) */}
         {featuredMatchday && (
-          <div className="glass-card p-3 sm:p-5 w-full max-w-full overflow-hidden box-border">
+          <div className="glass-card p-3 sm:p-5 w-full overflow-hidden box-border" style={{ maxWidth: '100%' }}>
             <div className="flex items-center justify-between mb-4 min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 {hasLiveMatch ? (
@@ -126,7 +126,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
                 Jornada {featuredMatchday.jornada}
               </span>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-2" style={{ minWidth: 0 }}>
               {sortedFeaturedMatches.map((match, index) => (
                 <MatchCard 
                   key={index} 

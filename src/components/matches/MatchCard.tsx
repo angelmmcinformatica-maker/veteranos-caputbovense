@@ -60,7 +60,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
     <CardWrapper
       onClick={onClick}
       className={cn(
-        'w-full max-w-full rounded-lg transition-all text-left overflow-hidden',
+        'w-full rounded-lg transition-all text-left overflow-hidden box-border',
         compact ? 'p-2 sm:p-3 bg-secondary/50' : 'glass-card-hover p-3 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
@@ -117,12 +117,12 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       </div>
 
       {/* Match info - vertical on mobile, horizontal on sm+ */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2 min-w-0">
         {/* Mobile: vertical stack */}
-        <div className="flex sm:hidden flex-col items-center gap-1 w-full">
+        <div className="flex sm:hidden flex-col items-center gap-1 w-full min-w-0">
           {/* Home team */}
           <div className={cn(
-            'flex items-center gap-1.5 w-full justify-center',
+            'flex items-center gap-1.5 w-full justify-center min-w-0',
             isPlayed && match.homeGoals > match.awayGoals && 'font-semibold'
           )}>
             <TeamShield url={homeShield} name={match.home} />
@@ -130,14 +130,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.home)}
                 className={cn(
-                  'text-center leading-snug hover:text-primary transition-colors',
+                  'text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
                 {match.home}
               </button>
             ) : (
-              <p className={cn('text-center leading-snug', compact ? 'text-xs' : 'text-sm')}>
+              <p className={cn('text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
                 {match.home}
               </p>
             )}
@@ -170,7 +170,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
 
           {/* Away team */}
           <div className={cn(
-            'flex items-center gap-1.5 w-full justify-center',
+            'flex items-center gap-1.5 w-full justify-center min-w-0',
             isPlayed && match.awayGoals > match.homeGoals && 'font-semibold'
           )}>
             <TeamShield url={awayShield} name={match.away} />
@@ -178,14 +178,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.away)}
                 className={cn(
-                  'text-center leading-snug hover:text-primary transition-colors',
+                  'text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
                 {match.away}
               </button>
             ) : (
-              <p className={cn('text-center leading-snug', compact ? 'text-xs' : 'text-sm')}>
+              <p className={cn('text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
                 {match.away}
               </p>
             )}
