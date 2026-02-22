@@ -53,7 +53,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
     players.filter(p => p.isStarting);
   
   const getSubstitutes = (players: MatchReportPlayer[]) => 
-    players.filter(p => !p.isStarting && p.substitutionMin);
+    players.filter(p => !p.isStarting);
 
   // Get ALL substitution pairs - each sub that entered gets its own entry
   const getSubstitutionPairs = (players: MatchReportPlayer[]): SubstitutionPair[] => {
@@ -263,6 +263,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                         <p key={i} className="text-sm flex items-center gap-1 flex-wrap">
                           <span className="text-primary font-medium shrink-0">{player.goals}x</span>
                           <PlayerName player={player} teamName={match.home} className="break-words" />
+                          {player.goalMin && (
+                            <span className="text-muted-foreground text-xs">({player.goalMin}')</span>
+                          )}
                           {(player.ownGoals || 0) > 0 && (
                             <span className="text-warning text-xs font-medium">(+{player.ownGoals} pp)</span>
                           )}
@@ -274,6 +277,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                         <p key={i} className="text-sm flex items-center sm:justify-end gap-1 flex-wrap">
                           <PlayerName player={player} teamName={match.away} className="break-words" />
                           <span className="text-primary font-medium shrink-0">{player.goals}x</span>
+                          {player.goalMin && (
+                            <span className="text-muted-foreground text-xs">({player.goalMin}')</span>
+                          )}
                           {(player.ownGoals || 0) > 0 && (
                             <span className="text-warning text-xs font-medium">(+{player.ownGoals} pp)</span>
                           )}
@@ -302,6 +308,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                             <span className="inline-block w-3 h-4 bg-destructive rounded-sm shrink-0" />
                           )}
                           <PlayerName player={player} teamName={match.home} className="break-words" />
+                          {player.cardMin && (
+                            <span className="text-muted-foreground text-xs">({player.cardMin}')</span>
+                          )}
                         </p>
                       ))}
                     </div>
@@ -314,6 +323,9 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                           )}
                           {(player.redCards > 0 || player.directRedCards > 0) && (
                             <span className="inline-block w-3 h-4 bg-destructive rounded-sm shrink-0" />
+                          )}
+                          {player.cardMin && (
+                            <span className="text-muted-foreground text-xs">({player.cardMin}')</span>
                           )}
                         </p>
                       ))}
@@ -361,6 +373,26 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                                   {player.matchNumber}
                                 </span>
                                 <PlayerName player={player} teamName={match.home} className="text-sm" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Suplentes section - show ALL non-starters */}
+                      {getSubstitutes(homePlayers).length > 0 && (
+                        <div className="pt-2 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Suplentes</p>
+                          <div className="space-y-1">
+                            {getSubstitutes(homePlayers).map((player, i) => (
+                              <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                                <span className="w-6 h-6 rounded-full bg-secondary/50 text-muted-foreground text-xs font-bold flex items-center justify-center">
+                                  {player.matchNumber}
+                                </span>
+                                <PlayerName player={player} teamName={match.home} className="text-sm" />
+                                {player.substitutionMin && (
+                                  <span className="text-xs text-muted-foreground ml-auto">({player.substitutionMin}')</span>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -422,6 +454,26 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                                   {player.matchNumber}
                                 </span>
                                 <PlayerName player={player} teamName={match.away} className="text-sm" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Suplentes section - show ALL non-starters */}
+                      {getSubstitutes(awayPlayers).length > 0 && (
+                        <div className="pt-2 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Suplentes</p>
+                          <div className="space-y-1">
+                            {getSubstitutes(awayPlayers).map((player, i) => (
+                              <div key={i} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-secondary/30 transition-colors">
+                                <span className="w-6 h-6 rounded-full bg-secondary/50 text-muted-foreground text-xs font-bold flex items-center justify-center">
+                                  {player.matchNumber}
+                                </span>
+                                <PlayerName player={player} teamName={match.away} className="text-sm" />
+                                {player.substitutionMin && (
+                                  <span className="text-xs text-muted-foreground ml-auto">({player.substitutionMin}')</span>
+                                )}
                               </div>
                             ))}
                           </div>

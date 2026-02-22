@@ -51,6 +51,8 @@ export interface MatchReportPlayer {
   redCards: number;
   directRedCards: number;
   alias?: string;
+  goalMin?: string;
+  cardMin?: string;
 }
 
 export interface MatchReport {

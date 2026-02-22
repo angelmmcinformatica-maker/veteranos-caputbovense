@@ -24,12 +24,14 @@ self.addEventListener('push', function(event) {
     payload = { notification: { title: 'Liga Veteranos', body: event.data.text() } };
   }
 
-  const title = payload.notification?.title || payload.data?.title || 'Liga Veteranos';
-  const body = payload.notification?.body || payload.data?.body || '';
+  // Buscar en data primero (Android background), luego en notification
+  const title = payload.data?.title || payload.notification?.title || 'Nuevo evento en el partido';
+  const body = payload.data?.body || payload.notification?.body || '';
+  const icon = payload.data?.icon || '/icons/icon-192.png';
 
   const options = {
     body: body,
-    icon: '/icons/icon-192.png',
+    icon: icon,
     badge: '/icons/icon-192.png',
     vibrate: [200, 100, 200],
     data: payload.data || {},
