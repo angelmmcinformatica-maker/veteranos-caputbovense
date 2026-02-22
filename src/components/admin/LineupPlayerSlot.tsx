@@ -164,6 +164,34 @@ export function LineupPlayerSlot({
             </div>
           </div>
 
+          {/* Minute inputs for goals and cards */}
+          <div className="flex flex-wrap gap-2 px-1">
+            {(player.goals > 0) && (
+              <div className="flex items-center gap-1">
+                <Label className="text-xs text-muted-foreground whitespace-nowrap">Min. gol:</Label>
+                <Input
+                  value={player.goalMin || ''}
+                  onChange={(e) => onPatchPlayer(player.id, { goalMin: e.target.value })}
+                  placeholder="Ej: 14"
+                  className="h-6 w-16 text-xs px-1 bg-secondary/50"
+                  inputMode="numeric"
+                />
+              </div>
+            )}
+            {(player.yellowCards > 0 || (player.redCards || 0) > 0 || (player.directRedCards || 0) > 0) && (
+              <div className="flex items-center gap-1">
+                <Label className="text-xs text-muted-foreground whitespace-nowrap">Min. tarjeta:</Label>
+                <Input
+                  value={player.cardMin || ''}
+                  onChange={(e) => onPatchPlayer(player.id, { cardMin: e.target.value })}
+                  placeholder="Ej: 89"
+                  className="h-6 w-16 text-xs px-1 bg-secondary/50"
+                  inputMode="numeric"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Own goals row */}
           {(player.goals > 0 || (player.ownGoals || 0) > 0) && (
             <div className="flex items-center gap-2 px-1">

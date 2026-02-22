@@ -60,8 +60,8 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
     <CardWrapper
       onClick={onClick}
       className={cn(
-        'w-full rounded-lg transition-all text-left overflow-hidden box-border',
-        compact ? 'p-2 sm:p-3 bg-secondary/50' : 'glass-card-hover p-3 sm:p-4',
+        'w-full max-w-[100vw] rounded-lg transition-all text-left overflow-hidden box-border',
+        compact ? 'p-2 sm:p-4 bg-secondary/50' : 'glass-card-hover p-2 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
         isPostponed && 'border-l-2 border-l-warning',
@@ -117,7 +117,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       </div>
 
       {/* Match info - vertical on mobile, horizontal on sm+ */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2 min-w-0 w-full overflow-hidden">
         {/* Mobile: vertical stack */}
         <div className="flex sm:hidden flex-col items-center gap-1 w-full min-w-0">
           {/* Home team */}
@@ -215,10 +215,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </div>
 
           {/* Score */}
-          <div className={cn(
-            'flex items-center justify-center flex-shrink-0',
-            compact ? 'min-w-[44px]' : 'min-w-[60px]'
-          )}>
+          <div className="flex items-center justify-center flex-shrink-0">
             {isPostponed ? (
               <span className="text-warning font-bold text-sm">APL</span>
             ) : (isPlayed || isLive || isPendingResult) ? (

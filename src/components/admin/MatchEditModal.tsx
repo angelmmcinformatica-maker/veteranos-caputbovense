@@ -227,7 +227,9 @@ export function MatchEditModal({
             ownGoals: Number(player.ownGoals) || 0,
             yellowCards: Number(player.yellowCards) || 0,
             redCards: Number(player.redCards) || 0,
-            directRedCards: Number(player.directRedCards) || 0
+            directRedCards: Number(player.directRedCards) || 0,
+            goalMin: player.goalMin || '',
+            cardMin: player.cardMin || ''
           }));
         };
 
