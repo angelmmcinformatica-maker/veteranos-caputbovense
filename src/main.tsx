@@ -3,15 +3,19 @@ import App from "./App.tsx";
 import "./index.css";
 
 // Register Service Worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Register FCM service worker (also handles caching)
-    navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => {
-      // SW registration failed silently
+try {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      try {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      } catch {
+        // SW registration failed silently - iOS privacy mode
+      }
     });
-    // Register general cache SW
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
+  }
+} catch {
+  // SW not supported
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

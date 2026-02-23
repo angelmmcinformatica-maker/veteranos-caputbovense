@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { LeaderCard } from '@/components/dashboard/LeaderCard';
 import { PichichiCard } from '@/components/dashboard/PichichiCard';
-import { MatchCard } from '@/components/matches/MatchCard';
+import { MatchdaySection } from '@/components/dashboard/MatchdaySection';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
-import { Calendar, CheckCircle2, Radio } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { InstallPWA } from '@/components/pwa/InstallPWA';
 import type { TeamStanding, TopScorer, Matchday, Match, MatchReport, Team } from '@/types/league';
@@ -107,43 +106,15 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Featured Matchday (LIVE takes priority, otherwise Last Played) */}
         {featuredMatchday && (
-          <div className="glass-card p-3 sm:p-5 w-full overflow-hidden box-border" style={{ maxWidth: '100%' }}>
-            <div className="flex items-center justify-between mb-4 min-w-0">
-              <div className="flex items-center gap-2 min-w-0">
-                {hasLiveMatch ? (
-                  <>
-                    <Radio className="w-4 h-4 text-red-500 animate-pulse" />
-                    <h3 className="text-sm font-semibold text-red-500">En Directo</h3>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-semibold">Última Jornada</h3>
-                  </>
-                )}
-              </div>
-              <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${hasLiveMatch ? 'bg-red-500/20 text-red-400' : 'bg-secondary text-muted-foreground'}`}>
-                Jornada {featuredMatchday.jornada}
-              </span>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2" style={{ minWidth: 0 }}>
-              {sortedFeaturedMatches.map((match, index) => (
-                <MatchCard 
-                  key={index} 
-                  match={match} 
-                  compact
-                  showTime
-                  onClick={() => setSelectedMatch(match)}
-                  hasReport={!!getMatchReport(match)}
-                />
-              ))}
-            </div>
-            {featuredMatchday.rest && (
-              <p className="text-xs text-muted-foreground text-center mt-3">
-                Descansa: <span className="font-medium text-foreground">{featuredMatchday.rest}</span>
-              </p>
-            )}
-          </div>
+          <MatchdaySection
+            title={hasLiveMatch ? 'En Directo' : 'Última Jornada'}
+            jornada={featuredMatchday.jornada}
+            matches={sortedFeaturedMatches}
+            rest={featuredMatchday.rest}
+            variant={hasLiveMatch ? 'live' : 'played'}
+            onMatchClick={setSelectedMatch}
+            getMatchReport={getMatchReport}
+          />
         )}
 
         {/* Full Standings */}
@@ -157,27 +128,14 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
 
       {/* Next Matchday - only show if not already showing a LIVE matchday */}
       {nextMatchday && !hasLiveMatch && (
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold">Próxima Jornada</h3>
-            </div>
-            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-              Jornada {nextMatchday.jornada}
-            </span>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {sortedNextMatches.map((match, index) => (
-              <MatchCard key={index} match={match} compact showTime onClick={() => setSelectedMatch(match)} />
-            ))}
-          </div>
-          {nextMatchday.rest && (
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              Descansa: <span className="font-medium text-foreground">{nextMatchday.rest}</span>
-            </p>
-          )}
-        </div>
+        <MatchdaySection
+          title="Próxima Jornada"
+          jornada={nextMatchday.jornada}
+          matches={sortedNextMatches}
+          rest={nextMatchday.rest}
+          variant="upcoming"
+          onMatchClick={setSelectedMatch}
+        />
       )}
 
       {/* Match Detail Modal */}
