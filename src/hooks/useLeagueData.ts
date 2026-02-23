@@ -285,8 +285,17 @@ export function useLeagueData() {
       if (parts.length === 3) {
         mdDate = new Date(+parts[2], +parts[1] - 1, +parts[0]);
       }
-    } else {
-      mdDate = new Date(md.date);
+    } else if (md.date.includes('-')) {
+      // Handle YYYY-MM-DD or DD-MM-YYYY
+      const parts = md.date.split('-');
+      if (parts.length === 3) {
+        // If first part is 4 digits, it's YYYY-MM-DD
+        if (parts[0].length === 4) {
+          mdDate = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        } else {
+          mdDate = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+        }
+      }
     }
     if (!mdDate || isNaN(mdDate.getTime())) return false;
     const today = new Date();

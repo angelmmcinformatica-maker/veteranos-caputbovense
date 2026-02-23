@@ -60,7 +60,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
     <CardWrapper
       onClick={onClick}
       className={cn(
-        'w-full max-w-[100vw] rounded-lg transition-all text-left overflow-hidden box-border',
+        'w-full max-w-full rounded-lg transition-all text-left overflow-hidden box-border',
         compact ? 'p-2 sm:p-4 bg-secondary/50' : 'glass-card-hover p-2 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
