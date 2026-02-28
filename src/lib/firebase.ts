@@ -29,12 +29,17 @@ export const storage: FirebaseStorage = getStorage(app);
 let messaging: Messaging | null = null;
 
 export async function initMessaging(): Promise<Messaging | null> {
-  if (messaging) return messaging;
-  const supported = await isSupported();
-  if (supported) {
-    messaging = getMessaging(app);
+  try {
+    if (messaging) return messaging;
+    const supported = await isSupported();
+    if (supported) {
+      messaging = getMessaging(app);
+    }
+    return messaging;
+  } catch {
+    // Messaging not supported on this device/browser
+    return null;
   }
-  return messaging;
 }
 
 export { getToken, onMessage };
