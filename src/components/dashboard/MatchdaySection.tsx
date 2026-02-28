@@ -29,16 +29,16 @@ export function MatchdaySection({ title, jornada, matches, rest, variant, onMatc
 
   return (
     <div className="glass-card p-3 sm:p-5 w-full overflow-hidden box-border">
-      <div className="flex items-center justify-between mb-4 min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between mb-4 min-w-0 gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
           {icon}
-          <h3 className={`text-sm font-semibold ${titleClass}`}>{title}</h3>
+          <h3 className={`text-sm font-semibold truncate ${titleClass}`}>{title}</h3>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${badgeClass}`}>
+        <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${badgeClass}`}>
           Jornada {jornada}
         </span>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2" style={{ minWidth: 0 }}>
+      <div className="grid gap-2" style={{ minWidth: 0 }}>
         {matches.map((match, index) => (
           <MatchCard
             key={index}

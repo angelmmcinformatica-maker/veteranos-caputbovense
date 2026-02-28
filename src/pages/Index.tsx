@@ -40,18 +40,26 @@ const Index = () => {
   // Auto-update PENDING matches to LIVE in Firebase when time matches
   useAutoLiveStatus(matchdays, refetch);
 
-  // Listen for foreground push notifications
+  // Listen for foreground push notifications (safely for iOS)
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
-    initMessaging().then((messaging) => {
-      if (messaging) {
-        unsubscribe = onMessage(messaging, (payload) => {
-          const { title, body } = payload.notification || {};
-          toast(title || 'Liga Veteranos', { description: body });
+    try {
+      initMessaging()
+        .then((messaging) => {
+          if (messaging) {
+            unsubscribe = onMessage(messaging, (payload) => {
+              const { title, body } = payload.notification || {};
+              toast(title || 'Liga Veteranos', { description: body });
+            });
+          }
+        })
+        .catch(() => {
+          // Messaging not supported (iOS Safari, private mode, etc.)
         });
-      }
-    });
-    return () => unsubscribe?.();
+    } catch {
+      // Firebase messaging init failed silently
+    }
+    return () => { try { unsubscribe?.(); } catch {} };
   }, []);
 
   const handleTeamClick = (teamName: string) => {
