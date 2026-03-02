@@ -17,6 +17,8 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const notificationsSupported = typeof window !== 'undefined' && 'Notification' in window;
+
   useEffect(() => {
     const saved = localStorage.getItem('notification-team-ids');
     if (saved) {
@@ -24,7 +26,9 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
         setSubscribedTeamIds(JSON.parse(saved));
       } catch {}
     }
-    setNotificationsEnabled(Notification.permission === 'granted');
+    if (notificationsSupported) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
   }, []);
 
   const syncTokenToFirestore = async (teamIds: string[]) => {
@@ -50,6 +54,7 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
   const requestPermission = async () => {
     setLoading(true);
     try {
+      if (!notificationsSupported) return;
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         setNotificationsEnabled(true);
@@ -83,7 +88,7 @@ export function NotificationSettings({ teams }: NotificationSettingsProps) {
     if (notificationsEnabled) syncTokenToFirestore(updated);
   };
 
-  if (!('Notification' in window)) return null;
+  if (!notificationsSupported) return null;
 
   return (
     <div className="relative">
