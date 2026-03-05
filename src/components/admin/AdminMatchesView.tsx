@@ -210,7 +210,7 @@ export function AdminMatchesView({
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
                             <p className={cn(
-                              'text-sm font-medium truncate',
+                              'text-sm font-medium break-words',
                               match.status === 'PLAYED' && match.homeGoals > match.awayGoals && 'text-primary',
                               delegateTeam === match.home && 'text-primary font-bold'
                             )}>
@@ -234,7 +234,7 @@ export function AdminMatchesView({
                           </div>
                           <div className="flex-1 min-w-0 text-right">
                             <p className={cn(
-                              'text-sm font-medium truncate',
+                              'text-sm font-medium break-words',
                               match.status === 'PLAYED' && match.awayGoals > match.homeGoals && 'text-primary',
                               delegateTeam === match.away && 'text-primary font-bold'
                             )}>
