@@ -312,11 +312,57 @@ export function useLeagueData() {
     return relevantMatchdays[relevantMatchdays.length - 1] || null;
   }, [matchdays]);
 
-  // Get next matchday (PENDING or SCHEDULED, and date is in the future)
+  // Parse a date string (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD) into a Date object
+  const parseMatchDate = (dateStr: string): Date | null => {
+    if (!dateStr) return null;
+    let d: Date | null = null;
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+    } else if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        else d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+      }
+    }
+    return d && !isNaN(d.getTime()) ? d : null;
+  };
+
+  // Get next matchday: find the earliest pending/scheduled match date >= today across ALL matchdays
   const nextMatchday = useMemo(() => {
-    return matchdays.find(md => 
-      md.matches?.some(m => m.status === 'PENDING' || m.status === 'SCHEDULED') && !isMatchdayTodayOrPast(md)
-    ) || null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Collect all matchdays that have at least one pending/scheduled match with a future date
+    const candidates: { matchday: Matchday; earliestDate: Date }[] = [];
+
+    matchdays.forEach(md => {
+      const pendingMatches = md.matches?.filter(m => m.status === 'PENDING' || m.status === 'SCHEDULED') || [];
+      if (pendingMatches.length === 0) return;
+
+      // Find the earliest future date among pending matches in this matchday
+      let earliest: Date | null = null;
+      for (const m of pendingMatches) {
+        const d = parseMatchDate(m.date || md.date);
+        if (d && d >= today) {
+          if (!earliest || d < earliest) earliest = d;
+        }
+      }
+      if (earliest) {
+        candidates.push({ matchday: md, earliestDate: earliest });
+      }
+    });
+
+    if (candidates.length === 0) return null;
+
+    // Sort by earliest pending match date, then by jornada number
+    candidates.sort((a, b) => {
+      const diff = a.earliestDate.getTime() - b.earliestDate.getTime();
+      return diff !== 0 ? diff : a.matchday.jornada - b.matchday.jornada;
+    });
+
+    return candidates[0].matchday;
   }, [matchdays]);
 
   return {
