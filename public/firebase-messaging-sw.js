@@ -13,29 +13,33 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Primary: native push event listener — handles ALL push messages reliably on Android
+// Fallback: only show notification if the browser didn't auto-display one
+// (webpush.notification in the FCM payload handles the primary display)
 self.addEventListener('push', function(event) {
   if (!event.data) return;
 
-  let payload;
+  var payload;
   try {
     payload = event.data.json();
   } catch (e) {
-    payload = { notification: { title: 'Liga Veteranos', body: event.data.text() } };
+    payload = {};
   }
 
-  // Buscar en data primero (Android background), luego en notification
-  const title = payload.data?.title || payload.notification?.title || 'Nuevo evento en el partido';
-  const body = payload.data?.body || payload.notification?.body || '';
-  const icon = payload.data?.icon || '/icons/icon-192.png';
+  // If FCM sent a webpush.notification, the browser already shows it — skip
+  if (payload.notification) return;
 
-  const options = {
+  // Fallback: use data payload to show notification manually
+  var data = payload.data || {};
+  var title = data.title || 'Liga Veteranos';
+  var body = data.body || '';
+
+  var options = {
     body: body,
-    icon: icon,
+    icon: data.icon || '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     vibrate: [200, 100, 200],
-    data: payload.data || {},
-    tag: payload.data?.matchId || 'liga-notification',
+    data: data,
+    tag: data.tag || 'liga-notification',
     renotify: true
   };
 
