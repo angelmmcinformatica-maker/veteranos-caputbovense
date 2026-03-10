@@ -285,13 +285,18 @@ export function MatchEditModal({
         {/* Tabs - show only accessible tabs for delegates */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-4 pt-4">
-            <TabsList className={cn(
-              "grid w-full bg-secondary",
-              userRole === 'delegate' ? 'grid-cols-2' : 'grid-cols-3'
-            )}>
-              {canEditResult && <TabsTrigger value="result">Resultado</TabsTrigger>}
-              {canEditHomeLineup && <TabsTrigger value="home">{match.home.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
-              {canEditAwayLineup && <TabsTrigger value="away">{match.away.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
+            <TabsList className="flex w-full h-auto flex-wrap gap-1 bg-secondary p-1">
+              {canEditResult && <TabsTrigger value="result" className="flex-1 min-w-0">Resultado</TabsTrigger>}
+              {canEditHomeLineup && (
+                <TabsTrigger value="home" className="flex-1 min-w-0 max-w-[140px] sm:max-w-[200px]">
+                  <span className="truncate block">{match.home}</span>
+                </TabsTrigger>
+              )}
+              {canEditAwayLineup && (
+                <TabsTrigger value="away" className="flex-1 min-w-0 max-w-[140px] sm:max-w-[200px]">
+                  <span className="truncate block">{match.away}</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
