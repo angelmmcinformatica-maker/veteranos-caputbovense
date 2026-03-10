@@ -400,8 +400,8 @@ export function MatchEditModal({
                     
                     <span className="text-2xl text-muted-foreground">-</span>
                     
-                    <div className="flex-1 text-center">
-                      <p className="text-sm font-medium mb-2 truncate">{match.away}</p>
+                    <div className="flex-1 min-w-0 text-center">
+                      <p className="text-xs sm:text-sm font-medium mb-2 break-words leading-tight">{match.away}</p>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setAwayGoals(Math.max(0, awayGoals - 1))}
