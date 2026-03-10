@@ -377,10 +377,10 @@ export function MatchEditModal({
               {matchStatus !== 'POSTPONED' && (
               <div className="space-y-2">
                 <Label>Resultado</Label>
-                <div className="glass-card p-6 bg-secondary/30">
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex-1 text-center">
-                      <p className="text-sm font-medium mb-2 truncate">{match.home}</p>
+                <div className="glass-card p-4 sm:p-6 bg-secondary/30">
+                  <div className="flex items-center justify-center gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0 text-center">
+                      <p className="text-xs sm:text-sm font-medium mb-2 break-words leading-tight">{match.home}</p>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setHomeGoals(Math.max(0, homeGoals - 1))}
