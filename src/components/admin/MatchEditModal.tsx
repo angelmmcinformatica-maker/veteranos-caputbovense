@@ -285,13 +285,18 @@ export function MatchEditModal({
         {/* Tabs - show only accessible tabs for delegates */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-4 pt-4">
-            <TabsList className={cn(
-              "grid w-full bg-secondary",
-              userRole === 'delegate' ? 'grid-cols-2' : 'grid-cols-3'
-            )}>
-              {canEditResult && <TabsTrigger value="result">Resultado</TabsTrigger>}
-              {canEditHomeLineup && <TabsTrigger value="home">{match.home.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
-              {canEditAwayLineup && <TabsTrigger value="away">{match.away.split(' ').slice(0, 2).join(' ')}</TabsTrigger>}
+            <TabsList className="flex w-full h-auto flex-wrap gap-1 bg-secondary p-1">
+              {canEditResult && <TabsTrigger value="result" className="flex-1 min-w-0">Resultado</TabsTrigger>}
+              {canEditHomeLineup && (
+                <TabsTrigger value="home" className="flex-1 min-w-0 max-w-[140px] sm:max-w-[200px]">
+                  <span className="truncate block">{match.home}</span>
+                </TabsTrigger>
+              )}
+              {canEditAwayLineup && (
+                <TabsTrigger value="away" className="flex-1 min-w-0 max-w-[140px] sm:max-w-[200px]">
+                  <span className="truncate block">{match.away}</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -372,10 +377,10 @@ export function MatchEditModal({
               {matchStatus !== 'POSTPONED' && (
               <div className="space-y-2">
                 <Label>Resultado</Label>
-                <div className="glass-card p-6 bg-secondary/30">
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex-1 text-center">
-                      <p className="text-sm font-medium mb-2 truncate">{match.home}</p>
+                <div className="glass-card p-4 sm:p-6 bg-secondary/30">
+                  <div className="flex items-center justify-center gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0 text-center">
+                      <p className="text-xs sm:text-sm font-medium mb-2 break-words leading-tight">{match.home}</p>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setHomeGoals(Math.max(0, homeGoals - 1))}
@@ -395,8 +400,8 @@ export function MatchEditModal({
                     
                     <span className="text-2xl text-muted-foreground">-</span>
                     
-                    <div className="flex-1 text-center">
-                      <p className="text-sm font-medium mb-2 truncate">{match.away}</p>
+                    <div className="flex-1 min-w-0 text-center">
+                      <p className="text-xs sm:text-sm font-medium mb-2 break-words leading-tight">{match.away}</p>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => setAwayGoals(Math.max(0, awayGoals - 1))}
