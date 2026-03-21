@@ -268,12 +268,7 @@ export function PlayerDetailModal({
 
                       {/* Right section: Stats + Result - compact for mobile */}
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        {/* Minutes played - hidden on very small screens */}
-                        <div className="hidden xs:block text-[10px] sm:text-xs text-muted-foreground">
-                          {match.minutesPlayed}'
-                        </div>
-
-                        {/* Starting/Substitute status - abbreviated on mobile */}
+                        {/* Starting/Substitute status */}
                         <div className={cn(
                           'px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[8px] sm:text-[10px] font-medium whitespace-nowrap',
                           match.isStarting 
@@ -291,7 +286,7 @@ export function PlayerDetailModal({
                           </div>
                         )}
 
-                        {/* Cards - smaller on mobile */}
+                        {/* Cards */}
                         {match.yellowCards > 0 && (
                           <span className="w-2 h-3 sm:w-3 sm:h-4 bg-warning rounded-sm flex-shrink-0" />
                         )}
@@ -299,7 +294,15 @@ export function PlayerDetailModal({
                           <span className="w-2 h-3 sm:w-3 sm:h-4 bg-destructive rounded-sm flex-shrink-0" />
                         )}
 
-                        {/* Result - priority, fixed width */}
+                        {/* Minutes played */}
+                        {match.minutesPlayed > 0 && (
+                          <div className="flex items-center gap-0.5 text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-[10px] sm:text-xs">{match.minutesPlayed}'</span>
+                          </div>
+                        )}
+
+                        {/* Result */}
                         <span className="text-xs sm:text-sm font-bold whitespace-nowrap tabular-nums min-w-[28px] text-right">
                           {match.result}
                         </span>
