@@ -227,6 +227,14 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           disabled={!isAdmin}
           disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
         />
+        <AdminCard 
+          title="Play-offs"
+          description="Cruces de Liga y Copa · Resultados y actas"
+          icon="🏆"
+          onClick={() => setActiveModal('playoffs')}
+          disabled={!isAdmin}
+          disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
+        />
       </div>
 
       {!isAdmin && (
