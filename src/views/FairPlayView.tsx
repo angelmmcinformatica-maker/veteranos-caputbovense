@@ -1,4 +1,4 @@
-import { HeartHandshake, Home, Shield, Info } from 'lucide-react';
+import { HeartHandshake, Home, Shield, Info, Sparkles, Swords } from 'lucide-react';
 import { deportividadData } from '@/data/deportividadData';
 import { useTeamImages } from '@/hooks/useTeamImages';
 
@@ -49,6 +49,14 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
         </div>
       </div>
 
+      {/* Conexión Play-offs */}
+      <div className="flex items-center justify-center gap-2 text-[11px] sm:text-xs text-muted-foreground max-w-3xl mx-auto px-2 text-center">
+        <Swords className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+        <span>
+          Esta clasificación determina <span className="text-foreground font-semibold">quién juega como local en los Play-offs a partido único</span>.
+        </span>
+      </div>
+
       {/* Tabla */}
       <div className="glass-card overflow-hidden">
         {/* Header */}
@@ -66,17 +74,20 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
           {sorted.map((entry, idx) => {
             const pos = idx + 1;
             const shield = getTeamShield(entry.team);
-            const isTop = pos <= 3;
+            const isTop3 = pos <= 3;
+            const isLeader = pos === 1;
             return (
               <button
                 key={entry.team}
                 type="button"
                 onClick={() => onTeamClick?.(entry.team)}
-                className="w-full grid grid-cols-[40px_1fr_44px_44px_56px_64px] sm:grid-cols-[48px_1fr_72px_72px_88px_96px] gap-1 sm:gap-2 px-2 sm:px-4 py-2 hover:bg-white/5 transition-colors text-left items-center"
+                className={`w-full grid grid-cols-[40px_1fr_44px_44px_56px_64px] sm:grid-cols-[48px_1fr_72px_72px_88px_96px] gap-1 sm:gap-2 px-2 sm:px-4 py-2 hover:bg-white/5 transition-colors text-left items-center ${
+                  isLeader ? 'bg-primary/[0.08]' : isTop3 ? 'bg-primary/[0.04]' : ''
+                }`}
               >
                 <div
                   className={`text-center text-[11px] sm:text-sm font-extrabold tabular-nums ${
-                    isTop ? 'text-primary' : 'text-muted-foreground'
+                    isTop3 ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   {pos}
@@ -89,9 +100,18 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
                       <Shield className="w-3 h-3 text-muted-foreground/40" />
                     )}
                   </div>
-                  <span className="text-[11px] sm:text-sm font-semibold truncate">
+                  <span className={`text-[11px] sm:text-sm truncate ${isTop3 ? 'font-bold text-foreground' : 'font-semibold'}`}>
                     {entry.team}
                   </span>
+                  {isLeader && (
+                    <span
+                      title="Premio Fair Play"
+                      className="flex-shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/20 border border-primary/40 text-[8px] font-extrabold uppercase tracking-wider text-primary"
+                    >
+                      <Sparkles className="w-2.5 h-2.5" />
+                      Fair Play
+                    </span>
+                  )}
                 </div>
                 <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-amber-400">
                   {entry.yellowCards}
@@ -104,7 +124,7 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
                 </div>
                 <div
                   className={`text-center text-sm sm:text-base font-extrabold tabular-nums ${
-                    isTop ? 'text-primary' : 'text-foreground'
+                    isTop3 ? 'text-primary' : 'text-foreground'
                   }`}
                 >
                   {entry.totalPoints}
