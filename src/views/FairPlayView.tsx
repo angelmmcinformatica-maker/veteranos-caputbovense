@@ -93,10 +93,10 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
                     {entry.team}
                   </span>
                 </div>
-                <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-yellow-500">
+                <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-amber-400">
                   {entry.yellowCards}
                 </div>
-                <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-red-500">
+                <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-destructive">
                   {entry.redCards}
                 </div>
                 <div className="text-center text-[11px] sm:text-sm font-bold tabular-nums text-muted-foreground">
