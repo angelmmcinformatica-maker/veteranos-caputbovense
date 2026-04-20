@@ -13,14 +13,21 @@ interface FeaturedMatch {
   competition: 'liga' | 'copa';
 }
 
-const featuredMatches: FeaturedMatch[] = [
-  // Cuartos de Liga (los 4)
+const ligaMatches: FeaturedMatch[] = [
   { id: 'l-qf1', round: 'Cuartos Liga', home: 'Inter Don Benito Polo Opuesto', away: 'Valdehornillos Veteranos', homePoints: 67, awayPoints: 51, competition: 'liga' },
   { id: 'l-qf2', round: 'Cuartos Liga', home: 'Santa Amalia Veteranos', away: 'Palazuelo Santa Teresa', homePoints: 72, awayPoints: 44, competition: 'liga' },
   { id: 'l-qf3', round: 'Cuartos Liga', home: 'Transtello Miajadas', away: 'Talarrubias Veteranos', homePoints: 51, awayPoints: 44, competition: 'liga' },
   { id: 'l-qf4', round: 'Cuartos Liga', home: 'Meson Los Barros Don Benito', away: 'Valdivia Veteranos', homePoints: 79, awayPoints: 59, competition: 'liga' },
-  // 2 destacados de Copa
+];
+
+const copaMatches: FeaturedMatch[] = [
+  { id: 'c-o1', round: 'Octavos Copa', home: 'CD Gargaligas', away: 'Campanario Atletico', homePoints: 64, awayPoints: 50, competition: 'copa' },
+  { id: 'c-o2', round: 'Octavos Copa', home: 'CD Veteranos Ruecas', away: 'CP Rena', homePoints: 62, awayPoints: 48, competition: 'copa' },
+  { id: 'c-o3', round: 'Octavos Copa', home: 'Agricola Merchan Vva.', away: 'San Bartolome Veteranos', homePoints: 60, awayPoints: 47, competition: 'copa' },
+  { id: 'c-o4', round: 'Octavos Copa', home: 'AD Alcuescar', away: 'Zalamea Veteranos', homePoints: 58, awayPoints: 46, competition: 'copa' },
   { id: 'c-o5', round: 'Octavos Copa', home: 'Vulebar Texeira Don Benito', away: 'Campanario Interserena', homePoints: 86, awayPoints: 55, competition: 'copa' },
+  { id: 'c-o6', round: 'Octavos Copa', home: 'Sporting Don Benito', away: 'Docenario Atletico', homePoints: 57, awayPoints: 45, competition: 'copa' },
+  { id: 'c-o7', round: 'Octavos Copa', home: 'Amazonia Orellana', away: 'V. Bar La Tasca Miajadas', homePoints: 55, awayPoints: 44, competition: 'copa' },
   { id: 'c-o8', round: 'Octavos Copa', home: 'AD Caputbovense', away: 'Hernan Cortes Veteranos', homePoints: 70, awayPoints: 49, competition: 'copa' },
 ];
 
