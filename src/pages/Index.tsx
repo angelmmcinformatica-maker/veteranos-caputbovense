@@ -7,6 +7,7 @@ import { StandingsView } from '@/views/StandingsView';
 import { MatchesView } from '@/views/MatchesView';
 import { StatsView } from '@/views/StatsView';
 import { AdminView } from '@/views/AdminView';
+import { PlayoffsView } from '@/views/PlayoffsView';
 import { TeamDetailModal } from '@/components/teams/TeamDetailModal';
 import { PlayerDetailModal } from '@/components/players/PlayerDetailModal';
 import { useLeagueData } from '@/hooks/useLeagueData';
@@ -14,7 +15,7 @@ import { useAutoLiveStatus } from '@/hooks/useAutoLiveStatus';
 import { initMessaging, onMessage } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'admin';
+type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'admin';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
