@@ -545,6 +545,83 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
           Los emparejamientos se actualizarán automáticamente al finalizar la fase regular.
         </p>
       </section>
+
+      {/* ============== TRIANGULAR COPA CONSOLACIÓN ============== */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3 border-b border-amber-500/20 pb-3">
+          <div className="w-11 h-11 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+            <Users className="w-5 h-5 text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground/90">Triangular Copa Consolación</h2>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">
+              Competición especial entre los equipos clasificados 25º, 26º y 27º
+            </p>
+          </div>
+        </div>
+
+        <div className="glass-card border border-amber-500/20 p-3 sm:p-4 flex items-start gap-3 bg-amber-500/[0.04]">
+          <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-amber-400" />
+          </div>
+          <div className="text-xs sm:text-sm">
+            <p className="font-semibold text-foreground/90">Modalidad especial</p>
+            <p className="text-muted-foreground mt-0.5">
+              Triangular a una sola vuelta. Los partidos se disputan en formato reducido de{' '}
+              <span className="font-bold text-amber-400">30 minutos</span> por encuentro.
+            </p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {consolacionTeams.map((team, idx) => {
+              const shield = getTeamShield(team);
+              return (
+                <button
+                  key={team}
+                  type="button"
+                  onClick={() => onTeamClick?.(team)}
+                  className="glass-card border border-amber-500/20 hover:border-amber-500/40 transition-all p-3 sm:p-4 flex flex-col items-center text-center gap-2 group"
+                >
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-secondary/60 flex items-center justify-center overflow-hidden ring-2 ring-amber-500/20">
+                    {shield ? (
+                      <img src={shield} alt={team} className="w-full h-full object-cover" />
+                    ) : (
+                      <Shield className="w-6 h-6 text-muted-foreground/40" />
+                    )}
+                  </div>
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-amber-400">
+                    Equipo {idx + 1}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground group-hover:text-amber-400 transition-colors leading-tight">
+                    {team}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 text-center">
+            <div className="text-[10px] sm:text-xs">
+              <div className="text-muted-foreground/70 uppercase tracking-wider text-[9px] mb-0.5">Jornada 1</div>
+              <div className="font-semibold text-foreground/80">Equipo 1 vs Equipo 2</div>
+            </div>
+            <div className="text-[10px] sm:text-xs">
+              <div className="text-muted-foreground/70 uppercase tracking-wider text-[9px] mb-0.5">Jornada 2</div>
+              <div className="font-semibold text-foreground/80">Equipo 2 vs Equipo 3</div>
+            </div>
+            <div className="text-[10px] sm:text-xs">
+              <div className="text-muted-foreground/70 uppercase tracking-wider text-[9px] mb-0.5">Jornada 3</div>
+              <div className="font-semibold text-foreground/80">Equipo 1 vs Equipo 3</div>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-center text-muted-foreground/60 italic">
+          El campeón del triangular se proclama por puntos acumulados.
+        </p>
+      </section>
     </div>
   );
 }
