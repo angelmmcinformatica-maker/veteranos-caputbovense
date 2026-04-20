@@ -127,6 +127,8 @@ const Index = () => {
             onPlayerClick={handlePlayerClick}
           />
         );
+      case 'playoffs':
+        return <PlayoffsView onTeamClick={handleTeamClick} />;
       case 'admin':
         return (
           <AdminView 
