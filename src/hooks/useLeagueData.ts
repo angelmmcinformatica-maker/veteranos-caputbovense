@@ -25,10 +25,13 @@ export function useLeagueData() {
         setLoading(true);
       }
       
-      // Fetch matchdays
+      // Fetch matchdays (excluding playoff brackets, which live in the same
+      // collection but are managed independently from the regular league)
       const matchdaysRef = collection(db, 'matchdays');
       const matchdaysSnap = await getDocs(matchdaysRef);
-      const matchdaysData = matchdaysSnap.docs.map(doc => {
+      const matchdaysData = matchdaysSnap.docs
+        .filter(doc => !doc.id.startsWith('playoff-'))
+        .map(doc => {
         const data = doc.data();
         const matchdayDate = data.date || '';
         

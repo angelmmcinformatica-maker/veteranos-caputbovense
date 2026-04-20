@@ -6,6 +6,7 @@ import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
 import { AdminReportsManager } from '@/components/admin/AdminReportsManager';
 import { AdminUsersManager } from '@/components/admin/AdminUsersManager';
+import { AdminPlayoffsView } from '@/components/admin/AdminPlayoffsView';
 
 interface AdminViewProps {
   matchdays: Matchday[];
@@ -16,7 +17,7 @@ interface AdminViewProps {
   onDataRefresh: () => void;
 }
 
-type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | null;
+type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | 'playoffs' | null;
 
 export function AdminView({ matchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
@@ -226,6 +227,14 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           disabled={!isAdmin}
           disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
         />
+        <AdminCard 
+          title="Play-offs"
+          description="Cruces de Liga y Copa · Resultados y actas"
+          icon="🏆"
+          onClick={() => setActiveModal('playoffs')}
+          disabled={!isAdmin}
+          disabledMessage={!isAdmin ? 'Requiere rol de administrador' : undefined}
+        />
       </div>
 
       {!isAdmin && (
@@ -273,6 +282,14 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
       {activeModal === 'users' && isAdmin && (
         <AdminUsersManager 
           teams={teams}
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
+        />
+      )}
+      {activeModal === 'playoffs' && isAdmin && (
+        <AdminPlayoffsView
+          teams={teams}
+          matchReports={matchReports}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
         />
