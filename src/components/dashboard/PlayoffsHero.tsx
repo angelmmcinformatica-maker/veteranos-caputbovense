@@ -119,7 +119,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick }: PlayoffsHeroProps) {
           </div>
 
           {/* Mobile: horizontal scroll carousel. Tablet+: responsive grid */}
-          <div className="-mx-1 px-1 flex sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-1 px-1 flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
             {section.items.map((m) => (
               <button
                 key={m.id}
@@ -127,7 +127,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick }: PlayoffsHeroProps) {
                 onClick={onNavigate}
                 className={cn(
                   'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
-                  'shrink-0 w-[78%] sm:w-auto',
+                  'shrink-0 w-[78%] md:w-auto',
                   m.competition === 'liga'
                     ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
                     : 'border-slate-400/30 bg-slate-400/5 hover:border-slate-400/60'
