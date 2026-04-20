@@ -8,6 +8,7 @@ import { MatchesView } from '@/views/MatchesView';
 import { StatsView } from '@/views/StatsView';
 import { AdminView } from '@/views/AdminView';
 import { PlayoffsView } from '@/views/PlayoffsView';
+import { FairPlayView } from '@/views/FairPlayView';
 import { TeamDetailModal } from '@/components/teams/TeamDetailModal';
 import { PlayerDetailModal } from '@/components/players/PlayerDetailModal';
 import { useLeagueData } from '@/hooks/useLeagueData';
@@ -15,7 +16,7 @@ import { useAutoLiveStatus } from '@/hooks/useAutoLiveStatus';
 import { initMessaging, onMessage } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'admin';
+type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'fairplay' | 'admin';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -129,6 +130,8 @@ const Index = () => {
         );
       case 'playoffs':
         return <PlayoffsView onTeamClick={handleTeamClick} />;
+      case 'fairplay':
+        return <FairPlayView onTeamClick={handleTeamClick} />;
       case 'admin':
         return (
           <AdminView 
