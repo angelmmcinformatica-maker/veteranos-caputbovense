@@ -1,7 +1,7 @@
-import { Home, Trophy, Calendar, BarChart3, Shield } from 'lucide-react';
+import { Home, Trophy, Calendar, BarChart3, Shield, Swords } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'admin';
+type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'admin';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -13,6 +13,7 @@ const navItems: { id: Tab; icon: typeof Home; label: string }[] = [
   { id: 'standings', icon: Trophy, label: 'Clasificación' },
   { id: 'matches', icon: Calendar, label: 'Partidos' },
   { id: 'stats', icon: BarChart3, label: 'Stats' },
+  { id: 'playoffs', icon: Swords, label: 'Play-offs' },
   { id: 'admin', icon: Shield, label: 'Admin' },
 ];
 
