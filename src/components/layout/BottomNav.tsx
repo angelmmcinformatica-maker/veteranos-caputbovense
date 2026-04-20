@@ -1,7 +1,7 @@
-import { Home, Trophy, Calendar, BarChart3, Shield, Swords } from 'lucide-react';
+import { Home, Trophy, Calendar, BarChart3, Shield, Swords, HeartHandshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'admin';
+type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'fairplay' | 'admin';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -10,25 +10,26 @@ interface BottomNavProps {
 
 const navItems: { id: Tab; icon: typeof Home; label: string }[] = [
   { id: 'home', icon: Home, label: 'Inicio' },
-  { id: 'standings', icon: Trophy, label: 'Clasificación' },
+  { id: 'standings', icon: Trophy, label: 'Clasif.' },
   { id: 'matches', icon: Calendar, label: 'Partidos' },
   { id: 'stats', icon: BarChart3, label: 'Stats' },
   { id: 'playoffs', icon: Swords, label: 'Play-offs' },
+  { id: 'fairplay', icon: HeartHandshake, label: 'Deport.' },
   { id: 'admin', icon: Shield, label: 'Admin' },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
     <nav className="bottom-nav">
-      <div className="flex justify-around items-center max-w-lg mx-auto">
+      <div className="flex justify-around items-center max-w-2xl mx-auto">
         {navItems.map(({ id, icon: Icon, label }) => (
           <button
             key={id}
             onClick={() => onTabChange(id)}
-            className={cn('nav-item flex-1', activeTab === id && 'active')}
+            className={cn('nav-item flex-1 min-w-0', activeTab === id && 'active')}
           >
             <Icon className="w-5 h-5 mb-1" />
-            <span className="text-[10px] font-medium">{label}</span>
+            <span className="text-[10px] font-medium truncate">{label}</span>
           </button>
         ))}
       </div>

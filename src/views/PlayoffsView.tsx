@@ -1,4 +1,4 @@
-import { Trophy, Award, Shield } from 'lucide-react';
+import { Trophy, Award, Shield, Home } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 
 interface PlayoffsViewProps {
@@ -8,6 +8,8 @@ interface PlayoffsViewProps {
 interface BracketTeam {
   seed: number;
   team: string;
+  fairPlayPoints?: number;
+  isHome?: boolean;
 }
 
 interface BracketMatch {
@@ -17,39 +19,38 @@ interface BracketMatch {
   away: BracketTeam | null;
   placeholderHome?: string;
   placeholderAway?: string;
-  legResults?: { home: number | null; away: number | null }[]; // [ida, vuelta]
-  aggregate?: { home: number | null; away: number | null };
+  score?: { home: number | null; away: number | null };
 }
 
-// ============== LIGA: 1º-8º (Cuartos -> Semis -> Final) ==============
+// ============== LIGA: 1º-8º (Cuartos -> Semis -> Final) — PARTIDO ÚNICO ==============
 const ligaQuarters: BracketMatch[] = [
   {
     id: 'l-qf1',
     round: 'Cuartos 1',
-    home: { seed: 1, team: 'Inter Don Benito Polo Opuesto' },
-    away: { seed: 8, team: 'Valdehornillos Veteranos' },
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    home: { seed: 1, team: 'Inter Don Benito Polo Opuesto', fairPlayPoints: 67, isHome: true },
+    away: { seed: 8, team: 'Valdehornillos Veteranos', fairPlayPoints: 51 },
+    score: { home: null, away: null },
   },
   {
     id: 'l-qf2',
     round: 'Cuartos 2',
-    home: { seed: 4, team: 'Santa Amalia Veteranos' },
-    away: { seed: 5, team: 'Palazuelo Santa Teresa' },
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    home: { seed: 4, team: 'Santa Amalia Veteranos', fairPlayPoints: 72, isHome: true },
+    away: { seed: 5, team: 'Palazuelo Santa Teresa', fairPlayPoints: 44 },
+    score: { home: null, away: null },
   },
   {
     id: 'l-qf3',
     round: 'Cuartos 3',
-    home: { seed: 3, team: 'Transtello Miajadas' },
-    away: { seed: 6, team: 'Talarrubias Veteranos' },
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    home: { seed: 3, team: 'Transtello Miajadas', fairPlayPoints: 51, isHome: true },
+    away: { seed: 6, team: 'Talarrubias Veteranos', fairPlayPoints: 44 },
+    score: { home: null, away: null },
   },
   {
     id: 'l-qf4',
     round: 'Cuartos 4',
-    home: { seed: 2, team: 'Meson Los Barros Don Benito' },
-    away: { seed: 7, team: 'Valdivia Veteranos' },
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    home: { seed: 2, team: 'Meson Los Barros Don Benito', fairPlayPoints: 79, isHome: true },
+    away: { seed: 7, team: 'Valdivia Veteranos', fairPlayPoints: 59 },
+    score: { home: null, away: null },
   },
 ];
 
@@ -61,7 +62,7 @@ const ligaSemis: BracketMatch[] = [
     away: null,
     placeholderHome: 'Ganador Cuartos 1',
     placeholderAway: 'Ganador Cuartos 2',
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    score: { home: null, away: null },
   },
   {
     id: 'l-sf2',
@@ -70,7 +71,7 @@ const ligaSemis: BracketMatch[] = [
     away: null,
     placeholderHome: 'Ganador Cuartos 3',
     placeholderAway: 'Ganador Cuartos 4',
-    legResults: [{ home: null, away: null }, { home: null, away: null }],
+    score: { home: null, away: null },
   },
 ];
 
@@ -81,33 +82,31 @@ const ligaFinal: BracketMatch = {
   away: null,
   placeholderHome: 'Ganador Semifinal 1',
   placeholderAway: 'Ganador Semifinal 2',
-  legResults: [{ home: null, away: null }, { home: null, away: null }],
+  score: { home: null, away: null },
 };
 
-// ============== COPA: 9º-24º (Octavos -> Cuartos -> Semis -> Final) ==============
+// ============== COPA: 9º-24º (Octavos -> Cuartos -> Semis -> Final) — PARTIDO ÚNICO ==============
 const copaR16: BracketMatch[] = [
-  // Top half
-  { id: 'c-r16-1', round: 'Octavos 1', home: { seed: 9, team: 'CD Gargaligas' }, away: { seed: 24, team: 'Campanario Atletico' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-2', round: 'Octavos 2', home: { seed: 16, team: 'CD Veteranos Ruecas' }, away: { seed: 17, team: 'CP Rena' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-3', round: 'Octavos 3', home: { seed: 12, team: 'Agricola Merchan Vva.' }, away: { seed: 21, team: 'San Bartolome Veteranos' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-4', round: 'Octavos 4', home: { seed: 13, team: 'AD Alcuescar' }, away: { seed: 20, team: 'Zalamea Veteranos' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  // Bottom half
-  { id: 'c-r16-5', round: 'Octavos 5', home: { seed: 14, team: 'Vulebar Texeira Don Benito' }, away: { seed: 19, team: 'Campanario Interserena' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-6', round: 'Octavos 6', home: { seed: 11, team: 'Sporting Don Benito' }, away: { seed: 22, team: 'Docenario Atletico' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-7', round: 'Octavos 7', home: { seed: 15, team: 'Amazonia Orellana' }, away: { seed: 18, team: 'V. Bar La Tasca Miajadas' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-r16-8', round: 'Octavos 8', home: { seed: 10, team: 'AD Caputbovense' }, away: { seed: 23, team: 'Hernan Cortes Veteranos' }, legResults: [{ home: null, away: null }, { home: null, away: null }] },
+  { id: 'c-r16-1', round: 'Octavos 1', home: { seed: 9, team: 'CD Gargaligas', fairPlayPoints: 62, isHome: true }, away: { seed: 24, team: 'Campanario Atletico', fairPlayPoints: 56 }, score: { home: null, away: null } },
+  { id: 'c-r16-2', round: 'Octavos 2', home: { seed: 16, team: 'CD Veteranos Ruecas', fairPlayPoints: 47, isHome: true }, away: { seed: 17, team: 'CP Rena', fairPlayPoints: 16 }, score: { home: null, away: null } },
+  { id: 'c-r16-3', round: 'Octavos 3', home: { seed: 12, team: 'Agricola Merchan Vva.', fairPlayPoints: 58, isHome: true }, away: { seed: 21, team: 'San Bartolome Veteranos', fairPlayPoints: 46 }, score: { home: null, away: null } },
+  { id: 'c-r16-4', round: 'Octavos 4', home: { seed: 13, team: 'AD Alcuescar', fairPlayPoints: 49, isHome: true }, away: { seed: 20, team: 'Zalamea Veteranos', fairPlayPoints: 47 }, score: { home: null, away: null } },
+  { id: 'c-r16-5', round: 'Octavos 5', home: { seed: 14, team: 'Vulebar Texeira Don Benito', fairPlayPoints: 86, isHome: true }, away: { seed: 19, team: 'Campanario Interserena', fairPlayPoints: 55 }, score: { home: null, away: null } },
+  { id: 'c-r16-6', round: 'Octavos 6', home: { seed: 11, team: 'Sporting Don Benito', fairPlayPoints: 51, isHome: true }, away: { seed: 22, team: 'Docenario Atletico', fairPlayPoints: 41 }, score: { home: null, away: null } },
+  { id: 'c-r16-7', round: 'Octavos 7', home: { seed: 15, team: 'Amazonia Orellana', fairPlayPoints: 71, isHome: true }, away: { seed: 18, team: 'V. Bar La Tasca Miajadas', fairPlayPoints: 30 }, score: { home: null, away: null } },
+  { id: 'c-r16-8', round: 'Octavos 8', home: { seed: 10, team: 'AD Caputbovense', fairPlayPoints: 70, isHome: true }, away: { seed: 23, team: 'Hernan Cortes Veteranos', fairPlayPoints: 49 }, score: { home: null, away: null } },
 ];
 
 const copaQuarters: BracketMatch[] = [
-  { id: 'c-qf1', round: 'Cuartos 1', home: null, away: null, placeholderHome: 'Ganador Octavos 1', placeholderAway: 'Ganador Octavos 2', legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-qf2', round: 'Cuartos 2', home: null, away: null, placeholderHome: 'Ganador Octavos 3', placeholderAway: 'Ganador Octavos 4', legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-qf3', round: 'Cuartos 3', home: null, away: null, placeholderHome: 'Ganador Octavos 5', placeholderAway: 'Ganador Octavos 6', legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-qf4', round: 'Cuartos 4', home: null, away: null, placeholderHome: 'Ganador Octavos 7', placeholderAway: 'Ganador Octavos 8', legResults: [{ home: null, away: null }, { home: null, away: null }] },
+  { id: 'c-qf1', round: 'Cuartos 1', home: null, away: null, placeholderHome: 'Ganador Octavos 1', placeholderAway: 'Ganador Octavos 2', score: { home: null, away: null } },
+  { id: 'c-qf2', round: 'Cuartos 2', home: null, away: null, placeholderHome: 'Ganador Octavos 3', placeholderAway: 'Ganador Octavos 4', score: { home: null, away: null } },
+  { id: 'c-qf3', round: 'Cuartos 3', home: null, away: null, placeholderHome: 'Ganador Octavos 5', placeholderAway: 'Ganador Octavos 6', score: { home: null, away: null } },
+  { id: 'c-qf4', round: 'Cuartos 4', home: null, away: null, placeholderHome: 'Ganador Octavos 7', placeholderAway: 'Ganador Octavos 8', score: { home: null, away: null } },
 ];
 
 const copaSemis: BracketMatch[] = [
-  { id: 'c-sf1', round: 'Semifinal 1', home: null, away: null, placeholderHome: 'Ganador Cuartos 1', placeholderAway: 'Ganador Cuartos 2', legResults: [{ home: null, away: null }, { home: null, away: null }] },
-  { id: 'c-sf2', round: 'Semifinal 2', home: null, away: null, placeholderHome: 'Ganador Cuartos 3', placeholderAway: 'Ganador Cuartos 4', legResults: [{ home: null, away: null }, { home: null, away: null }] },
+  { id: 'c-sf1', round: 'Semifinal 1', home: null, away: null, placeholderHome: 'Ganador Cuartos 1', placeholderAway: 'Ganador Cuartos 2', score: { home: null, away: null } },
+  { id: 'c-sf2', round: 'Semifinal 2', home: null, away: null, placeholderHome: 'Ganador Cuartos 3', placeholderAway: 'Ganador Cuartos 4', score: { home: null, away: null } },
 ];
 
 const copaFinal: BracketMatch = {
@@ -117,7 +116,7 @@ const copaFinal: BracketMatch = {
   away: null,
   placeholderHome: 'Ganador Semifinal 1',
   placeholderAway: 'Ganador Semifinal 2',
-  legResults: [{ home: null, away: null }, { home: null, away: null }],
+  score: { home: null, away: null },
 };
 
 // ============== Components ==============
@@ -148,7 +147,9 @@ function TeamRow({
       type="button"
       onClick={() => team && onTeamClick?.(team.team)}
       disabled={!team}
-      className="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-white/5 transition-colors text-left disabled:cursor-default group"
+      className={`w-full flex items-center gap-2 px-2.5 py-2 hover:bg-white/5 transition-colors text-left disabled:cursor-default group ${
+        team?.isHome ? (variant === 'liga' ? 'bg-primary/[0.06]' : 'bg-white/[0.03]') : ''
+      }`}
     >
       {team && (
         <span className={`flex-shrink-0 text-[9px] font-extrabold w-5 h-5 rounded flex items-center justify-center ${seedColor}`}>
@@ -171,6 +172,19 @@ function TeamRow({
       >
         {team?.team || placeholder}
       </span>
+      {team?.isHome && (
+        <span
+          title={`Local · ${team.fairPlayPoints ?? '-'} pts deportividad`}
+          className={`flex-shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide ${
+            variant === 'liga'
+              ? 'bg-primary/20 text-primary border border-primary/30'
+              : 'bg-muted-foreground/15 text-foreground/80 border border-white/10'
+          }`}
+        >
+          <Home className="w-2.5 h-2.5" />
+          <span className="hidden sm:inline">Local</span>
+        </span>
+      )}
       <span className="text-xs font-bold tabular-nums text-muted-foreground/70 min-w-[16px] text-right">
         {score ?? '-'}
       </span>
@@ -201,8 +215,7 @@ function MatchCard({
   const headerBg = variant === 'liga' ? 'bg-primary/10' : 'bg-white/[0.04]';
   const headerText = variant === 'liga' ? 'text-primary' : 'text-muted-foreground';
 
-  const legs = match.legResults || [];
-  const hasLegs = legs.length === 2;
+  const score = match.score;
 
   return (
     <div className={`glass-card border ${borderClass} overflow-hidden transition-all w-full rounded-lg`}>
@@ -210,53 +223,33 @@ function MatchCard({
         <span className={`text-[9px] font-extrabold uppercase tracking-widest ${headerText}`}>
           {match.round}
         </span>
-        {hasLegs && (
-          <span className="text-[8px] text-muted-foreground/70 uppercase font-semibold tracking-wider">
-            Ida · Vuelta
-          </span>
-        )}
+        <span className="text-[8px] text-muted-foreground/70 uppercase font-semibold tracking-wider">
+          Partido único
+        </span>
       </div>
 
-      {hasLegs ? (
-        <div className="divide-y divide-white/5">
-          {legs.map((leg, idx) => (
-            <div key={idx} className="relative">
-              <div className="absolute left-1 top-1 text-[8px] text-muted-foreground/50 uppercase font-bold">
-                {idx === 0 ? 'I' : 'V'}
-              </div>
-              <TeamRow
-                team={match.home}
-                placeholder={match.placeholderHome}
-                score={leg.home}
-                variant={variant}
-                onTeamClick={onTeamClick}
-                getTeamShield={getTeamShield}
-              />
-              <TeamRow
-                team={match.away}
-                placeholder={match.placeholderAway}
-                score={leg.away}
-                variant={variant}
-                onTeamClick={onTeamClick}
-                getTeamShield={getTeamShield}
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="divide-y divide-white/5">
-          <TeamRow team={match.home} placeholder={match.placeholderHome} variant={variant} onTeamClick={onTeamClick} getTeamShield={getTeamShield} />
-          <TeamRow team={match.away} placeholder={match.placeholderAway} variant={variant} onTeamClick={onTeamClick} getTeamShield={getTeamShield} />
-        </div>
-      )}
+      <div className="divide-y divide-white/5">
+        <TeamRow
+          team={match.home}
+          placeholder={match.placeholderHome}
+          score={score?.home}
+          variant={variant}
+          onTeamClick={onTeamClick}
+          getTeamShield={getTeamShield}
+        />
+        <TeamRow
+          team={match.away}
+          placeholder={match.placeholderAway}
+          score={score?.away}
+          variant={variant}
+          onTeamClick={onTeamClick}
+          getTeamShield={getTeamShield}
+        />
+      </div>
     </div>
   );
 }
 
-/**
- * Bracket connector lines drawn with absolute positioning.
- * Each pair of consecutive matches in a column connects to ONE match in the next column.
- */
 function BracketColumn({
   matches,
   variant,
@@ -303,9 +296,7 @@ function BracketColumn({
             />
             {showRightConnector && (
               <>
-                {/* Horizontal line out of the card */}
                 <div className={`hidden md:block absolute top-1/2 -right-3 w-3 h-px ${lineColor}`} />
-                {/* Vertical connector: even index goes down, odd goes up to meet a sibling */}
                 {i % 2 === 0 && (
                   <div
                     className={`hidden md:block absolute top-1/2 -right-3 w-px ${lineColor}`}
@@ -376,6 +367,21 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
         </p>
       </div>
 
+      {/* Reglamento — Partido único + factor cancha */}
+      <div className="glass-card border border-primary/20 p-3 sm:p-4 flex items-start gap-3 max-w-3xl mx-auto">
+        <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+          <Home className="w-4 h-4 text-primary" />
+        </div>
+        <div className="text-xs sm:text-sm">
+          <p className="font-semibold text-foreground">Reglamento de eliminatorias</p>
+          <p className="text-muted-foreground mt-0.5">
+            Todas las eliminatorias se disputan a <span className="text-primary font-bold">partido único</span>.
+            El equipo con mayor <span className="text-primary font-bold">puntuación de Deportividad</span> ejerce de local (
+            <Home className="inline w-3 h-3 -mt-0.5" /> Local).
+          </p>
+        </div>
+      </div>
+
       {/* ============== PLAY-OFF LIGA ============== */}
       <section className="space-y-4">
         <div className="flex items-center gap-3 border-b border-primary/20 pb-3">
@@ -385,7 +391,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-bold">Play-off Liga</h2>
             <p className="text-[11px] sm:text-xs text-muted-foreground">
-              Del 1º al 8º clasificado · Cuartos, Semifinales y Final a doble partido
+              Del 1º al 8º clasificado · Cuartos, Semifinales y Final a partido único
             </p>
           </div>
         </div>
@@ -402,7 +408,6 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
           </div>
         </div>
 
-        {/* Bracket Tree */}
         <div className="glass-card p-3 sm:p-6 overflow-x-auto hide-scrollbar">
           <div className="flex items-stretch gap-3 md:gap-8 min-w-[760px] md:min-w-0">
             <BracketColumn
@@ -411,7 +416,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               title="Cuartos de Final"
-              subtitle="(a doble partido)"
+              subtitle="(partido único)"
               gapClass="gap-3 md:gap-4"
             />
 
@@ -421,18 +426,17 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               title="Semifinales"
-              subtitle="(a doble partido)"
+              subtitle="(partido único)"
               gapClass="gap-12 md:gap-24"
             />
 
-            {/* Final column */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <div className="text-center mb-2">
                 <div className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
                   Gran Final
                 </div>
                 <div className="text-[9px] text-muted-foreground/70 normal-case">
-                  (a doble partido)
+                  (partido único)
                 </div>
               </div>
               <div className="relative">
@@ -462,7 +466,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-bold text-foreground/90">Play-off Copa</h2>
             <p className="text-[11px] sm:text-xs text-muted-foreground">
-              Del 9º al 24º clasificado · Octavos, Cuartos, Semifinales y Final
+              Del 9º al 24º clasificado · Octavos, Cuartos, Semifinales y Final a partido único
             </p>
           </div>
         </div>
@@ -479,7 +483,6 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
           </div>
         </div>
 
-        {/* Bracket Tree */}
         <div className="glass-card p-3 sm:p-5 overflow-x-auto hide-scrollbar">
           <div className="flex items-stretch gap-3 md:gap-6 min-w-[1100px]">
             <BracketColumn
@@ -488,6 +491,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               title="Octavos"
+              subtitle="(partido único)"
               gapClass="gap-2"
             />
 
@@ -497,6 +501,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               title="Cuartos"
+              subtitle="(partido único)"
               gapClass="gap-10"
             />
 
@@ -506,14 +511,17 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               title="Semifinales"
+              subtitle="(partido único)"
               gapClass="gap-32"
             />
 
-            {/* Final column */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <div className="text-center mb-2">
                 <div className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
                   Final
+                </div>
+                <div className="text-[9px] text-muted-foreground/70 normal-case">
+                  (partido único)
                 </div>
               </div>
               <div className="relative">
