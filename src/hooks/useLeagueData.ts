@@ -181,13 +181,90 @@ export function useLeagueData() {
       form: team.form.slice(-5) // Last 5 results
     }));
 
-    standingsArray.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-      // Alphabetical as final tiebreaker
-      return a.team.localeCompare(b.team);
+    // Helper: calculate head-to-head points between a group of tied teams
+    // Returns a map of teamName -> points earned in matches played exclusively among these teams
+    const calculateHeadToHeadPoints = (tiedTeams: string[]): Record<string, number> => {
+      const h2hPoints: Record<string, number> = {};
+      tiedTeams.forEach(t => { h2hPoints[t] = 0; });
+
+      const tiedSet = new Set(tiedTeams);
+
+      matchdays?.forEach(matchday => {
+        matchday?.matches?.forEach(match => {
+          // Only consider played/live matches between two tied teams
+          if (match?.status !== 'PLAYED' && match?.status !== 'LIVE') return;
+          if (!tiedSet.has(match?.home) || !tiedSet.has(match?.away)) return;
+
+          const hg = match?.homeGoals ?? 0;
+          const ag = match?.awayGoals ?? 0;
+
+          if (hg > ag) {
+            h2hPoints[match.home] = (h2hPoints[match.home] ?? 0) + 3;
+          } else if (hg < ag) {
+            h2hPoints[match.away] = (h2hPoints[match.away] ?? 0) + 3;
+          } else {
+            h2hPoints[match.home] = (h2hPoints[match.home] ?? 0) + 1;
+            h2hPoints[match.away] = (h2hPoints[match.away] ?? 0) + 1;
+          }
+        });
+      });
+
+      return h2hPoints;
+    };
+
+    // First pass: sort by points only
+    standingsArray.sort((a, b) => b.points - a.points);
+
+    // Second pass: resolve ties using head-to-head, then goal difference, then goals for
+    // Group teams by points and apply tiebreakers within each group
+    const groups: TeamStanding[][] = [];
+    let currentGroup: TeamStanding[] = [];
+    let currentPoints: number | null = null;
+
+    standingsArray.forEach(team => {
+      if (currentPoints === null || team.points === currentPoints) {
+        currentGroup.push(team);
+        currentPoints = team.points;
+      } else {
+        groups.push(currentGroup);
+        currentGroup = [team];
+        currentPoints = team.points;
+      }
     });
+    if (currentGroup.length > 0) groups.push(currentGroup);
+
+    const sortedStandings: TeamStanding[] = [];
+    groups.forEach(group => {
+      if (group.length === 1) {
+        sortedStandings.push(group[0]);
+        return;
+      }
+
+      // Calculate head-to-head points among the tied teams
+      const h2h = calculateHeadToHeadPoints(group.map(t => t.team));
+
+      group.sort((a, b) => {
+        // 1. Head-to-head points (only among the tied teams)
+        const h2hA = h2h?.[a.team] ?? 0;
+        const h2hB = h2h?.[b.team] ?? 0;
+        if (h2hB !== h2hA) return h2hB - h2hA;
+
+        // 2. Overall goal difference
+        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+
+        // 3. Overall goals for
+        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+
+        // 4. Alphabetical as final fallback
+        return a.team.localeCompare(b.team);
+      });
+
+      sortedStandings.push(...group);
+    });
+
+    // Replace standingsArray contents with the resolved order
+    standingsArray.length = 0;
+    standingsArray.push(...sortedStandings);
 
     // Assign positions
     standingsArray.forEach((team, index) => {
