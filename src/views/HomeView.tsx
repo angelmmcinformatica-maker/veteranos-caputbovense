@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { LeaderCard } from '@/components/dashboard/LeaderCard';
 import { PichichiCard } from '@/components/dashboard/PichichiCard';
 import { MatchdaySection } from '@/components/dashboard/MatchdaySection';
+import { PlayoffsHero } from '@/components/dashboard/PlayoffsHero';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { useTeamImages } from '@/hooks/useTeamImages';
@@ -18,9 +19,10 @@ interface HomeViewProps {
   teams: Team[];
   onTeamClick?: (teamName: string) => void;
   onPlayerClick?: (playerName: string, teamName: string) => void;
+  onNavigateToPlayoffs?: () => void;
 }
 
-export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, teams, onTeamClick, onPlayerClick }: HomeViewProps) {
+export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, teams, onTeamClick, onPlayerClick, onNavigateToPlayoffs }: HomeViewProps) {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const { getTeamShield, getPlayerPhoto } = useTeamImages();
 
@@ -95,6 +97,12 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
     <div className="space-y-4 animate-fade-up">
       {/* PWA Install Banner */}
       <InstallPWA />
+
+      {/* 🏆 Play-offs VIP Hero */}
+      <PlayoffsHero
+        onNavigate={() => onNavigateToPlayoffs?.()}
+        onTeamClick={onTeamClick}
+      />
 
       {/* Hero section */}
       <div className="grid gap-4 md:grid-cols-2">

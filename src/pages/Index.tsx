@@ -101,6 +101,7 @@ const Index = () => {
             teams={teams}
             onTeamClick={handleTeamClick}
             onPlayerClick={handlePlayerClick}
+            onNavigateToPlayoffs={() => setActiveTab('playoffs')}
           />
         );
       case 'standings':
