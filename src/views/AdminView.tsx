@@ -6,6 +6,7 @@ import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
 import { AdminReportsManager } from '@/components/admin/AdminReportsManager';
 import { AdminUsersManager } from '@/components/admin/AdminUsersManager';
+import { AdminPlayoffsView } from '@/components/admin/AdminPlayoffsView';
 
 interface AdminViewProps {
   matchdays: Matchday[];
@@ -16,7 +17,7 @@ interface AdminViewProps {
   onDataRefresh: () => void;
 }
 
-type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | null;
+type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | 'playoffs' | null;
 
 export function AdminView({ matchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
