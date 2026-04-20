@@ -13,14 +13,21 @@ interface FeaturedMatch {
   competition: 'liga' | 'copa';
 }
 
-const featuredMatches: FeaturedMatch[] = [
-  // Cuartos de Liga (los 4)
+const ligaMatches: FeaturedMatch[] = [
   { id: 'l-qf1', round: 'Cuartos Liga', home: 'Inter Don Benito Polo Opuesto', away: 'Valdehornillos Veteranos', homePoints: 67, awayPoints: 51, competition: 'liga' },
   { id: 'l-qf2', round: 'Cuartos Liga', home: 'Santa Amalia Veteranos', away: 'Palazuelo Santa Teresa', homePoints: 72, awayPoints: 44, competition: 'liga' },
   { id: 'l-qf3', round: 'Cuartos Liga', home: 'Transtello Miajadas', away: 'Talarrubias Veteranos', homePoints: 51, awayPoints: 44, competition: 'liga' },
   { id: 'l-qf4', round: 'Cuartos Liga', home: 'Meson Los Barros Don Benito', away: 'Valdivia Veteranos', homePoints: 79, awayPoints: 59, competition: 'liga' },
-  // 2 destacados de Copa
+];
+
+const copaMatches: FeaturedMatch[] = [
+  { id: 'c-o1', round: 'Octavos Copa', home: 'CD Gargaligas', away: 'Campanario Atletico', homePoints: 64, awayPoints: 50, competition: 'copa' },
+  { id: 'c-o2', round: 'Octavos Copa', home: 'CD Veteranos Ruecas', away: 'CP Rena', homePoints: 62, awayPoints: 48, competition: 'copa' },
+  { id: 'c-o3', round: 'Octavos Copa', home: 'Agricola Merchan Vva.', away: 'San Bartolome Veteranos', homePoints: 60, awayPoints: 47, competition: 'copa' },
+  { id: 'c-o4', round: 'Octavos Copa', home: 'AD Alcuescar', away: 'Zalamea Veteranos', homePoints: 58, awayPoints: 46, competition: 'copa' },
   { id: 'c-o5', round: 'Octavos Copa', home: 'Vulebar Texeira Don Benito', away: 'Campanario Interserena', homePoints: 86, awayPoints: 55, competition: 'copa' },
+  { id: 'c-o6', round: 'Octavos Copa', home: 'Sporting Don Benito', away: 'Docenario Atletico', homePoints: 57, awayPoints: 45, competition: 'copa' },
+  { id: 'c-o7', round: 'Octavos Copa', home: 'Amazonia Orellana', away: 'V. Bar La Tasca Miajadas', homePoints: 55, awayPoints: 44, competition: 'copa' },
   { id: 'c-o8', round: 'Octavos Copa', home: 'AD Caputbovense', away: 'Hernan Cortes Veteranos', homePoints: 70, awayPoints: 49, competition: 'copa' },
 ];
 
@@ -94,44 +101,64 @@ export function PlayoffsHero({ onNavigate, onTeamClick }: PlayoffsHeroProps) {
         </div>
       </div>
 
-      {/* Featured cards grid */}
-      <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-        {featuredMatches.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={onNavigate}
-            className={cn(
-              'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg',
-              m.competition === 'liga'
-                ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-                : 'border-slate-400/30 bg-slate-400/5 hover:border-slate-400/60'
-            )}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className={cn(
-                'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
-                m.competition === 'liga'
-                  ? 'bg-amber-500/20 text-amber-500'
-                  : 'bg-slate-400/20 text-slate-300'
-              )}>
-                {m.round}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-            </div>
+      {/* Sections: Liga + Copa */}
+      {([
+        { label: 'CUARTOS DE LIGA', items: ligaMatches, accent: 'from-amber-400 to-orange-500' },
+        { label: 'OCTAVOS DE COPA', items: copaMatches, accent: 'from-slate-400 to-slate-300' },
+      ] as const).map((section) => (
+        <div key={section.label} className="relative mb-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={cn('h-[2px] w-6 rounded bg-gradient-to-r', section.accent)} />
+            <h3 className="text-[11px] sm:text-xs font-bold tracking-[0.15em] text-foreground/80">
+              {section.label}
+            </h3>
+            <span className="text-[10px] text-muted-foreground hidden sm:inline">
+              ({section.items.length} partidos)
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
 
-            <div className="space-y-2">
-              <TeamRow name={m.home} points={m.homePoints} isHome={true} />
-              <div className="flex items-center gap-2 pl-1">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-[10px] text-muted-foreground font-medium">VS</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              <TeamRow name={m.away} points={m.awayPoints} isHome={false} />
-            </div>
-          </button>
-        ))}
-      </div>
+          {/* Mobile: horizontal scroll carousel. Tablet+: responsive grid */}
+          <div className="-mx-1 px-1 flex sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
+            {section.items.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={onNavigate}
+                className={cn(
+                  'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
+                  'shrink-0 w-[78%] sm:w-auto',
+                  m.competition === 'liga'
+                    ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
+                    : 'border-slate-400/30 bg-slate-400/5 hover:border-slate-400/60'
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={cn(
+                    'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                    m.competition === 'liga'
+                      ? 'bg-amber-500/20 text-amber-500'
+                      : 'bg-slate-400/20 text-slate-300'
+                  )}>
+                    {m.round}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                </div>
+
+                <div className="space-y-2">
+                  <TeamRow name={m.home} points={m.homePoints} isHome={true} />
+                  <div className="flex items-center gap-2 pl-1">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] text-muted-foreground font-medium">VS</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <TeamRow name={m.away} points={m.awayPoints} isHome={false} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {/* CTA */}
       <div className="relative flex justify-center">
