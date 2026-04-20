@@ -1,5 +1,6 @@
-import { Trophy, Award, Shield, Home } from 'lucide-react';
+import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { consolacionTeams } from '@/data/deportividadData';
 
 interface PlayoffsViewProps {
   onTeamClick?: (teamName: string) => void;
