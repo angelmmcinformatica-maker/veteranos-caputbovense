@@ -286,6 +286,14 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
           onDataChange={onDataRefresh}
         />
       )}
+      {activeModal === 'playoffs' && isAdmin && (
+        <AdminPlayoffsView
+          teams={teams}
+          matchReports={matchReports}
+          onClose={() => setActiveModal(null)}
+          onDataChange={onDataRefresh}
+        />
+      )}
     </div>
   );
 }
