@@ -103,6 +103,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <PlayoffsHero
         onNavigate={() => onNavigateToPlayoffs?.()}
         onTeamClick={onTeamClick}
+        playoffMatchdays={playoffMatchdays}
       />
 
       {/* Hero section */}
