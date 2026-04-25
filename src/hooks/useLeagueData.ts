@@ -488,6 +488,7 @@ export function useLeagueData() {
 
   return {
     matchdays,
+    playoffMatchdays,
     teams,
     matchReports,
     standings,
@@ -499,6 +500,6 @@ export function useLeagueData() {
     nextMatchday,
     loading,
     error,
-    refetch: () => fetchData(true)
+    refetch
   };
 }
