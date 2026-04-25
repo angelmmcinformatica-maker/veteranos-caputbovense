@@ -530,6 +530,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
               title="Octavos"
               subtitle="(partido único)"
               gapClass="gap-2"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <BracketColumn
@@ -540,6 +541,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
               title="Cuartos"
               subtitle="(partido único)"
               gapClass="gap-10"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <BracketColumn
@@ -550,6 +552,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
               title="Semifinales"
               subtitle="(partido único)"
               gapClass="gap-32"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -569,6 +572,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
                     variant="copa"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
+                    playoffMatchdays={playoffMatchdays}
                   />
                 </div>
                 <ChampionBadge variant="copa" />
