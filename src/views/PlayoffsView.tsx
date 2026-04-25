@@ -291,6 +291,7 @@ function BracketColumn({
   gapClass = 'gap-4',
   showRightConnector = true,
   highlightAll = false,
+  playoffMatchdays,
 }: {
   matches: BracketMatch[];
   variant: Variant;
@@ -301,6 +302,7 @@ function BracketColumn({
   gapClass?: string;
   showRightConnector?: boolean;
   highlightAll?: boolean;
+  playoffMatchdays?: Matchday[];
 }) {
   const lineColor = variant === 'liga' ? 'bg-primary/40' : 'bg-white/20';
   return (
@@ -324,6 +326,7 @@ function BracketColumn({
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               highlight={highlightAll}
+              playoffMatchdays={playoffMatchdays}
             />
             {showRightConnector && (
               <>
