@@ -1,9 +1,12 @@
 import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
+import { findLivePlayoffMatch } from '@/lib/playoffsLive';
+import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
   onTeamClick?: (teamName: string) => void;
+  playoffMatchdays?: Matchday[];
 }
 
 interface BracketTeam {
