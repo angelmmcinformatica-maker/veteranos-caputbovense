@@ -123,42 +123,76 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
 
           {/* Mobile: horizontal scroll carousel. Tablet+: responsive grid */}
           <div className="-mx-1 px-1 flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
-            {section.items.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={onNavigate}
-                className={cn(
-                  'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
-                  'shrink-0 w-[78%] md:w-auto',
-                  m.competition === 'liga'
-                    ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-                    : 'border-slate-400/30 bg-slate-400/5 hover:border-slate-400/60'
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={cn(
-                    'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+            {section.items.map((m) => {
+              const live = findLivePlayoffMatch(playoffMatchdays, m.home, m.away);
+              const showScore = live && (live.status === 'PLAYED' || live.status === 'LIVE');
+              const isLive = live?.status === 'LIVE';
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={onNavigate}
+                  className={cn(
+                    'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
+                    'shrink-0 w-[78%] md:w-auto',
                     m.competition === 'liga'
-                      ? 'bg-amber-500/20 text-amber-500'
-                      : 'bg-slate-400/20 text-slate-300'
-                  )}>
-                    {m.round}
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                </div>
-
-                <div className="space-y-2">
-                  <TeamRow name={m.home} points={m.homePoints} isHome={true} />
-                  <div className="flex items-center gap-2 pl-1">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-[10px] text-muted-foreground font-medium">VS</span>
-                    <div className="h-px flex-1 bg-border" />
+                      ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
+                      : 'border-slate-400/30 bg-slate-400/5 hover:border-slate-400/60',
+                    isLive && 'ring-2 ring-destructive/60'
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={cn(
+                      'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                      m.competition === 'liga'
+                        ? 'bg-amber-500/20 text-amber-500'
+                        : 'bg-slate-400/20 text-slate-300'
+                    )}>
+                      {m.round}
+                    </span>
+                    {isLive ? (
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-destructive/20 text-destructive animate-pulse">
+                        ● EN DIRECTO
+                      </span>
+                    ) : showScore ? (
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/20 text-primary">
+                        FINAL
+                      </span>
+                    ) : (
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                    )}
                   </div>
-                  <TeamRow name={m.away} points={m.awayPoints} isHome={false} />
-                </div>
-              </button>
-            ))}
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <TeamRow name={m.home} points={m.homePoints} isHome={true} />
+                      </div>
+                      {showScore && (
+                        <span className="text-lg font-extrabold tabular-nums text-foreground flex-shrink-0">
+                          {live!.homeGoals}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 pl-1">
+                      <div className="h-px flex-1 bg-border" />
+                      <span className="text-[10px] text-muted-foreground font-medium">VS</span>
+                      <div className="h-px flex-1 bg-border" />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <TeamRow name={m.away} points={m.awayPoints} isHome={false} />
+                      </div>
+                      {showScore && (
+                        <span className="text-lg font-extrabold tabular-nums text-foreground flex-shrink-0">
+                          {live!.awayGoals}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}
