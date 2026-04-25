@@ -23,18 +23,19 @@ const Index = () => {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<{ name: string; team: string } | null>(null);
   
-  const { 
+  const {
     matchdays,
+    playoffMatchdays,
     teams,
     matchReports,
-    standings, 
-    leader, 
+    standings,
+    leader,
     pichichi,
     topScorers,
     cardRankings,
     lastPlayedMatchday,
     nextMatchday,
-    loading, 
+    loading,
     error,
     refetch
   } = useLeagueData();
