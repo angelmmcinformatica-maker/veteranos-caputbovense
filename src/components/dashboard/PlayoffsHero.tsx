@@ -36,9 +36,10 @@ const copaMatches: FeaturedMatch[] = [
 interface PlayoffsHeroProps {
   onNavigate: () => void;
   onTeamClick?: (teamName: string) => void;
+  playoffMatchdays?: Matchday[];
 }
 
-export function PlayoffsHero({ onNavigate, onTeamClick }: PlayoffsHeroProps) {
+export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: PlayoffsHeroProps) {
   const { getTeamShield } = useTeamImages();
 
   const TeamRow = ({ name, points, isHome }: { name: string; points: number; isHome: boolean }) => {
