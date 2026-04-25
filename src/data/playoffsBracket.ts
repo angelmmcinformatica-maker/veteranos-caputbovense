@@ -24,16 +24,19 @@ const blankMatch = (home: string, away: string): Match => ({
 });
 
 // ===== LIGA (1º-8º) =====
+// IMPORTANT: Team names MUST match exactly the names stored in the Firestore
+// 'teams' collection (UPPERCASE) so that MatchEditModal can resolve the roster
+// via teams.find(t => t.name === match.home) and show the lineup editor.
 export const PLAYOFF_LIGA_CUARTOS: Matchday = {
   id: 'playoff-liga-cuartos',
   jornada: 90,
   date: dateStr,
   rest: null,
   matches: [
-    blankMatch('Inter Don Benito Polo Opuesto', 'Valdehornillos Veteranos'),
-    blankMatch('Santa Amalia Veteranos', 'Palazuelo Santa Teresa'),
-    blankMatch('Transtello Miajadas', 'Talarrubias Veteranos'),
-    blankMatch('Meson Los Barros Don Benito', 'Valdivia Veteranos'),
+    blankMatch('INTER DON BENITO POLO OPUESTO', 'VALDEHORNILLOS VETERANOS'),
+    blankMatch('SANTA AMALIA VETERANOS', 'PALAZUELO SANTA TERESA'),
+    blankMatch('TRANSTELLO MIAJADAS', 'TALARRUBIAS VETERANOS'),
+    blankMatch('MESON LOS BARROS DON BENITO', 'VALDIVIA VETERANOS'),
   ],
 };
 
