@@ -100,6 +100,7 @@ const Index = () => {
             standings={standings}
             matchReports={matchReports}
             teams={teams}
+            playoffMatchdays={playoffMatchdays}
             onTeamClick={handleTeamClick}
             onPlayerClick={handlePlayerClick}
             onNavigateToPlayoffs={() => setActiveTab('playoffs')}
