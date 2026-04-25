@@ -2,6 +2,8 @@ import { Trophy, Home, ArrowRight, Shield } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { findLivePlayoffMatch } from '@/lib/playoffsLive';
+import type { Matchday } from '@/types/league';
 
 interface FeaturedMatch {
   id: string;
