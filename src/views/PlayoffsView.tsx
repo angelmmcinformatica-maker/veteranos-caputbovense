@@ -380,7 +380,7 @@ function ChampionBadge({ variant }: { variant: Variant }) {
   );
 }
 
-export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
+export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
 
   return (
