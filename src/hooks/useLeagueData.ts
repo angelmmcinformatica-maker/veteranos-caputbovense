@@ -1,89 +1,130 @@
-import { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { 
-  Matchday, 
-  Team, 
-  MatchReport, 
-  TeamStanding, 
-  TopScorer, 
+import type {
+  Matchday,
+  Team,
+  MatchReport,
+  TeamStanding,
+  TopScorer,
   CardRanking,
   Match
 } from '@/types/league';
 
 export function useLeagueData() {
   const [matchdays, setMatchdays] = useState<Matchday[]>([]);
+  const [playoffMatchdays, setPlayoffMatchdays] = useState<Matchday[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matchReports, setMatchReports] = useState<MatchReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async (isRefetch = false) => {
-    try {
-      // Only show loading screen on initial load, not on refetch
-      if (!isRefetch) {
-        setLoading(true);
-      }
-      
-      // Fetch matchdays (excluding playoff brackets, which live in the same
-      // collection but are managed independently from the regular league)
-      const matchdaysRef = collection(db, 'matchdays');
-      const matchdaysSnap = await getDocs(matchdaysRef);
-      const matchdaysData = matchdaysSnap.docs
-        .filter(doc => !doc.id.startsWith('playoff-'))
-        .map(doc => {
-        const data = doc.data();
-        const matchdayDate = data.date || '';
-        
-        // Inherit matchday date to all matches and normalize SCHEDULED to PENDING
-        const matches = (data.matches || []).map((match: any) => ({
-          ...match,
-          // Use matchday's date if match doesn't have its own date
-          date: match.date || matchdayDate,
-          // Normalize SCHEDULED status to PENDING
-          status: match.status === 'SCHEDULED' ? 'PENDING' : match.status
-        }));
-        
-        return {
-          id: doc.id,
-          ...data,
-          matches
-        };
-      }) as Matchday[];
-      
-      // Sort matchdays by jornada number
-      matchdaysData.sort((a, b) => a.jornada - b.jornada);
-      setMatchdays(matchdaysData);
-
-      // Fetch teams
-      const teamsRef = collection(db, 'teams');
-      const teamsSnap = await getDocs(teamsRef);
-      const teamsData = teamsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Team[];
-      setTeams(teamsData);
-
-      // Fetch match reports
-      const reportsRef = collection(db, 'match_reports');
-      const reportsSnap = await getDocs(reportsRef);
-      const reportsData = reportsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as MatchReport[];
-      setMatchReports(reportsData);
-
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching league data:', err);
-      setError('Error al cargar los datos de la liga');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Refetch is kept for API compatibility, but real-time onSnapshot listeners
+  // make manual refreshes unnecessary — the UI updates automatically when any
+  // admin saves a change in Firestore.
+  const refetch = useCallback(() => {
+    // No-op: snapshots handle this automatically. Kept so existing callers
+    // (e.g., useAutoLiveStatus) don't break.
+  }, []);
 
   useEffect(() => {
-    fetchData();
+    setLoading(true);
+
+    let pending = 3;
+    const markReady = () => {
+      pending -= 1;
+      if (pending <= 0) setLoading(false);
+    };
+    let firstMatchdays = true;
+    let firstTeams = true;
+    let firstReports = true;
+
+    // Real-time matchdays listener
+    const unsubMatchdays = onSnapshot(
+      collection(db, 'matchdays'),
+      (snap) => {
+        const all = snap.docs.map((d) => {
+          const data = d.data() as any;
+          const matchdayDate = data.date || '';
+          const matches = (data.matches || []).map((match: any) => ({
+            ...match,
+            date: match.date || matchdayDate,
+            status: match.status === 'SCHEDULED' ? 'PENDING' : match.status,
+          }));
+          return { id: d.id, ...data, matches } as Matchday;
+        });
+
+        // Split: regular league vs playoff brackets (same collection, different IDs)
+        const regular = all
+          .filter((md) => !md.id.startsWith('playoff-'))
+          .sort((a, b) => a.jornada - b.jornada);
+        const playoffs = all
+          .filter((md) => md.id.startsWith('playoff-'))
+          .sort((a, b) => a.jornada - b.jornada);
+
+        setMatchdays(regular);
+        setPlayoffMatchdays(playoffs);
+        setError(null);
+        if (firstMatchdays) {
+          firstMatchdays = false;
+          markReady();
+        }
+      },
+      (err) => {
+        console.error('Error in matchdays snapshot:', err);
+        setError('Error al cargar los datos de la liga');
+        if (firstMatchdays) {
+          firstMatchdays = false;
+          markReady();
+        }
+      }
+    );
+
+    // Real-time teams listener
+    const unsubTeams = onSnapshot(
+      collection(db, 'teams'),
+      (snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Team[];
+        setTeams(data);
+        if (firstTeams) {
+          firstTeams = false;
+          markReady();
+        }
+      },
+      (err) => {
+        console.error('Error in teams snapshot:', err);
+        if (firstTeams) {
+          firstTeams = false;
+          markReady();
+        }
+      }
+    );
+
+    // Real-time match reports listener
+    const unsubReports = onSnapshot(
+      collection(db, 'match_reports'),
+      (snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MatchReport[];
+        setMatchReports(data);
+        if (firstReports) {
+          firstReports = false;
+          markReady();
+        }
+      },
+      (err) => {
+        console.error('Error in match_reports snapshot:', err);
+        if (firstReports) {
+          firstReports = false;
+          markReady();
+        }
+      }
+    );
+
+    return () => {
+      unsubMatchdays();
+      unsubTeams();
+      unsubReports();
+    };
   }, []);
 
   // Calculate standings from matchdays - include ALL teams
