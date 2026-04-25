@@ -132,7 +132,7 @@ const Index = () => {
           />
         );
       case 'playoffs':
-        return <PlayoffsView onTeamClick={handleTeamClick} />;
+        return <PlayoffsView onTeamClick={handleTeamClick} playoffMatchdays={playoffMatchdays} />;
       case 'fairplay':
         return <FairPlayView onTeamClick={handleTeamClick} />;
       case 'admin':
