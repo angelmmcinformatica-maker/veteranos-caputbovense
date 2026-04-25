@@ -24,16 +24,19 @@ const blankMatch = (home: string, away: string): Match => ({
 });
 
 // ===== LIGA (1º-8º) =====
+// IMPORTANT: Team names MUST match exactly the names stored in the Firestore
+// 'teams' collection (UPPERCASE) so that MatchEditModal can resolve the roster
+// via teams.find(t => t.name === match.home) and show the lineup editor.
 export const PLAYOFF_LIGA_CUARTOS: Matchday = {
   id: 'playoff-liga-cuartos',
   jornada: 90,
   date: dateStr,
   rest: null,
   matches: [
-    blankMatch('Inter Don Benito Polo Opuesto', 'Valdehornillos Veteranos'),
-    blankMatch('Santa Amalia Veteranos', 'Palazuelo Santa Teresa'),
-    blankMatch('Transtello Miajadas', 'Talarrubias Veteranos'),
-    blankMatch('Meson Los Barros Don Benito', 'Valdivia Veteranos'),
+    blankMatch('INTER DON BENITO POLO OPUESTO', 'VALDEHORNILLOS VETERANOS'),
+    blankMatch('SANTA AMALIA VETERANOS', 'PALAZUELO SANTA TERESA'),
+    blankMatch('TRANSTELLO MIAJADAS', 'TALARRUBIAS VETERANOS'),
+    blankMatch('MESON LOS BARROS DON BENITO', 'VALDIVIA VETERANOS'),
   ],
 };
 
@@ -65,14 +68,14 @@ export const PLAYOFF_COPA_OCTAVOS: Matchday = {
   date: dateStr,
   rest: null,
   matches: [
-    blankMatch('CD Gargaligas', 'Campanario Atletico'),
-    blankMatch('CD Veteranos Ruecas', 'CP Rena'),
-    blankMatch('Agricola Merchan Vva.', 'San Bartolome Veteranos'),
-    blankMatch('AD Alcuescar', 'Zalamea Veteranos'),
-    blankMatch('Vulebar Texeira Don Benito', 'Campanario Interserena'),
-    blankMatch('Sporting Don Benito', 'Docenario Atletico'),
-    blankMatch('Amazonia Orellana', 'V. Bar La Tasca Miajadas'),
-    blankMatch('AD Caputbovense', 'Hernan Cortes Veteranos'),
+    blankMatch('CD GARGALIGAS', 'CAMPANARIO ATLETICO'),
+    blankMatch('CD VETERANOS RUECAS', 'CP RENA'),
+    blankMatch('AGRICOLA MERCHAN VVA.', 'SAN BARTOLOME VETERANOS'),
+    blankMatch('AD ALCUESCAR', 'ZALAMEA VETERANOS'),
+    blankMatch('VULEBAR TEXEIRA DON BENITO', 'CAMPANARIO INTERSERENA'),
+    blankMatch('SPORTING DON BENITO', 'DOCENARIO ATLETICO'),
+    blankMatch('AMAZONIA ORELLANA', 'V. BAR LA TASCA MIAJADAS'),
+    blankMatch('AD CAPUTBOVENSE', 'HERNAN CORTES VETERANOS'),
   ],
 };
 

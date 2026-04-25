@@ -1,9 +1,12 @@
 import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
+import { findLivePlayoffMatch } from '@/lib/playoffsLive';
+import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
   onTeamClick?: (teamName: string) => void;
+  playoffMatchdays?: Matchday[];
 }
 
 interface BracketTeam {
@@ -199,13 +202,28 @@ function MatchCard({
   onTeamClick,
   getTeamShield,
   highlight = false,
+  playoffMatchdays,
 }: {
   match: BracketMatch;
   variant: Variant;
   onTeamClick?: (t: string) => void;
   getTeamShield: (t: string) => string | undefined;
   highlight?: boolean;
+  playoffMatchdays?: Matchday[];
 }) {
+  // Live merge: if both teams are known, look up the live match in Firestore
+  // playoff matchdays so the bracket reflects admin saves in real time.
+  const live =
+    match.home && match.away
+      ? findLivePlayoffMatch(playoffMatchdays, match.home.team, match.away.team)
+      : null;
+  const isLive = live?.status === 'LIVE';
+  const isFinal = live?.status === 'PLAYED';
+  const score =
+    live && (isLive || isFinal)
+      ? { home: live.homeGoals, away: live.awayGoals }
+      : match.score;
+
   const borderClass =
     variant === 'liga'
       ? highlight
@@ -216,17 +234,29 @@ function MatchCard({
   const headerBg = variant === 'liga' ? 'bg-primary/10' : 'bg-white/[0.04]';
   const headerText = variant === 'liga' ? 'text-primary' : 'text-muted-foreground';
 
-  const score = match.score;
-
   return (
-    <div className={`glass-card border ${borderClass} overflow-hidden transition-all w-full rounded-lg`}>
+    <div
+      className={`glass-card border ${borderClass} overflow-hidden transition-all w-full rounded-lg ${
+        isLive ? 'ring-2 ring-destructive/60' : ''
+      }`}
+    >
       <div className={`px-2.5 py-1 ${headerBg} border-b border-white/5 flex items-center justify-between`}>
         <span className={`text-[9px] font-extrabold uppercase tracking-widest ${headerText}`}>
           {match.round}
         </span>
-        <span className="text-[8px] text-muted-foreground/70 uppercase font-semibold tracking-wider">
-          Partido único
-        </span>
+        {isLive ? (
+          <span className="text-[8px] uppercase font-extrabold tracking-wider text-destructive animate-pulse">
+            ● EN DIRECTO
+          </span>
+        ) : isFinal ? (
+          <span className="text-[8px] uppercase font-extrabold tracking-wider text-primary">
+            FINAL
+          </span>
+        ) : (
+          <span className="text-[8px] text-muted-foreground/70 uppercase font-semibold tracking-wider">
+            Partido único
+          </span>
+        )}
       </div>
 
       <div className="divide-y divide-white/5">
@@ -261,6 +291,7 @@ function BracketColumn({
   gapClass = 'gap-4',
   showRightConnector = true,
   highlightAll = false,
+  playoffMatchdays,
 }: {
   matches: BracketMatch[];
   variant: Variant;
@@ -271,6 +302,7 @@ function BracketColumn({
   gapClass?: string;
   showRightConnector?: boolean;
   highlightAll?: boolean;
+  playoffMatchdays?: Matchday[];
 }) {
   const lineColor = variant === 'liga' ? 'bg-primary/40' : 'bg-white/20';
   return (
@@ -294,6 +326,7 @@ function BracketColumn({
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
               highlight={highlightAll}
+              playoffMatchdays={playoffMatchdays}
             />
             {showRightConnector && (
               <>
@@ -347,7 +380,7 @@ function ChampionBadge({ variant }: { variant: Variant }) {
   );
 }
 
-export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
+export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
 
   return (
@@ -419,6 +452,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               title="Cuartos de Final"
               subtitle="(partido único)"
               gapClass="gap-3 md:gap-4"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <BracketColumn
@@ -429,6 +463,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               title="Semifinales"
               subtitle="(partido único)"
               gapClass="gap-12 md:gap-24"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -449,6 +484,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
                     highlight
+                    playoffMatchdays={playoffMatchdays}
                   />
                 </div>
                 <ChampionBadge variant="liga" />
@@ -494,6 +530,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               title="Octavos"
               subtitle="(partido único)"
               gapClass="gap-2"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <BracketColumn
@@ -504,6 +541,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               title="Cuartos"
               subtitle="(partido único)"
               gapClass="gap-10"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <BracketColumn
@@ -514,6 +552,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
               title="Semifinales"
               subtitle="(partido único)"
               gapClass="gap-32"
+              playoffMatchdays={playoffMatchdays}
             />
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -533,6 +572,7 @@ export function PlayoffsView({ onTeamClick }: PlayoffsViewProps) {
                     variant="copa"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
+                    playoffMatchdays={playoffMatchdays}
                   />
                 </div>
                 <ChampionBadge variant="copa" />

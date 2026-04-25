@@ -17,12 +17,13 @@ interface HomeViewProps {
   standings: TeamStanding[];
   matchReports: MatchReport[];
   teams: Team[];
+  playoffMatchdays?: Matchday[];
   onTeamClick?: (teamName: string) => void;
   onPlayerClick?: (playerName: string, teamName: string) => void;
   onNavigateToPlayoffs?: () => void;
 }
 
-export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, teams, onTeamClick, onPlayerClick, onNavigateToPlayoffs }: HomeViewProps) {
+export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, standings, matchReports, teams, playoffMatchdays, onTeamClick, onPlayerClick, onNavigateToPlayoffs }: HomeViewProps) {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const { getTeamShield, getPlayerPhoto } = useTeamImages();
 
@@ -102,6 +103,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       <PlayoffsHero
         onNavigate={() => onNavigateToPlayoffs?.()}
         onTeamClick={onTeamClick}
+        playoffMatchdays={playoffMatchdays}
       />
 
       {/* Hero section */}
