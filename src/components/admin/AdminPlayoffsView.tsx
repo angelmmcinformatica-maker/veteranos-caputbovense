@@ -58,9 +58,51 @@ export function AdminPlayoffsView({
 
       // Seed any missing default rounds in Firestore so the modal can update them
       const merged: Matchday[] = [];
+      const validTeamNames = new Set(teams.map(t => t.name));
+
       for (const def of PLAYOFF_DEFAULT_MATCHDAYS) {
         if (existing[def.id]) {
-          merged.push(existing[def.id]);
+          // Migration: if existing playoff doc has team names that don't match
+          // any team in the Firestore 'teams' collection (e.g. legacy Title-Case
+          // names from previous seed), patch them to the canonical uppercase
+          // names defined in PLAYOFF_DEFAULT_MATCHDAYS so the lineup editor can
+          // resolve the roster.
+          const cur = existing[def.id];
+          let needsPatch = false;
+          const patchedMatches = cur.matches.map((m, idx) => {
+            const defMatch = def.matches[idx];
+            const next = { ...m };
+            if (defMatch && !validTeamNames.has(m.home) && validTeamNames.has(defMatch.home)) {
+              next.home = defMatch.home;
+              needsPatch = true;
+            }
+            if (defMatch && !validTeamNames.has(m.away) && validTeamNames.has(defMatch.away)) {
+              next.away = defMatch.away;
+              needsPatch = true;
+            }
+            return next;
+          });
+
+          if (needsPatch) {
+            try {
+              await setDoc(
+                doc(db, 'matchdays', def.id),
+                {
+                  jornada: cur.jornada,
+                  date: cur.date,
+                  rest: cur.rest,
+                  matches: patchedMatches,
+                  isPlayoff: true,
+                },
+                { merge: true }
+              );
+              cur.matches = patchedMatches;
+              console.log(`[Playoffs] Migrated team names for ${def.id}`);
+            } catch (e) {
+              console.error(`[Playoffs] Failed to migrate ${def.id}:`, e);
+            }
+          }
+          merged.push(cur);
         } else {
           await setDoc(doc(db, 'matchdays', def.id), {
             jornada: def.jornada,
