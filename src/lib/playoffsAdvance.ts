@@ -101,31 +101,39 @@ deportividadData.forEach((entry) => {
   FAIR_PLAY_INDEX[norm(entry.team)] = entry.totalPoints;
 });
 
-export function getFairPlayPoints(teamName: string): number {
-  return FAIR_PLAY_INDEX[norm(teamName)] ?? 0;
+export function getFairPlayPoints(teamName?: string | null): number {
+  if (!teamName) return 0;
+  return FAIR_PLAY_INDEX?.[norm(teamName)] ?? 0;
 }
 
 /**
  * Decide which of the two qualified teams plays as LOCAL based on Fair Play.
  * Higher Fair Play points = home. Ties keep the first argument as home.
+ * Defensive: missing names or undefined points fall back gracefully.
  */
-export function decideHomeByFairPlay(teamA: string, teamB: string): { home: string; away: string } {
-  const a = getFairPlayPoints(teamA);
-  const b = getFairPlayPoints(teamB);
-  if (b > a) return { home: teamB, away: teamA };
-  return { home: teamA, away: teamB };
+export function decideHomeByFairPlay(
+  teamA?: string | null,
+  teamB?: string | null
+): { home: string; away: string } {
+  const safeA = teamA ?? '';
+  const safeB = teamB ?? '';
+  const a = getFairPlayPoints(safeA);
+  const b = getFairPlayPoints(safeB);
+  if (b > a) return { home: safeB, away: safeA };
+  return { home: safeA, away: safeB };
 }
 
 /**
  * Returns the winner of a played match (status PLAYED), or null if there's no
  * decided winner yet (pending, live, draw, or missing data).
  */
-export function getMatchWinner(m: Match | undefined | null): string | null {
+export function getMatchWinner(m?: Match | null): string | null {
   if (!m) return null;
-  if (m.status !== 'PLAYED') return null;
-  const hg = m.homeGoals ?? 0;
-  const ag = m.awayGoals ?? 0;
-  if (hg === ag) return null; // No tie-break modeled in data; treat as undecided
+  if (m?.status !== 'PLAYED') return null;
+  const hg = m?.homeGoals ?? 0;
+  const ag = m?.awayGoals ?? 0;
+  if (hg === ag) return null;
+  if (!m?.home || !m?.away) return null;
   return hg > ag ? m.home : m.away;
 }
 

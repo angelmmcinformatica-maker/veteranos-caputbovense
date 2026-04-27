@@ -80,9 +80,16 @@ const Index = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="glass-card p-6 text-center max-w-sm">
-          <p className="text-destructive mb-2">⚠️ Error</p>
+        <div className="glass-card p-6 text-center max-w-sm space-y-3">
+          <p className="text-2xl">⚠️</p>
+          <p className="font-semibold">Problemas de conexión con el servidor</p>
           <p className="text-sm text-muted-foreground">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );

@@ -25,46 +25,53 @@ export function usePlayoffsAutoAdvance(playoffMatchdays: Matchday[] | undefined)
     if (!playoffMatchdays?.length) return;
 
     (async () => {
-      for (const edge of PLAYOFF_BRACKET_EDGES) {
-        const targetMd = playoffMatchdays.find((m) => m.id === edge.target.matchdayId);
-        const targetMatch = targetMd?.matches?.[edge.target.matchIndex];
-        if (!targetMd || !targetMatch) continue;
+      try {
+        for (const edge of PLAYOFF_BRACKET_EDGES) {
+          try {
+            const targetMd = playoffMatchdays.find((m) => m?.id === edge?.target?.matchdayId);
+            const targetMatch = targetMd?.matches?.[edge?.target?.matchIndex];
+            if (!targetMd || !targetMatch) continue;
 
-        const resolved = resolveTargetSlot(playoffMatchdays, edge);
-        const patch = computePatch(targetMatch, resolved);
-        if (!patch) continue;
+            const resolved = resolveTargetSlot(playoffMatchdays, edge);
+            const patch = computePatch(targetMatch, resolved);
+            if (!patch) continue;
 
-        const writeKey = `${edge.target.matchdayId}#${edge.target.matchIndex}`;
-        const writeSig = `${patch.home}|${patch.away}`;
-        if (lastWriteRef.current[writeKey] === writeSig) continue;
-        lastWriteRef.current[writeKey] = writeSig;
+            const writeKey = `${edge.target.matchdayId}#${edge.target.matchIndex}`;
+            const writeSig = `${patch.home}|${patch.away}`;
+            if (lastWriteRef.current?.[writeKey] === writeSig) continue;
+            lastWriteRef.current[writeKey] = writeSig;
 
-        const updatedMatches = targetMd.matches.map((m, idx) =>
-          idx === edge.target.matchIndex
-            ? { ...m, home: patch.home, away: patch.away }
-            : m
-        );
+            const updatedMatches = (targetMd.matches || []).map((m, idx) =>
+              idx === edge.target.matchIndex
+                ? { ...m, home: patch.home, away: patch.away }
+                : m
+            );
 
-        try {
-          await setDoc(
-            doc(db, 'matchdays', targetMd.id),
-            {
-              jornada: targetMd.jornada,
-              date: targetMd.date,
-              rest: targetMd.rest,
-              matches: updatedMatches,
-              isPlayoff: true,
-            },
-            { merge: true }
-          );
-          console.log(
-            `[Playoffs auto-advance] ${edge.target.matchdayId}[${edge.target.matchIndex}] -> ${patch.home} vs ${patch.away}`
-          );
-        } catch (err) {
-          console.error('[Playoffs auto-advance] Write failed:', err);
-          // Allow retry on next snapshot
-          delete lastWriteRef.current[writeKey];
+            try {
+              await setDoc(
+                doc(db, 'matchdays', targetMd.id),
+                {
+                  jornada: targetMd?.jornada ?? 0,
+                  date: targetMd?.date ?? '',
+                  rest: targetMd?.rest ?? null,
+                  matches: updatedMatches,
+                  isPlayoff: true,
+                },
+                { merge: true }
+              );
+              console.log(
+                `[Playoffs auto-advance] ${edge.target.matchdayId}[${edge.target.matchIndex}] -> ${patch.home} vs ${patch.away}`
+              );
+            } catch (writeErr) {
+              console.error('[Playoffs auto-advance] Write failed:', writeErr);
+              delete lastWriteRef.current[writeKey];
+            }
+          } catch (edgeErr) {
+            console.error('[Playoffs auto-advance] Edge processing failed:', edgeErr);
+          }
         }
+      } catch (outerErr) {
+        console.error('[Playoffs auto-advance] Loop crashed:', outerErr);
       }
     })();
   }, [playoffMatchdays]);
