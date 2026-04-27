@@ -525,7 +525,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={ligaSemis}
+              matches={ligaSemisLive}
               variant="liga"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -548,7 +548,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
                 <div className="absolute -inset-1 bg-primary/20 rounded-xl blur-lg" />
                 <div className="relative">
                   <MatchCard
-                    match={ligaFinal}
+                    match={ligaFinalLive}
                     variant="liga"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
@@ -603,7 +603,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={copaQuarters}
+              matches={copaQuartersLive}
               variant="copa"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -614,7 +614,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={copaSemis}
+              matches={copaSemisLive}
               variant="copa"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -637,7 +637,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
                 <div className="absolute -inset-1 bg-muted/30 rounded-xl blur-lg" />
                 <div className="relative">
                   <MatchCard
-                    match={copaFinal}
+                    match={copaFinalLive}
                     variant="copa"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
