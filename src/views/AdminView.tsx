@@ -10,6 +10,7 @@ import { AdminPlayoffsView } from '@/components/admin/AdminPlayoffsView';
 
 interface AdminViewProps {
   matchdays: Matchday[];
+  playoffMatchdays?: Matchday[];
   teams: Team[];
   matchReports: MatchReport[];
   topScorers: TopScorer[];
@@ -19,7 +20,7 @@ interface AdminViewProps {
 
 type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | 'playoffs' | null;
 
-export function AdminView({ matchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
+export function AdminView({ matchdays, playoffMatchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -290,6 +291,7 @@ export function AdminView({ matchdays, teams, matchReports, topScorers, cardRank
         <AdminPlayoffsView
           teams={teams}
           matchReports={matchReports}
+          playoffMatchdays={playoffMatchdays}
           onClose={() => setActiveModal(null)}
           onDataChange={onDataRefresh}
         />

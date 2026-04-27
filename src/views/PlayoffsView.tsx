@@ -2,6 +2,7 @@ import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
+import { getFairPlayPoints } from '@/lib/playoffsAdvance';
 import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
@@ -380,8 +381,76 @@ function ChampionBadge({ variant }: { variant: Variant }) {
   );
 }
 
+// Map static bracket-match IDs to their Firestore [matchdayId, matchIndex] slot.
+// Used to dynamically replace placeholders ("Ganador Cuartos 1") with the real
+// qualified team as soon as auto-advance writes it.
+const BRACKET_TO_FIRESTORE: Record<string, { matchdayId: string; matchIndex: number }> = {
+  'l-sf1': { matchdayId: 'playoff-liga-semis', matchIndex: 0 },
+  'l-sf2': { matchdayId: 'playoff-liga-semis', matchIndex: 1 },
+  'l-final': { matchdayId: 'playoff-liga-final', matchIndex: 0 },
+  'c-qf1': { matchdayId: 'playoff-copa-cuartos', matchIndex: 0 },
+  'c-qf2': { matchdayId: 'playoff-copa-cuartos', matchIndex: 1 },
+  'c-qf3': { matchdayId: 'playoff-copa-cuartos', matchIndex: 2 },
+  'c-qf4': { matchdayId: 'playoff-copa-cuartos', matchIndex: 3 },
+  'c-sf1': { matchdayId: 'playoff-copa-semis', matchIndex: 0 },
+  'c-sf2': { matchdayId: 'playoff-copa-semis', matchIndex: 1 },
+  'c-final': { matchdayId: 'playoff-copa-final', matchIndex: 0 },
+};
+
+const isPlaceholderName = (name: string) =>
+  !name || /^(ganador|esperando)/i.test(name.trim());
+
+/**
+ * Enriches a static BracketMatch with the live qualified teams from Firestore.
+ * Replaces null sides with real teams (and "Esperando rival..." labels) as
+ * winners advance, and applies the fair-play LOCAL marker to the higher
+ * Deportividad team.
+ */
+function enrichWithLiveBracket(
+  match: BracketMatch,
+  playoffMatchdays?: Matchday[]
+): BracketMatch {
+  const slot = BRACKET_TO_FIRESTORE[match.id];
+  if (!slot || !playoffMatchdays?.length) return match;
+  const md = playoffMatchdays.find((m) => m.id === slot.matchdayId);
+  const live = md?.matches?.[slot.matchIndex];
+  if (!live) return match;
+
+  const homeReal = !isPlaceholderName(live.home);
+  const awayReal = !isPlaceholderName(live.away);
+
+  const buildTeam = (name: string, isHome: boolean): BracketTeam | null => {
+    if (!name || isPlaceholderName(name)) return null;
+    return {
+      seed: 0,
+      team: name,
+      fairPlayPoints: getFairPlayPoints(name),
+      isHome,
+    };
+  };
+
+  const homeTeam = homeReal ? buildTeam(live.home, true) : null;
+  const awayTeam = awayReal ? buildTeam(live.away, false) : null;
+
+  return {
+    ...match,
+    home: homeTeam,
+    away: awayTeam,
+    placeholderHome: homeTeam ? undefined : (homeReal ? live.home : (match.placeholderHome || 'Esperando rival...')),
+    placeholderAway: awayTeam ? undefined : (awayReal ? live.away : (match.placeholderAway || 'Esperando rival...')),
+  };
+}
+
 export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
+
+  // Build dynamic later rounds from live Firestore data so winners flow forward
+  // and "Esperando rival..." appears when only one side has qualified.
+  const ligaSemisLive = ligaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
+  const ligaFinalLive = enrichWithLiveBracket(ligaFinal, playoffMatchdays);
+  const copaQuartersLive = copaQuarters.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
+  const copaSemisLive = copaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
+  const copaFinalLive = enrichWithLiveBracket(copaFinal, playoffMatchdays);
 
   return (
     <div className="animate-fade-up space-y-10 pb-8">
@@ -456,7 +525,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={ligaSemis}
+              matches={ligaSemisLive}
               variant="liga"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -479,7 +548,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
                 <div className="absolute -inset-1 bg-primary/20 rounded-xl blur-lg" />
                 <div className="relative">
                   <MatchCard
-                    match={ligaFinal}
+                    match={ligaFinalLive}
                     variant="liga"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}
@@ -534,7 +603,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={copaQuarters}
+              matches={copaQuartersLive}
               variant="copa"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -545,7 +614,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
             />
 
             <BracketColumn
-              matches={copaSemis}
+              matches={copaSemisLive}
               variant="copa"
               onTeamClick={onTeamClick}
               getTeamShield={getTeamShield}
@@ -568,7 +637,7 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
                 <div className="absolute -inset-1 bg-muted/30 rounded-xl blur-lg" />
                 <div className="relative">
                   <MatchCard
-                    match={copaFinal}
+                    match={copaFinalLive}
                     variant="copa"
                     onTeamClick={onTeamClick}
                     getTeamShield={getTeamShield}

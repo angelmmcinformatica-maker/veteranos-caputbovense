@@ -139,6 +139,7 @@ const Index = () => {
         return (
           <AdminView 
             matchdays={matchdays}
+            playoffMatchdays={playoffMatchdays}
             teams={teams}
             matchReports={matchReports}
             topScorers={topScorers}
