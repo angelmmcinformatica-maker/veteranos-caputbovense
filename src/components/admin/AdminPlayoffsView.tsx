@@ -44,6 +44,11 @@ export function AdminPlayoffsView({
       ? livePlayoffMatchdays
       : localPlayoffMatchdays;
 
+  // Auto-advance winners + apply fair-play home/away rule. Admin-only because
+  // this view is only mounted for users with `isAdmin`.
+  usePlayoffsAutoAdvance(livePlayoffMatchdays);
+
+
   // Load playoff matchdays from Firestore. If a round doesn't exist yet, seed
   // it with the default bracket so the admin can edit it immediately using the
   // exact same MatchEditModal as the regular league.
