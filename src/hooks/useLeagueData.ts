@@ -39,91 +39,124 @@ export function useLeagueData() {
     let firstTeams = true;
     let firstReports = true;
 
-    // Real-time matchdays listener
-    const unsubMatchdays = onSnapshot(
-      collection(db, 'matchdays'),
-      (snap) => {
-        const all = snap.docs.map((d) => {
-          const data = d.data() as any;
-          const matchdayDate = data.date || '';
-          const matches = (data.matches || []).map((match: any) => ({
-            ...match,
-            date: match.date || matchdayDate,
-            status: match.status === 'SCHEDULED' ? 'PENDING' : match.status,
-          }));
-          return { id: d.id, ...data, matches } as Matchday;
-        });
-
-        // Split: regular league vs playoff brackets (same collection, different IDs)
-        const regular = all
-          .filter((md) => !md.id.startsWith('playoff-'))
-          .sort((a, b) => a.jornada - b.jornada);
-        const playoffs = all
-          .filter((md) => md.id.startsWith('playoff-'))
-          .sort((a, b) => a.jornada - b.jornada);
-
-        setMatchdays(regular);
-        setPlayoffMatchdays(playoffs);
-        setError(null);
-        if (firstMatchdays) {
-          firstMatchdays = false;
-          markReady();
-        }
-      },
-      (err) => {
-        console.error('Error in matchdays snapshot:', err);
-        setError('Error al cargar los datos de la liga');
-        if (firstMatchdays) {
-          firstMatchdays = false;
-          markReady();
-        }
+    // Safety timeout: if Firestore doesn't deliver the first batch within 12s
+    // (e.g., Lovable Cloud / Firebase incident, offline, blocked by adblocker),
+    // surface a friendly error instead of leaving the app stuck on the loader.
+    const connectionTimeout = setTimeout(() => {
+      if (pending > 0) {
+        console.warn('[useLeagueData] Firestore connection timeout — showing error UI');
+        setError('Problemas de conexión con el servidor. Reintenta en unos segundos.');
+        setLoading(false);
       }
-    );
+    }, 12000);
 
-    // Real-time teams listener
-    const unsubTeams = onSnapshot(
-      collection(db, 'teams'),
-      (snap) => {
-        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Team[];
-        setTeams(data);
-        if (firstTeams) {
-          firstTeams = false;
-          markReady();
-        }
-      },
-      (err) => {
-        console.error('Error in teams snapshot:', err);
-        if (firstTeams) {
-          firstTeams = false;
-          markReady();
-        }
-      }
-    );
+    let unsubMatchdays: (() => void) | undefined;
+    let unsubTeams: (() => void) | undefined;
+    let unsubReports: (() => void) | undefined;
 
-    // Real-time match reports listener
-    const unsubReports = onSnapshot(
-      collection(db, 'match_reports'),
-      (snap) => {
-        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MatchReport[];
-        setMatchReports(data);
-        if (firstReports) {
-          firstReports = false;
-          markReady();
+    try {
+      // Real-time matchdays listener
+      unsubMatchdays = onSnapshot(
+        collection(db, 'matchdays'),
+        (snap) => {
+          try {
+            const all = snap.docs.map((d) => {
+              const data = (d.data() as any) || {};
+              const matchdayDate = data?.date || '';
+              const matches = (data?.matches || []).map((match: any) => ({
+                ...match,
+                date: match?.date || matchdayDate,
+                status: match?.status === 'SCHEDULED' ? 'PENDING' : match?.status,
+              }));
+              return { id: d.id, ...data, matches } as Matchday;
+            });
+
+            const regular = all
+              .filter((md) => !md.id.startsWith('playoff-'))
+              .sort((a, b) => (a?.jornada ?? 0) - (b?.jornada ?? 0));
+            const playoffs = all
+              .filter((md) => md.id.startsWith('playoff-'))
+              .sort((a, b) => (a?.jornada ?? 0) - (b?.jornada ?? 0));
+
+            setMatchdays(regular);
+            setPlayoffMatchdays(playoffs);
+            setError(null);
+          } catch (innerErr) {
+            console.error('[useLeagueData] matchdays parse error:', innerErr);
+          }
+          if (firstMatchdays) {
+            firstMatchdays = false;
+            markReady();
+          }
+        },
+        (err) => {
+          console.error('Error in matchdays snapshot:', err);
+          setError('Error al cargar los datos de la liga');
+          if (firstMatchdays) {
+            firstMatchdays = false;
+            markReady();
+          }
         }
-      },
-      (err) => {
-        console.error('Error in match_reports snapshot:', err);
-        if (firstReports) {
-          firstReports = false;
-          markReady();
+      );
+
+      // Real-time teams listener
+      unsubTeams = onSnapshot(
+        collection(db, 'teams'),
+        (snap) => {
+          try {
+            const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Team[];
+            setTeams(data);
+          } catch (innerErr) {
+            console.error('[useLeagueData] teams parse error:', innerErr);
+          }
+          if (firstTeams) {
+            firstTeams = false;
+            markReady();
+          }
+        },
+        (err) => {
+          console.error('Error in teams snapshot:', err);
+          if (firstTeams) {
+            firstTeams = false;
+            markReady();
+          }
         }
-      }
-    );
+      );
+
+      // Real-time match reports listener
+      unsubReports = onSnapshot(
+        collection(db, 'match_reports'),
+        (snap) => {
+          try {
+            const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MatchReport[];
+            setMatchReports(data);
+          } catch (innerErr) {
+            console.error('[useLeagueData] reports parse error:', innerErr);
+          }
+          if (firstReports) {
+            firstReports = false;
+            markReady();
+          }
+        },
+        (err) => {
+          console.error('Error in match_reports snapshot:', err);
+          if (firstReports) {
+            firstReports = false;
+            markReady();
+          }
+        }
+      );
+    } catch (setupErr) {
+      console.error('[useLeagueData] Failed to set up Firestore listeners:', setupErr);
+      setError('No se pudo conectar con el servidor. Revisa tu conexión.');
+      setLoading(false);
+    }
 
     return () => {
-      unsubMatchdays();
-      unsubTeams();
-      unsubReports();
+      clearTimeout(connectionTimeout);
+      try { unsubMatchdays?.(); } catch {}
+      try { unsubTeams?.(); } catch {}
+      try { unsubReports?.(); } catch {}
     };
   }, []);
 
