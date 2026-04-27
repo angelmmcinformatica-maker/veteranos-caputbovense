@@ -15,6 +15,10 @@ import {
 interface AdminPlayoffsViewProps {
   teams: Team[];
   matchReports: MatchReport[];
+  /** Live playoff matchdays from useLeagueData (onSnapshot). When provided, the
+   *  view renders these directly so admin edits reflect instantly without a
+   *  manual reload, and the auto-advance hook can react to results. */
+  playoffMatchdays?: Matchday[];
   onClose: () => void;
   onDataChange: () => void;
 }
@@ -22,14 +26,22 @@ interface AdminPlayoffsViewProps {
 export function AdminPlayoffsView({
   teams,
   matchReports,
+  playoffMatchdays: livePlayoffMatchdays,
   onClose,
   onDataChange,
 }: AdminPlayoffsViewProps) {
-  const [playoffMatchdays, setPlayoffMatchdays] = useState<Matchday[]>([]);
+  const [localPlayoffMatchdays, setLocalPlayoffMatchdays] = useState<Matchday[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string>(PLAYOFF_DEFAULT_MATCHDAYS[0].id);
   const [editingMatch, setEditingMatch] = useState<{ match: Match; matchday: Matchday } | null>(null);
   const [viewingReport, setViewingReport] = useState<{ report: MatchReport; match: Match } | null>(null);
+
+  // Prefer live snapshot data; fall back to one-shot fetch only until snapshot
+  // delivers its first batch (avoids a flash of empty state on first open).
+  const playoffMatchdays =
+    livePlayoffMatchdays && livePlayoffMatchdays.length > 0
+      ? livePlayoffMatchdays
+      : localPlayoffMatchdays;
 
   // Load playoff matchdays from Firestore. If a round doesn't exist yet, seed
   // it with the default bracket so the admin can edit it immediately using the
