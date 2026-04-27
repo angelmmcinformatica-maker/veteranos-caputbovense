@@ -2,7 +2,7 @@ import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
-import { getFairPlayPoints } from '@/lib/playoffsAdvance';
+import { getFairPlayPoints, decideHomeByFairPlay } from '@/lib/playoffsAdvance';
 import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
@@ -381,83 +381,156 @@ function ChampionBadge({ variant }: { variant: Variant }) {
   );
 }
 
-// Map static bracket-match IDs to their Firestore [matchdayId, matchIndex] slot.
-// Used to dynamically replace placeholders ("Ganador Cuartos 1") with the real
-// qualified team as soon as auto-advance writes it.
-const BRACKET_TO_FIRESTORE: Record<string, { matchdayId: string; matchIndex: number }> = {
-  'l-sf1': { matchdayId: 'playoff-liga-semis', matchIndex: 0 },
-  'l-sf2': { matchdayId: 'playoff-liga-semis', matchIndex: 1 },
-  'l-final': { matchdayId: 'playoff-liga-final', matchIndex: 0 },
-  'c-qf1': { matchdayId: 'playoff-copa-cuartos', matchIndex: 0 },
-  'c-qf2': { matchdayId: 'playoff-copa-cuartos', matchIndex: 1 },
-  'c-qf3': { matchdayId: 'playoff-copa-cuartos', matchIndex: 2 },
-  'c-qf4': { matchdayId: 'playoff-copa-cuartos', matchIndex: 3 },
-  'c-sf1': { matchdayId: 'playoff-copa-semis', matchIndex: 0 },
-  'c-sf2': { matchdayId: 'playoff-copa-semis', matchIndex: 1 },
-  'c-final': { matchdayId: 'playoff-copa-final', matchIndex: 0 },
+// Map every downstream bracket slot to its TWO parent bracket matches.
+// The winner of each parent (looked up live) feeds into this slot.
+// This makes the bracket auto-fill in CASCADE purely on the frontend, without
+// depending on Firestore writes from the auto-advance hook.
+const BRACKET_PARENTS: Record<string, [string, string]> = {
+  // Liga
+  'l-sf1': ['l-qf1', 'l-qf2'],
+  'l-sf2': ['l-qf3', 'l-qf4'],
+  'l-final': ['l-sf1', 'l-sf2'],
+  // Copa
+  'c-qf1': ['c-r16-1', 'c-r16-2'],
+  'c-qf2': ['c-r16-3', 'c-r16-4'],
+  'c-qf3': ['c-r16-5', 'c-r16-6'],
+  'c-qf4': ['c-r16-7', 'c-r16-8'],
+  'c-sf1': ['c-qf1', 'c-qf2'],
+  'c-sf2': ['c-qf3', 'c-qf4'],
+  'c-final': ['c-sf1', 'c-sf2'],
 };
 
-const isPlaceholderName = (name: string) =>
-  !name || /^(ganador|esperando)/i.test(name.trim());
+// Index every static BracketMatch by its id so we can recursively resolve
+// a match's "current teams" (which themselves may have been derived from
+// previous rounds).
+function buildStaticIndex(): Record<string, BracketMatch> {
+  const all: BracketMatch[] = [
+    ...ligaQuarters, ...ligaSemis, ligaFinal,
+    ...copaR16, ...copaQuarters, ...copaSemis, copaFinal,
+  ];
+  const idx: Record<string, BracketMatch> = {};
+  all.forEach((m) => { idx[m.id] = m; });
+  return idx;
+}
+const STATIC_INDEX = buildStaticIndex();
 
 /**
- * Enriches a static BracketMatch with the live qualified teams from Firestore.
- * Replaces null sides with real teams (and "Esperando rival..." labels) as
- * winners advance, and applies the fair-play LOCAL marker to the higher
- * Deportividad team.
+ * Resolves the winner of a given static bracket match by:
+ *  1. If it's a first-round match (real teams), looking up the live result by team names.
+ *  2. If it's a downstream match, recursively resolving its parents to know
+ *     who's playing, then looking up the live result by those names.
+ * Returns null if no decided winner yet.
+ */
+function resolveWinner(
+  matchId: string,
+  playoffMatchdays: Matchday[] | undefined,
+  cache: Record<string, string | null | undefined>
+): string | null {
+  if (cache[matchId] !== undefined) return cache[matchId] ?? null;
+  cache[matchId] = null; // guard against cycles
+
+  const staticMatch = STATIC_INDEX[matchId];
+  if (!staticMatch) return null;
+
+  let homeName: string | null = null;
+  let awayName: string | null = null;
+
+  const parents = BRACKET_PARENTS[matchId];
+  if (parents) {
+    // Downstream match: derive teams from parents' winners
+    const winA = resolveWinner(parents[0], playoffMatchdays, cache);
+    const winB = resolveWinner(parents[1], playoffMatchdays, cache);
+    if (winA && winB) {
+      const { home, away } = decideHomeByFairPlay(winA, winB);
+      homeName = home;
+      awayName = away;
+    } else {
+      cache[matchId] = null;
+      return null;
+    }
+  } else {
+    // First-round match: real teams already in the static bracket
+    homeName = staticMatch.home?.team ?? null;
+    awayName = staticMatch.away?.team ?? null;
+  }
+
+  if (!homeName || !awayName) return null;
+
+  const live = findLivePlayoffMatch(playoffMatchdays, homeName, awayName);
+  if (!live || live.status !== 'PLAYED') return null;
+  const hg = live.homeGoals ?? 0;
+  const ag = live.awayGoals ?? 0;
+  if (hg === ag) return null;
+  const winner = hg > ag ? homeName : awayName;
+  cache[matchId] = winner;
+  return winner;
+}
+
+/**
+ * Enriches a downstream BracketMatch by deriving its participants from the
+ * winners of its parent matches (cascading through the bracket). Applies the
+ * Fair-Play LOCAL rule. Falls back to "Esperando rival..." for unresolved sides.
  */
 function enrichWithLiveBracket(
   match: BracketMatch,
-  playoffMatchdays?: Matchday[]
+  playoffMatchdays?: Matchday[],
+  cache: Record<string, string | null | undefined> = {}
 ): BracketMatch {
   try {
-    const slot = BRACKET_TO_FIRESTORE?.[match?.id];
-    if (!slot || !playoffMatchdays?.length) return match;
-    const md = playoffMatchdays.find((m) => m?.id === slot.matchdayId);
-    const live = md?.matches?.[slot.matchIndex];
-    if (!live) return match;
+    const parents = BRACKET_PARENTS[match?.id];
+    if (!parents) return match;
 
-    const liveHome = live?.home ?? '';
-    const liveAway = live?.away ?? '';
-    const homeReal = !isPlaceholderName(liveHome);
-    const awayReal = !isPlaceholderName(liveAway);
+    const winA = resolveWinner(parents[0], playoffMatchdays, cache);
+    const winB = resolveWinner(parents[1], playoffMatchdays, cache);
 
-    const buildTeam = (name: string, isHome: boolean): BracketTeam | null => {
-      if (!name || isPlaceholderName(name)) return null;
+    const buildTeam = (name: string, isHome: boolean): BracketTeam => ({
+      seed: 0,
+      team: name,
+      fairPlayPoints: getFairPlayPoints(name) ?? 0,
+      isHome,
+    });
+
+    if (winA && winB) {
+      const { home, away } = decideHomeByFairPlay(winA, winB);
       return {
-        seed: 0,
-        team: name,
-        fairPlayPoints: getFairPlayPoints(name) ?? 0,
-        isHome,
+        ...match,
+        home: buildTeam(home, true),
+        away: buildTeam(away, false),
+        placeholderHome: undefined,
+        placeholderAway: undefined,
       };
-    };
+    }
 
-    const homeTeam = homeReal ? buildTeam(liveHome, true) : null;
-    const awayTeam = awayReal ? buildTeam(liveAway, false) : null;
+    if (winA || winB) {
+      const known = (winA || winB) as string;
+      return {
+        ...match,
+        home: buildTeam(known, true),
+        away: null,
+        placeholderHome: undefined,
+        placeholderAway: 'Esperando rival...',
+      };
+    }
 
-    return {
-      ...match,
-      home: homeTeam,
-      away: awayTeam,
-      placeholderHome: homeTeam ? undefined : (homeReal ? liveHome : (match?.placeholderHome || 'Esperando rival...')),
-      placeholderAway: awayTeam ? undefined : (awayReal ? liveAway : (match?.placeholderAway || 'Esperando rival...')),
-    };
+    return match;
   } catch (err) {
     console.error('[PlayoffsView] enrichWithLiveBracket failed:', err);
     return match;
   }
 }
 
+
 export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
 
-  // Build dynamic later rounds from live Firestore data so winners flow forward
-  // and "Esperando rival..." appears when only one side has qualified.
-  const ligaSemisLive = ligaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const ligaFinalLive = enrichWithLiveBracket(ligaFinal, playoffMatchdays);
-  const copaQuartersLive = copaQuarters.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const copaSemisLive = copaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const copaFinalLive = enrichWithLiveBracket(copaFinal, playoffMatchdays);
+  // Single shared cache so cascading derivations (Cuartos -> Semis -> Final) are
+  // resolved consistently across all rounds in one pass.
+  const resolveCache: Record<string, string | null | undefined> = {};
+  const ligaSemisLive = ligaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const ligaFinalLive = enrichWithLiveBracket(ligaFinal, playoffMatchdays, resolveCache);
+  const copaQuartersLive = copaQuarters.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const copaSemisLive = copaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const copaFinalLive = enrichWithLiveBracket(copaFinal, playoffMatchdays, resolveCache);
 
   return (
     <div className="animate-fade-up space-y-10 pb-8">
