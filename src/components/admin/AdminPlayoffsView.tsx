@@ -126,7 +126,7 @@ export function AdminPlayoffsView({
           merged.push(def);
         }
       }
-      setPlayoffMatchdays(merged);
+      setLocalPlayoffMatchdays(merged);
     } catch (err) {
       console.error('Error loading playoff matchdays:', err);
     } finally {
