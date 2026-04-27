@@ -11,6 +11,7 @@ import {
   PLAYOFF_LABELS,
   PLAYOFF_ID_PREFIX,
 } from '@/data/playoffsBracket';
+import { usePlayoffsAutoAdvance } from '@/hooks/usePlayoffsAutoAdvance';
 
 interface AdminPlayoffsViewProps {
   teams: Team[];
