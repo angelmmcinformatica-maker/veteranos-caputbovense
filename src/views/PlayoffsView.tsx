@@ -2,7 +2,7 @@ import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
-import { getFairPlayPoints } from '@/lib/playoffsAdvance';
+import { getFairPlayPoints, decideHomeByFairPlay } from '@/lib/playoffsAdvance';
 import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
