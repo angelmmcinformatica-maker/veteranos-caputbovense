@@ -410,35 +410,42 @@ function enrichWithLiveBracket(
   match: BracketMatch,
   playoffMatchdays?: Matchday[]
 ): BracketMatch {
-  const slot = BRACKET_TO_FIRESTORE[match.id];
-  if (!slot || !playoffMatchdays?.length) return match;
-  const md = playoffMatchdays.find((m) => m.id === slot.matchdayId);
-  const live = md?.matches?.[slot.matchIndex];
-  if (!live) return match;
+  try {
+    const slot = BRACKET_TO_FIRESTORE?.[match?.id];
+    if (!slot || !playoffMatchdays?.length) return match;
+    const md = playoffMatchdays.find((m) => m?.id === slot.matchdayId);
+    const live = md?.matches?.[slot.matchIndex];
+    if (!live) return match;
 
-  const homeReal = !isPlaceholderName(live.home);
-  const awayReal = !isPlaceholderName(live.away);
+    const liveHome = live?.home ?? '';
+    const liveAway = live?.away ?? '';
+    const homeReal = !isPlaceholderName(liveHome);
+    const awayReal = !isPlaceholderName(liveAway);
 
-  const buildTeam = (name: string, isHome: boolean): BracketTeam | null => {
-    if (!name || isPlaceholderName(name)) return null;
-    return {
-      seed: 0,
-      team: name,
-      fairPlayPoints: getFairPlayPoints(name),
-      isHome,
+    const buildTeam = (name: string, isHome: boolean): BracketTeam | null => {
+      if (!name || isPlaceholderName(name)) return null;
+      return {
+        seed: 0,
+        team: name,
+        fairPlayPoints: getFairPlayPoints(name) ?? 0,
+        isHome,
+      };
     };
-  };
 
-  const homeTeam = homeReal ? buildTeam(live.home, true) : null;
-  const awayTeam = awayReal ? buildTeam(live.away, false) : null;
+    const homeTeam = homeReal ? buildTeam(liveHome, true) : null;
+    const awayTeam = awayReal ? buildTeam(liveAway, false) : null;
 
-  return {
-    ...match,
-    home: homeTeam,
-    away: awayTeam,
-    placeholderHome: homeTeam ? undefined : (homeReal ? live.home : (match.placeholderHome || 'Esperando rival...')),
-    placeholderAway: awayTeam ? undefined : (awayReal ? live.away : (match.placeholderAway || 'Esperando rival...')),
-  };
+    return {
+      ...match,
+      home: homeTeam,
+      away: awayTeam,
+      placeholderHome: homeTeam ? undefined : (homeReal ? liveHome : (match?.placeholderHome || 'Esperando rival...')),
+      placeholderAway: awayTeam ? undefined : (awayReal ? liveAway : (match?.placeholderAway || 'Esperando rival...')),
+    };
+  } catch (err) {
+    console.error('[PlayoffsView] enrichWithLiveBracket failed:', err);
+    return match;
+  }
 }
 
 export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
