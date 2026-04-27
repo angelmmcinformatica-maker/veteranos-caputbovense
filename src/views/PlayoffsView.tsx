@@ -523,13 +523,14 @@ function enrichWithLiveBracket(
 export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
 
-  // Build dynamic later rounds from live Firestore data so winners flow forward
-  // and "Esperando rival..." appears when only one side has qualified.
-  const ligaSemisLive = ligaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const ligaFinalLive = enrichWithLiveBracket(ligaFinal, playoffMatchdays);
-  const copaQuartersLive = copaQuarters.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const copaSemisLive = copaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays));
-  const copaFinalLive = enrichWithLiveBracket(copaFinal, playoffMatchdays);
+  // Single shared cache so cascading derivations (Cuartos -> Semis -> Final) are
+  // resolved consistently across all rounds in one pass.
+  const resolveCache: Record<string, string | null | undefined> = {};
+  const ligaSemisLive = ligaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const ligaFinalLive = enrichWithLiveBracket(ligaFinal, playoffMatchdays, resolveCache);
+  const copaQuartersLive = copaQuarters.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const copaSemisLive = copaSemis.map((m) => enrichWithLiveBracket(m, playoffMatchdays, resolveCache));
+  const copaFinalLive = enrichWithLiveBracket(copaFinal, playoffMatchdays, resolveCache);
 
   return (
     <div className="animate-fade-up space-y-10 pb-8">
