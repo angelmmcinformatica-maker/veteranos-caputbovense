@@ -46,11 +46,16 @@ export function MatchEditModal({
   // Match result state
   const [homeGoals, setHomeGoals] = useState(match.homeGoals || 0);
   const [awayGoals, setAwayGoals] = useState(match.awayGoals || 0);
+  const [homePenalties, setHomePenalties] = useState<number | null>(match.homePenalties ?? null);
+  const [awayPenalties, setAwayPenalties] = useState<number | null>(match.awayPenalties ?? null);
   const [matchDate, setMatchDate] = useState(match.date || '');
   const [matchTime, setMatchTime] = useState(match.time || '');
   const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED' | 'POSTPONED'>(match.status === 'SCHEDULED' ? 'PENDING' : match.status as any);
   const [selectedReferee, setSelectedReferee] = useState<string>(match.referee || '');
   const [referees, setReferees] = useState<User[]>([]);
+
+  const isPlayoff = (matchday?.id || '').startsWith('playoff-');
+  const isTied = homeGoals === awayGoals;
   
   // Lineup state
   const [observations, setObservations] = useState(existingReport?.observations || '');
@@ -200,7 +205,9 @@ export function MatchEditModal({
               time: matchTime || '',
               status: matchStatus,
               referee: selectedReferee || null,
-              refereeName: refereeUser?.fullName || null
+              refereeName: refereeUser?.fullName || null,
+              homePenalties: isPlayoff && isTied ? (homePenalties ?? null) : null,
+              awayPenalties: isPlayoff && isTied ? (awayPenalties ?? null) : null,
             };
           }
           return m;
@@ -421,6 +428,45 @@ export function MatchEditModal({
                   </div>
                 </div>
               </div>
+              )}
+
+              {/* Penalty shootout - only for playoffs when tied */}
+              {matchStatus !== 'POSTPONED' && isPlayoff && isTied && (
+                <div className="space-y-2">
+                  <Label>Tanda de penaltis (desempate)</Label>
+                  <div className="glass-card p-4 bg-amber-500/5 border border-amber-500/30">
+                    <p className="text-xs text-muted-foreground mb-3 text-center">
+                      Empate en el tiempo reglamentario. Introduce el resultado de la tanda de penaltis para decidir quién avanza.
+                    </p>
+                    <div className="flex items-center justify-center gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0 text-center">
+                        <p className="text-[11px] sm:text-xs font-medium mb-2 break-words leading-tight text-muted-foreground">{match.home}</p>
+                        <Input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={homePenalties ?? ''}
+                          onChange={(e) => setHomePenalties(e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          placeholder="-"
+                          className="text-center text-2xl font-bold tabular-nums h-14"
+                        />
+                      </div>
+                      <span className="text-2xl text-muted-foreground pt-6">-</span>
+                      <div className="flex-1 min-w-0 text-center">
+                        <p className="text-[11px] sm:text-xs font-medium mb-2 break-words leading-tight text-muted-foreground">{match.away}</p>
+                        <Input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={awayPenalties ?? ''}
+                          onChange={(e) => setAwayPenalties(e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          placeholder="-"
+                          className="text-center text-2xl font-bold tabular-nums h-14"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Referee selector - only for admins */}

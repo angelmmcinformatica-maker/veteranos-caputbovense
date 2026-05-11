@@ -8,6 +8,9 @@ export interface Match {
   status: 'PLAYED' | 'PENDING' | 'LIVE' | 'SCHEDULED' | 'POSTPONED';
   referee: string | null;
   refereeName: string | null;
+  // Penalty shootout (only used in playoffs when goals are tied at FT)
+  homePenalties?: number | null;
+  awayPenalties?: number | null;
 }
 
 export interface Matchday {
