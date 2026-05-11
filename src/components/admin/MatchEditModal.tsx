@@ -430,6 +430,45 @@ export function MatchEditModal({
               </div>
               )}
 
+              {/* Penalty shootout - only for playoffs when tied */}
+              {matchStatus !== 'POSTPONED' && isPlayoff && isTied && (
+                <div className="space-y-2">
+                  <Label>Tanda de penaltis (desempate)</Label>
+                  <div className="glass-card p-4 bg-amber-500/5 border border-amber-500/30">
+                    <p className="text-xs text-muted-foreground mb-3 text-center">
+                      Empate en el tiempo reglamentario. Introduce el resultado de la tanda de penaltis para decidir quién avanza.
+                    </p>
+                    <div className="flex items-center justify-center gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0 text-center">
+                        <p className="text-[11px] sm:text-xs font-medium mb-2 break-words leading-tight text-muted-foreground">{match.home}</p>
+                        <Input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={homePenalties ?? ''}
+                          onChange={(e) => setHomePenalties(e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          placeholder="-"
+                          className="text-center text-2xl font-bold tabular-nums h-14"
+                        />
+                      </div>
+                      <span className="text-2xl text-muted-foreground pt-6">-</span>
+                      <div className="flex-1 min-w-0 text-center">
+                        <p className="text-[11px] sm:text-xs font-medium mb-2 break-words leading-tight text-muted-foreground">{match.away}</p>
+                        <Input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={awayPenalties ?? ''}
+                          onChange={(e) => setAwayPenalties(e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          placeholder="-"
+                          className="text-center text-2xl font-bold tabular-nums h-14"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Referee selector - only for admins */}
               {canEditReferee && (
               <div className="space-y-2">
