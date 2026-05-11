@@ -278,6 +278,13 @@ function MatchCard({
           getTeamShield={getTeamShield}
         />
       </div>
+      {live && live.homePenalties != null && live.awayPenalties != null && (
+        <div className="px-2.5 py-1 bg-white/[0.03] border-t border-white/5 text-center">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
+            Penaltis: <span className="tabular-nums font-bold text-foreground/90">{live.homePenalties} - {live.awayPenalties}</span>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
