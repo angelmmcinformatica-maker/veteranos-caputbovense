@@ -46,11 +46,16 @@ export function MatchEditModal({
   // Match result state
   const [homeGoals, setHomeGoals] = useState(match.homeGoals || 0);
   const [awayGoals, setAwayGoals] = useState(match.awayGoals || 0);
+  const [homePenalties, setHomePenalties] = useState<number | null>(match.homePenalties ?? null);
+  const [awayPenalties, setAwayPenalties] = useState<number | null>(match.awayPenalties ?? null);
   const [matchDate, setMatchDate] = useState(match.date || '');
   const [matchTime, setMatchTime] = useState(match.time || '');
   const [matchStatus, setMatchStatus] = useState<'PENDING' | 'LIVE' | 'PLAYED' | 'POSTPONED'>(match.status === 'SCHEDULED' ? 'PENDING' : match.status as any);
   const [selectedReferee, setSelectedReferee] = useState<string>(match.referee || '');
   const [referees, setReferees] = useState<User[]>([]);
+
+  const isPlayoff = (matchday?.id || '').startsWith('playoff-');
+  const isTied = homeGoals === awayGoals;
   
   // Lineup state
   const [observations, setObservations] = useState(existingReport?.observations || '');
