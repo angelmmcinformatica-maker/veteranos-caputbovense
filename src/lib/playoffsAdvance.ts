@@ -125,16 +125,22 @@ export function decideHomeByFairPlay(
 
 /**
  * Returns the winner of a played match (status PLAYED), or null if there's no
- * decided winner yet (pending, live, draw, or missing data).
+ * decided winner yet (pending, live, missing data, or a draw without penalty
+ * shootout result). When goals are tied, falls back to the penalty shootout
+ * fields (homePenalties / awayPenalties).
  */
 export function getMatchWinner(m?: Match | null): string | null {
   if (!m) return null;
   if (m?.status !== 'PLAYED') return null;
+  if (!m?.home || !m?.away) return null;
   const hg = m?.homeGoals ?? 0;
   const ag = m?.awayGoals ?? 0;
-  if (hg === ag) return null;
-  if (!m?.home || !m?.away) return null;
-  return hg > ag ? m.home : m.away;
+  if (hg !== ag) return hg > ag ? m.home : m.away;
+  // Tied at full time → look at penalty shootout
+  const hp = m?.homePenalties;
+  const ap = m?.awayPenalties;
+  if (hp == null || ap == null || hp === ap) return null;
+  return hp > ap ? m.home : m.away;
 }
 
 const PLACEHOLDER_RE = /^ganador\s/i;
