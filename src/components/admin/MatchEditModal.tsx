@@ -205,7 +205,9 @@ export function MatchEditModal({
               time: matchTime || '',
               status: matchStatus,
               referee: selectedReferee || null,
-              refereeName: refereeUser?.fullName || null
+              refereeName: refereeUser?.fullName || null,
+              homePenalties: isPlayoff && isTied ? (homePenalties ?? null) : null,
+              awayPenalties: isPlayoff && isTied ? (awayPenalties ?? null) : null,
             };
           }
           return m;
