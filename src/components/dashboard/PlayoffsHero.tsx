@@ -4,7 +4,7 @@ import { useTeamImages } from '@/hooks/useTeamImages';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
-import { decideHomeByFairPlay, getFairPlayPoints } from '@/lib/playoffsAdvance';
+import { decideHomeByFairPlay, getFairPlayPoints, getMatchWinner } from '@/lib/playoffsAdvance';
 import type { Matchday } from '@/types/league';
 
 type Competition = 'liga' | 'copa';
@@ -152,11 +152,8 @@ function resolveWinner(
 
   if (!homeName || !awayName) return null;
   const live = findLivePlayoffMatch(playoffMatchdays, homeName, awayName);
-  if (!live || live.status !== 'PLAYED') return null;
-  const hg = live.homeGoals ?? 0;
-  const ag = live.awayGoals ?? 0;
-  if (hg === ag) return null;
-  const winner = hg > ag ? homeName : awayName;
+  const winner = getMatchWinner(live as any);
+  if (!winner) return null;
   cache[id] = winner;
   return winner;
 }
