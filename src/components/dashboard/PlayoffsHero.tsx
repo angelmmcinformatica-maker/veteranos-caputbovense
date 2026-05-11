@@ -423,6 +423,13 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                         </span>
                       )}
                     </div>
+                    {live && live.homePenalties != null && live.awayPenalties != null && (
+                      <div className="pt-1 text-center">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
+                          Penaltis: <span className="tabular-nums font-bold text-foreground/90">{live.homePenalties} - {live.awayPenalties}</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </button>
               );
