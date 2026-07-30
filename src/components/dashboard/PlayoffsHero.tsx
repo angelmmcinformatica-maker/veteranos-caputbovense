@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
 import { decideHomeByFairPlay, getFairPlayPoints, getMatchWinner } from '@/lib/playoffsAdvance';
+import { useSeason } from '@/contexts/SeasonContext';
+import { LEGACY_SEASON_ID } from '@/config/seasons';
 import type { Matchday } from '@/types/league';
 
 type Competition = 'liga' | 'copa';
@@ -214,6 +216,7 @@ interface PlayoffsHeroProps {
 
 export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: PlayoffsHeroProps) {
   const { getTeamShield } = useTeamImages();
+  const { seasonId } = useSeason();
 
   // Determine the active round for each competition using a shared resolution cache.
   const { ligaRound, copaRound } = useMemo(() => {
