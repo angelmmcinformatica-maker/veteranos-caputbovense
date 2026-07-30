@@ -8,10 +8,11 @@ import type { Matchday, Match, MatchReport, Team, MatchReportPlayer } from '@/ty
 import { MatchEditModal } from './MatchEditModal';
 import { Button } from '@/components/ui/button';
 import {
-  PLAYOFF_DEFAULT_MATCHDAYS,
-  PLAYOFF_LABELS,
+  getPlayoffDefaultMatchdays,
+  getPlayoffLabels,
   PLAYOFF_ID_PREFIX,
 } from '@/data/playoffsBracket';
+import { useSeason } from '@/contexts/SeasonContext';
 import { usePlayoffsAutoAdvance } from '@/hooks/usePlayoffsAutoAdvance';
 
 interface AdminPlayoffsViewProps {
@@ -32,6 +33,9 @@ export function AdminPlayoffsView({
   onClose,
   onDataChange,
 }: AdminPlayoffsViewProps) {
+  const { seasonId, isReadOnly } = useSeason();
+  const PLAYOFF_DEFAULT_MATCHDAYS = getPlayoffDefaultMatchdays(seasonId);
+  const PLAYOFF_LABELS = getPlayoffLabels(seasonId);
   const [localPlayoffMatchdays, setLocalPlayoffMatchdays] = useState<Matchday[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string>(PLAYOFF_DEFAULT_MATCHDAYS[0].id);
@@ -56,7 +60,8 @@ export function AdminPlayoffsView({
   const loadPlayoffs = async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, matchdaysCollectionName()));
+      const canWrite = !isReadOnly;
+      const snap = await getDocs(collection(db, matchdaysCollectionName(seasonId)));
       const existing: Record<string, Matchday> = {};
       snap.docs
         .filter(d => d.id.startsWith(PLAYOFF_ID_PREFIX))
@@ -102,10 +107,10 @@ export function AdminPlayoffsView({
             return next;
           });
 
-          if (needsPatch) {
+          if (needsPatch && canWrite) {
             try {
               await setDoc(
-                doc(db, matchdaysCollectionName(), def.id),
+                doc(db, matchdaysCollectionName(seasonId), def.id),
                 {
                   jornada: cur.jornada,
                   date: cur.date,
@@ -122,14 +127,16 @@ export function AdminPlayoffsView({
             }
           }
           merged.push(cur);
-        } else {
-          await setDoc(doc(db, matchdaysCollectionName(), def.id), {
+        } else if (canWrite) {
+          await setDoc(doc(db, matchdaysCollectionName(seasonId), def.id), {
             jornada: def.jornada,
             date: def.date,
             rest: def.rest,
             matches: def.matches,
             isPlayoff: true,
           });
+          merged.push(def);
+        } else {
           merged.push(def);
         }
       }
@@ -143,7 +150,8 @@ export function AdminPlayoffsView({
 
   useEffect(() => {
     loadPlayoffs();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seasonId]);
 
   const refresh = async () => {
     await loadPlayoffs();
