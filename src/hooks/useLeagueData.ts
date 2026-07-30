@@ -7,7 +7,9 @@ import {
   reportsCollectionName,
   getTeamName,
   getTeamRoster,
+  isTeamActiveInSeason,
   LEGACY_SEASON_ID,
+
 } from '@/config/seasons';
 import type {
   Matchday,
