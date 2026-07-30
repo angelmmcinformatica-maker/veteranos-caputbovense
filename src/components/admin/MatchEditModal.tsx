@@ -4,6 +4,7 @@ import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, M
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, setDoc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { matchdaysCollectionName, reportsCollectionName } from '@/config/seasons';
 import type { Match, Matchday, Team, MatchReport, MatchReportPlayer, Player, User } from '@/types/league';
 import { LineupFormEditor } from './LineupFormEditor';
 import { Button } from '@/components/ui/button';
@@ -188,7 +189,7 @@ export function MatchEditModal({
     setIsSaving(true);
     try {
       // 1. Update match in matchday document
-      const matchdayRef = doc(db, 'matchdays', matchday.id);
+      const matchdayRef = doc(db, matchdaysCollectionName(), matchday.id);
       const matchdaySnap = await getDoc(matchdayRef);
       
       if (matchdaySnap.exists()) {
@@ -219,7 +220,7 @@ export function MatchEditModal({
       // 2. Save/update match report if we have players
       if (homePlayers.length > 0 || awayPlayers.length > 0) {
         const reportId = `${match.home}-${match.away}`;
-        const reportRef = doc(db, 'match_reports', reportId);
+        const reportRef = doc(db, reportsCollectionName(), reportId);
         
         // Clean and validate player data before saving
         const cleanPlayerData = (players: MatchReportPlayer[]): MatchReportPlayer[] => {

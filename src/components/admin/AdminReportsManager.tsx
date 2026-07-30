@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, FileText, Users, Goal, CreditCard, Calendar, Trash2, AlertTriangle, Loader2, Search } from 'lucide-react';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { reportsCollectionName } from '@/config/seasons';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Matchday, MatchReport, MatchReportPlayer, TopScorer, CardRanking } from '@/types/league';
@@ -97,7 +98,7 @@ export function AdminReportsManager({
   const handleDeleteReport = async (reportId: string) => {
     try {
       setDeleting(reportId);
-      await deleteDoc(doc(db, 'match_reports', reportId));
+      await deleteDoc(doc(db, reportsCollectionName(), reportId));
       toast.success('Acta eliminada correctamente');
       onDataChange();
       setConfirmDelete(null);
