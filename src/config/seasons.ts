@@ -111,10 +111,31 @@ export function rosterFieldPath(seasonId?: string | null): string {
 /**
  * Team renames applied from 2026/2027 onwards. Historic seasons keep the old
  * name, so past standings and reports stay untouched.
+ * Keys are the base `name` stored in the Firestore `teams` collection.
  */
 export const SEASON_TEAM_RENAMES: Record<string, Record<string, string>> = {
   '2026-2027': {
     'TRANSTELLO MIAJADAS': 'CLINICA DENT. DOCTOR DOBLADO',
-    'INTER DON BENITO': 'GIMNASTICO DON BENITO',
+    'INTER DON BENITO POLO OPUESTO': 'GIMNASTICO D.B. VETERANOS',
+    'INTER DON BENITO': 'GIMNASTICO D.B. VETERANOS',
   },
 };
+
+/**
+ * Teams that do NOT take part in a given season (archived for that season).
+ * Keys are the base `name` stored in Firestore.
+ */
+export const SEASON_INACTIVE_TEAMS: Record<string, string[]> = {
+  '2026-2027': ['CD VETERANOS RUECAS'],
+};
+
+/** Whether a team participates in the given season. */
+export function isTeamActiveInSeason(
+  baseName: string | null | undefined,
+  seasonId?: string | null,
+): boolean {
+  const season = seasonId ?? getActiveSeasonId();
+  const inactive = SEASON_INACTIVE_TEAMS[season] ?? [];
+  return !inactive.includes((baseName ?? '').trim().toUpperCase());
+}
+
