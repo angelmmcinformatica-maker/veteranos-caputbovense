@@ -971,7 +971,7 @@ export function AdminTeamsView({
                     if (an !== bn) return an - bn;
                     return String(a.name).localeCompare(String(b.name));
                   });
-                  await updateDoc(teamRef, { players: deduped });
+                  await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: deduped });
                   setSelectedTeam({ ...selectedTeam, players: deduped });
                   onDataChange?.();
                 } catch (e) {
@@ -1017,6 +1017,84 @@ export function AdminTeamsView({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transfer modal */}
+      {showTransfer && selectedTeam && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3">
+          <div className="glass-card bg-background border border-border w-full max-w-lg max-h-[80vh] flex flex-col rounded-xl">
+            <div className="shrink-0 flex items-center justify-between gap-2 px-4 py-3 border-b border-border/50">
+              <div className="min-w-0">
+                <h3 className="font-semibold truncate">Registrar traspaso</h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  Destino: {selectedTeam.name}
+                </p>
+              </div>
+              <button
+                onClick={() => { setShowTransfer(false); setTransferSearch(''); }}
+                className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-3 shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={transferSearch}
+                  onChange={(e) => setTransferSearch(e.target.value)}
+                  placeholder="Buscar jugador o club de origen..."
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
+              {allPreviousPlayers
+                .filter(({ player, from }) => {
+                  const q = transferSearch.trim().toLowerCase();
+                  if (!q) return true;
+                  return (
+                    String(player?.name || '').toLowerCase().includes(q) ||
+                    String(player?.alias || '').toLowerCase().includes(q) ||
+                    String(from || '').toLowerCase().includes(q)
+                  );
+                })
+                .slice(0, 200)
+                .map(({ player, from }, i) => {
+                  const already = isInCurrentRoster(player);
+                  return (
+                    <div
+                      key={`tr-${from}-${player?.id}-${i}`}
+                      className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/20"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{player?.alias || player?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{from}</p>
+                      </div>
+                      {already ? (
+                        <span className="text-xs text-muted-foreground shrink-0">Ya en plantilla</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={isSaving}
+                          onClick={() => addPlayersToRoster([player])}
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1" />
+                          Fichar
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              {allPreviousPlayers.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No hay jugadores en el histórico
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
