@@ -227,6 +227,10 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
     };
   }, [playoffMatchdays]);
 
+  // The 2026/2027 bracket isn't decided yet — don't show fictitious crosses.
+  const showBracket = seasonId === LEGACY_SEASON_ID;
+
+
   // Resolve participants for every match in the active rounds (single shared cache).
   const enriched = useMemo(() => {
     const cache: Record<string, string | null | undefined> = {};
