@@ -118,18 +118,21 @@ export function useLeagueData() {
         collection(db, 'teams'),
         (snap) => {
           try {
-            const data = snap.docs.map((d) => {
-              const raw = (d.data() as any) || {};
-              return {
-                ...raw,
-                id: d.id,
-                baseName: raw?.name ?? '',
-                rosters: { ...(raw?.rosters || {}), [LEGACY_SEASON_ID]: raw?.players || [] },
-                name: getTeamName(raw, seasonId),
-                players: getTeamRoster<any>(raw, seasonId),
-              } as Team;
-            });
+            const data = snap.docs
+              .filter((d) => isTeamActiveInSeason(((d.data() as any) || {})?.name, seasonId))
+              .map((d) => {
+                const raw = (d.data() as any) || {};
+                return {
+                  ...raw,
+                  id: d.id,
+                  baseName: raw?.name ?? '',
+                  rosters: { ...(raw?.rosters || {}), [LEGACY_SEASON_ID]: raw?.players || [] },
+                  name: getTeamName(raw, seasonId),
+                  players: getTeamRoster<any>(raw, seasonId),
+                } as Team;
+              });
             setTeams(data);
+
           } catch (innerErr) {
             console.error('[useLeagueData] teams parse error:', innerErr);
           }
