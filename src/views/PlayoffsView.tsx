@@ -3,6 +3,8 @@ import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
 import { getFairPlayPoints, decideHomeByFairPlay, getMatchWinner } from '@/lib/playoffsAdvance';
+import { useSeason } from '@/contexts/SeasonContext';
+import { LEGACY_SEASON_ID } from '@/config/seasons';
 import type { Matchday } from '@/types/league';
 
 interface PlayoffsViewProps {
@@ -526,6 +528,14 @@ function enrichWithLiveBracket(
 
 export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProps) {
   const { getTeamShield } = useTeamImages();
+  const { seasonId, season } = useSeason();
+
+  // Seasons other than the finished 2025/2026 don't have a bracket yet: the
+  // pairings depend on the final standings, so we only publish the official
+  // schedule instead of fictitious crosses.
+  if (seasonId !== LEGACY_SEASON_ID) {
+    return <UpcomingFinalPhase seasonLabel={season?.label ?? ''} />;
+  }
 
   // Single shared cache so cascading derivations (Cuartos -> Semis -> Final) are
   // resolved consistently across all rounds in one pass.
@@ -815,6 +825,63 @@ export function PlayoffsView({ onTeamClick, playoffMatchdays }: PlayoffsViewProp
           El campeón del triangular se proclama por puntos acumulados.
         </p>
       </section>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Placeholder shown while a season's final phase is not decided yet.
+// ---------------------------------------------------------------------------
+const FINAL_PHASE_SCHEDULE = [
+  { date: '17/04/2027', title: 'Cuartos de Final Liga y Octavos de Final Copa' },
+  { date: '17/04/2027', title: 'Final Consolación (25º · 26º · 27º)' },
+  { date: '24/04/2027', title: 'Semifinales Liga y Cuartos de Final Copa' },
+  { date: '01/05/2027', title: 'Final Liga y Semifinales Copa' },
+  { date: '08/05/2027', title: 'Final Copa' },
+  { date: '15/05/2027', title: 'Partido Selección AFAS y entrega de trofeos' },
+];
+
+function UpcomingFinalPhase({ seasonLabel }: { seasonLabel: string }) {
+  return (
+    <div className="animate-fade-up w-full">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-primary" />
+          Fase Final
+        </h2>
+        <p className="text-sm text-muted-foreground">{seasonLabel}</p>
+      </div>
+
+      <div className="glass-card p-5 mb-4">
+        <div className="flex items-start gap-3">
+          <Clock className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+          <div>
+            <h3 className="font-semibold">Cruces pendientes de la liga regular</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Los emparejamientos se definirán al finalizar la Jornada 25. Todos los
+              cruces son a partido único, en el campo del equipo mejor clasificado en
+              la tabla de Deportividad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card p-4">
+        <h3 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">
+          Calendario oficial
+        </h3>
+        <ul className="space-y-2">
+          {FINAL_PHASE_SCHEDULE.map((row) => (
+            <li
+              key={`${row.date}-${row.title}`}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-secondary/40 px-3 py-2"
+            >
+              <span className="text-sm font-mono font-semibold text-primary">{row.date}</span>
+              <span className="text-sm break-words">{row.title}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

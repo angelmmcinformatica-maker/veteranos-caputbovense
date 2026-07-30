@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { findLivePlayoffMatch } from '@/lib/playoffsLive';
 import { decideHomeByFairPlay, getFairPlayPoints, getMatchWinner } from '@/lib/playoffsAdvance';
+import { useSeason } from '@/contexts/SeasonContext';
+import { LEGACY_SEASON_ID } from '@/config/seasons';
 import type { Matchday } from '@/types/league';
 
 type Competition = 'liga' | 'copa';
@@ -214,6 +216,7 @@ interface PlayoffsHeroProps {
 
 export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: PlayoffsHeroProps) {
   const { getTeamShield } = useTeamImages();
+  const { seasonId } = useSeason();
 
   // Determine the active round for each competition using a shared resolution cache.
   const { ligaRound, copaRound } = useMemo(() => {
@@ -223,6 +226,10 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
       copaRound: pickActiveRound(COPA_ROUNDS, playoffMatchdays, cache),
     };
   }, [playoffMatchdays]);
+
+  // The 2026/2027 bracket isn't decided yet — don't show fictitious crosses.
+  const showBracket = seasonId === LEGACY_SEASON_ID;
+
 
   // Resolve participants for every match in the active rounds (single shared cache).
   const enriched = useMemo(() => {
@@ -314,6 +321,10 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
     { label: ligaRound.title, items: enriched.liga, accent: ligaRound.accent, competition: 'liga' as const },
     { label: copaRound.title, items: enriched.copa, accent: copaRound.accent, competition: 'copa' as const },
   ];
+
+  if (!showBracket) return null;
+
+
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 p-4 sm:p-6 shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.4)]">
