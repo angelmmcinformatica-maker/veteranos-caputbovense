@@ -382,6 +382,96 @@ export function AdminTeamsView({
     }
   };
 
+
+  // ---- Season renewals & transfers -------------------------------------
+  const prevRosterOfSelected = useMemo<Player[]>(() => {
+    return (selectedTeam?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
+  }, [selectedTeam]);
+
+  const allPreviousPlayers = useMemo(() => {
+    const out: { player: Player; from: string }[] = [];
+    (teams || []).forEach((t) => {
+      const roster = (t?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
+      roster.forEach((player) => out.push({ player, from: t?.baseName || t?.name || '' }));
+    });
+    return out.sort((a, b) => String(a.player?.name).localeCompare(String(b.player?.name)));
+  }, [teams]);
+
+  const isInCurrentRoster = (player: Player) => {
+    const list = selectedTeam?.players || [];
+    const name = String(player?.name || '').trim().toLowerCase();
+    return list.some((p) => String(p?.name || '').trim().toLowerCase() === name);
+  };
+
+  const addPlayersToRoster = async (incoming: Player[]) => {
+    if (!selectedTeam || guardReadOnly() || incoming.length === 0) return;
+    setIsSaving(true);
+    try {
+      const teamRef = doc(db, 'teams', selectedTeam.id);
+      const teamSnap = await getDoc(teamRef);
+      const teamData = teamSnap.exists() ? teamSnap.data() : {};
+      const current: Player[] = seasonRosterOf(teamData);
+      const existing = new Set(current.map((p) => String(p?.name || '').trim().toLowerCase()));
+
+      const toAdd = incoming
+        .filter((p) => p && !existing.has(String(p.name || '').trim().toLowerCase()))
+        .map((p) => ({ id: p.id, name: p.name, alias: p.alias ?? null }));
+
+      if (toAdd.length === 0) {
+        toast.info('Esos jugadores ya están en la plantilla');
+        setIsSaving(false);
+        return;
+      }
+
+      const updatedPlayers = [...current, ...toAdd].sort((a, b) => {
+        const an = toNumeric(a.id);
+        const bn = toNumeric(b.id);
+        if (an !== bn) return an - bn;
+        return String(a.name).localeCompare(String(b.name));
+      });
+
+      await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: updatedPlayers });
+      setSelectedTeam({ ...selectedTeam, players: updatedPlayers });
+      onDataChange?.();
+      toast.success(`${toAdd.length} jugador(es) incorporado(s)`);
+    } catch (error) {
+      console.error('Error adding players to roster:', error);
+      toast.error('No se pudo actualizar la plantilla');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const applySeasonRenames = async () => {
+    if (guardReadOnly()) return;
+    const renames = SEASON_TEAM_RENAMES[seasonId] || {};
+    const entries = Object.entries(renames);
+    if (entries.length === 0) {
+      toast.info('No hay cambios de denominación para esta temporada');
+      return;
+    }
+    setIsMigrating(true);
+    try {
+      let applied = 0;
+      for (const [oldName, newName] of entries) {
+        const target = (teams || []).find(
+          (t) => String(t?.baseName || t?.name || '').trim().toUpperCase() === oldName.toUpperCase(),
+        );
+        if (!target) continue;
+        if (getTeamName(target as any, seasonId) === newName) continue;
+        await updateDoc(doc(db, 'teams', target.id), { [`seasonNames.${seasonId}`]: newName });
+        applied++;
+      }
+      onDataChange?.();
+      toast.success(applied > 0 ? `${applied} equipo(s) renombrado(s)` : 'Denominaciones ya actualizadas');
+    } catch (error) {
+      console.error('Error applying season renames:', error);
+      toast.error('No se pudieron aplicar los cambios de nombre');
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-[100] flex items-stretch justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
@@ -608,6 +698,86 @@ export function AdminTeamsView({
                     </div>
                   )}
                 </div>
+
+                {/* Renewals & transfers (only for the active, editable season) */}
+                {!isReadOnly && seasonId !== PREVIOUS_SEASON_ID && (
+                  <div className="space-y-4">
+                    <div className="glass-card p-4 border border-border/60">
+                      <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                        <div>
+                          <h4 className="font-semibold">Jugadores de la temporada pasada</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Renueva jugadores manteniendo su histórico
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isSaving || prevRosterOfSelected.length === 0}
+                          onClick={() => addPlayersToRoster(prevRosterOfSelected)}
+                        >
+                          Renovar todos
+                        </Button>
+                      </div>
+                      {prevRosterOfSelected.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Sin plantilla registrada la temporada anterior
+                        </p>
+                      ) : (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {prevRosterOfSelected.map((player, i) => {
+                            const already = isInCurrentRoster(player);
+                            return (
+                              <div
+                                key={`prev-${player?.id}-${i}`}
+                                className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/20"
+                              >
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {player?.alias || player?.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    Dorsal {String(player?.id ?? '-')}
+                                  </p>
+                                </div>
+                                {already ? (
+                                  <span className="text-xs text-muted-foreground shrink-0">
+                                    Ya en plantilla
+                                  </span>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    disabled={isSaving}
+                                    onClick={() => addPlayersToRoster([player])}
+                                  >
+                                    <Plus className="w-3.5 h-3.5 mr-1" />
+                                    Renovar
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="glass-card p-4 border border-border/60">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                          <h4 className="font-semibold">Traspasos</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Incorpora jugadores procedentes de otros clubes
+                          </p>
+                        </div>
+                        <Button size="sm" onClick={() => setShowTransfer(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Registrar Traspaso
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <>
@@ -624,8 +794,14 @@ export function AdminTeamsView({
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
                     />
                   </div>
+                  {canAddTeam && !isReadOnly && (SEASON_TEAM_RENAMES[seasonId] || null) && (
+                    <Button size="sm" variant="outline" onClick={applySeasonRenames} disabled={isMigrating}>
+                      {isMigrating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Aplicar denominaciones {season?.shortLabel}
+                    </Button>
+                  )}
                   {canAddTeam && (
-                    <Button size="sm" onClick={() => setShowAddTeam(true)}>
+                    <Button size="sm" onClick={() => setShowAddTeam(true)} disabled={isReadOnly}>
                       <Plus className="w-4 h-4 mr-2" />
                       Añadir equipo
                     </Button>
