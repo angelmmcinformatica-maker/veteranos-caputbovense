@@ -135,3 +135,97 @@ export const PLAYOFF_LABELS: Record<string, string> = {
 };
 
 export const PLAYOFF_ID_PREFIX = 'playoff-';
+
+// ---------------------------------------------------------------------------
+// Season 2026/2027 — official schedule (CALENDARIO DEFINITIVO 2026-2027).
+// Pairings stay EMPTY (classification placeholders) until the regular league
+// finishes; only the round scheme and the official dates are registered.
+// ---------------------------------------------------------------------------
+
+const slot = (label: string) => label;
+
+const round = (
+  id: string,
+  jornada: number,
+  date: string,
+  pairs: [string, string][],
+): Matchday => ({
+  id,
+  jornada,
+  date,
+  rest: null,
+  matches: pairs.map(([h, a]) => ({
+    home: slot(h),
+    away: slot(a),
+    homeGoals: 0,
+    awayGoals: 0,
+    date,
+    time: '',
+    status: 'PENDING' as const,
+    referee: null,
+    refereeName: null,
+  })),
+});
+
+export const PLAYOFF_MATCHDAYS_2026_2027: Matchday[] = [
+  round('playoff-liga-cuartos', 90, '17-04-2027', [
+    ['1º Clasificado', '8º Clasificado'],
+    ['4º Clasificado', '5º Clasificado'],
+    ['3º Clasificado', '6º Clasificado'],
+    ['2º Clasificado', '7º Clasificado'],
+  ]),
+  round('playoff-liga-semis', 91, '24-04-2027', [
+    ['Ganador Cuartos 1', 'Ganador Cuartos 2'],
+    ['Ganador Cuartos 3', 'Ganador Cuartos 4'],
+  ]),
+  round('playoff-liga-final', 92, '01-05-2027', [
+    ['Ganador Semifinal 1', 'Ganador Semifinal 2'],
+  ]),
+  round('playoff-copa-octavos', 93, '17-04-2027', [
+    ['9º Clasificado', '24º Clasificado'],
+    ['10º Clasificado', '23º Clasificado'],
+    ['11º Clasificado', '22º Clasificado'],
+    ['12º Clasificado', '21º Clasificado'],
+    ['13º Clasificado', '20º Clasificado'],
+    ['14º Clasificado', '19º Clasificado'],
+    ['15º Clasificado', '18º Clasificado'],
+    ['16º Clasificado', '17º Clasificado'],
+  ]),
+  round('playoff-copa-cuartos', 94, '24-04-2027', [
+    ['Ganador Octavos 1', 'Ganador Octavos 2'],
+    ['Ganador Octavos 3', 'Ganador Octavos 4'],
+    ['Ganador Octavos 5', 'Ganador Octavos 6'],
+    ['Ganador Octavos 7', 'Ganador Octavos 8'],
+  ]),
+  round('playoff-copa-semis', 95, '01-05-2027', [
+    ['Ganador Cuartos Copa 1', 'Ganador Cuartos Copa 2'],
+    ['Ganador Cuartos Copa 3', 'Ganador Cuartos Copa 4'],
+  ]),
+  round('playoff-copa-final', 96, '08-05-2027', [
+    ['Ganador Semifinal Copa 1', 'Ganador Semifinal Copa 2'],
+  ]),
+  round('playoff-consolacion', 97, '17-04-2027', [
+    ['25º Clasificado', '26º Clasificado'],
+    ['25º Clasificado', '27º Clasificado'],
+    ['26º Clasificado', '27º Clasificado'],
+  ]),
+  round('playoff-seleccion-afas', 98, '15-05-2027', [
+    ['SELECCIÓN AFAS A', 'SELECCIÓN AFAS B'],
+  ]),
+];
+
+export const PLAYOFF_LABELS_2026_2027: Record<string, string> = {
+  ...PLAYOFF_LABELS,
+  'playoff-consolacion': '🤝 Triangular Copa Consolación',
+  'playoff-seleccion-afas': '⭐ Partido Selección AFAS y Trofeos',
+};
+
+/** Default playoff rounds for a given season. */
+export function getPlayoffDefaultMatchdays(seasonId?: string | null): Matchday[] {
+  return seasonId === '2026-2027' ? PLAYOFF_MATCHDAYS_2026_2027 : PLAYOFF_DEFAULT_MATCHDAYS;
+}
+
+/** Round labels for a given season. */
+export function getPlayoffLabels(seasonId?: string | null): Record<string, string> {
+  return seasonId === '2026-2027' ? PLAYOFF_LABELS_2026_2027 : PLAYOFF_LABELS;
+}
