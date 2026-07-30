@@ -31,7 +31,14 @@ export interface Team {
   id: string;
   name: string;
   players: Player[];
+  /** Original name stored in Firestore (before per-season renames) */
+  baseName?: string;
+  /** Per-season display names, e.g. { "2026-2027": "NUEVO NOMBRE" } */
+  seasonNames?: Record<string, string> | null;
+  /** Per-season rosters, e.g. { "2026-2027": Player[] } */
+  rosters?: Record<string, Player[]> | null;
 }
+
 
 export interface User {
   id: string;
