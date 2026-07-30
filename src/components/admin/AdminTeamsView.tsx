@@ -517,7 +517,7 @@ export function AdminTeamsView({
                         Limpiar duplicados ({duplicateCount})
                       </Button>
                     )}
-                    <Button size="sm" onClick={startAddPlayer}>
+                    <Button size="sm" onClick={startAddPlayer} disabled={isReadOnly}>
                       <Plus className="w-4 h-4 mr-2" />
                       Añadir jugador
                     </Button>

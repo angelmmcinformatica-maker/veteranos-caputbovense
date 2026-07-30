@@ -4,7 +4,7 @@ import { X, Save, Clock, Calendar, Play, CheckCircle2, AlertTriangle, Loader2, M
 import { cn } from '@/lib/utils';
 import { doc, updateDoc, setDoc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { matchdaysCollectionName, reportsCollectionName } from '@/config/seasons';
+import { matchdaysCollectionName, reportsCollectionName, isSeasonReadOnly } from '@/config/seasons';
 import type { Match, Matchday, Team, MatchReport, MatchReportPlayer, Player, User } from '@/types/league';
 import { LineupFormEditor } from './LineupFormEditor';
 import { Button } from '@/components/ui/button';
