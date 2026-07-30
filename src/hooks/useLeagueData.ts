@@ -7,6 +7,7 @@ import {
   reportsCollectionName,
   getTeamName,
   getTeamRoster,
+  LEGACY_SEASON_ID,
 } from '@/config/seasons';
 import type {
   Matchday,
@@ -123,6 +124,7 @@ export function useLeagueData() {
                 ...raw,
                 id: d.id,
                 baseName: raw?.name ?? '',
+                rosters: { ...(raw?.rosters || {}), [LEGACY_SEASON_ID]: raw?.players || [] },
                 name: getTeamName(raw, seasonId),
                 players: getTeamRoster<any>(raw, seasonId),
               } as Team;

@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 import { doc, updateDoc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
+import { useSeason } from '@/contexts/SeasonContext';
+import { rosterFieldPath, PREVIOUS_SEASON_ID, SEASON_TEAM_RENAMES, getTeamName } from '@/config/seasons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,7 +41,11 @@ export function AdminTeamsView({
   userRole = 'admin',
   userTeamName = null
 }: AdminTeamsViewProps) {
+  const { seasonId, isReadOnly, season } = useSeason();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferSearch, setTransferSearch] = useState('');
+  const [isMigrating, setIsMigrating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<{ player: Player; occurrence: number } | null>(null);
   const [playerToDelete, setPlayerToDelete] = useState<{ player: Player; occurrence: number } | null>(null);
@@ -79,6 +85,19 @@ export function AdminTeamsView({
   // Check if user can add new teams (only admin)
   const canAddTeam = userRole === 'admin';
   const canDeleteTeam = userRole === 'admin';
+
+  const guardReadOnly = () => {
+    if (isReadOnly) {
+      toast.error(`${season?.label} está archivada (solo lectura)`);
+      return true;
+    }
+    return false;
+  };
+
+  const seasonRosterOf = (teamData: any): Player[] => {
+    if (seasonId === PREVIOUS_SEASON_ID) return teamData?.players || [];
+    return teamData?.rosters?.[seasonId] || [];
+  };
 
   const toNumeric = (v: string | number) => {
     const n = Number(v);
@@ -170,6 +189,7 @@ export function AdminTeamsView({
 
   const savePlayer = async () => {
     if (!selectedTeam || !editName.trim()) return;
+    if (guardReadOnly()) return;
     
     setIsSaving(true);
     try {
@@ -180,7 +200,7 @@ export function AdminTeamsView({
         const teamData = teamSnap.data();
         let updatedPlayers: Player[];
         
-        const rawPlayers: Player[] = teamData.players || [];
+        const rawPlayers: Player[] = seasonRosterOf(teamData);
 
         if (editingPlayer) {
           // Update EXACT duplicated instance by signature + occurrence
@@ -227,7 +247,7 @@ export function AdminTeamsView({
           return String(a.name).localeCompare(String(b.name));
         });
         
-        await updateDoc(teamRef, { players: updatedPlayers });
+        await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: updatedPlayers });
         
         // Update local state
         if (selectedTeam) {
@@ -261,6 +281,7 @@ export function AdminTeamsView({
 
   const deletePlayer = async () => {
     if (!selectedTeam || !playerToDelete) return;
+    if (guardReadOnly()) return;
     
     setIsSaving(true);
     try {
@@ -269,7 +290,7 @@ export function AdminTeamsView({
       
       if (teamSnap.exists()) {
         const teamData = teamSnap.data();
-        const playersArray: Player[] = teamData.players || [];
+        const playersArray: Player[] = seasonRosterOf(teamData);
 
         const targetSig = playerSig(playerToDelete.player);
         const playerIndex = findNthIndex(playersArray, (p) => playerSig(p) === targetSig, playerToDelete.occurrence);
@@ -287,7 +308,7 @@ export function AdminTeamsView({
           ...playersArray.slice(playerIndex + 1)
         ];
         
-        await updateDoc(teamRef, { players: updatedPlayers });
+        await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: updatedPlayers });
         
         // Update local state
         setSelectedTeam({
@@ -309,6 +330,7 @@ export function AdminTeamsView({
 
   const createTeam = async () => {
     if (!newTeamName.trim()) return;
+    if (guardReadOnly()) return;
     
     setIsSaving(true);
     try {
@@ -326,7 +348,8 @@ export function AdminTeamsView({
       
       await setDoc(teamRef, {
         name: newTeamName.trim(),
-        players: []
+        players: [],
+        rosters: {},
       });
       
       setShowAddTeam(false);
@@ -342,6 +365,7 @@ export function AdminTeamsView({
 
   const deleteTeam = async () => {
     if (!teamToDelete) return;
+    if (guardReadOnly()) return;
     
     setIsSaving(true);
     try {
@@ -757,7 +781,7 @@ export function AdminTeamsView({
                   const teamSnap = await getDoc(teamRef);
                   if (!teamSnap.exists()) return;
                   const teamData = teamSnap.data();
-                  const rawPlayers: Player[] = teamData.players || [];
+                  const rawPlayers: Player[] = seasonRosterOf(teamData);
                   const seen = new Set<string>();
                   const deduped = rawPlayers.filter((p) => {
                     const sig = playerSig(p);
