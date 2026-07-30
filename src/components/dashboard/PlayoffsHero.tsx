@@ -322,6 +322,10 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
     { label: copaRound.title, items: enriched.copa, accent: copaRound.accent, competition: 'copa' as const },
   ];
 
+  if (!showBracket) return null;
+
+
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 p-4 sm:p-6 shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.4)]">
       {/* Glow accent */}
