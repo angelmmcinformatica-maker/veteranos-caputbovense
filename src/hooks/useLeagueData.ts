@@ -1,6 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useSeason } from '@/contexts/SeasonContext';
+import {
+  matchdaysCollectionName,
+  reportsCollectionName,
+  getTeamName,
+  getTeamRoster,
+  LEGACY_SEASON_ID,
+} from '@/config/seasons';
 import type {
   Matchday,
   Team,
@@ -12,6 +20,7 @@ import type {
 } from '@/types/league';
 
 export function useLeagueData() {
+  const { seasonId } = useSeason();
   const [matchdays, setMatchdays] = useState<Matchday[]>([]);
   const [playoffMatchdays, setPlayoffMatchdays] = useState<Matchday[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -29,6 +38,11 @@ export function useLeagueData() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
+    setMatchdays([]);
+    setPlayoffMatchdays([]);
+    setTeams([]);
+    setMatchReports([]);
 
     let pending = 3;
     const markReady = () => {
@@ -57,7 +71,7 @@ export function useLeagueData() {
     try {
       // Real-time matchdays listener
       unsubMatchdays = onSnapshot(
-        collection(db, 'matchdays'),
+        collection(db, matchdaysCollectionName(seasonId)),
         (snap) => {
           try {
             const all = snap.docs.map((d) => {
@@ -104,7 +118,17 @@ export function useLeagueData() {
         collection(db, 'teams'),
         (snap) => {
           try {
-            const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Team[];
+            const data = snap.docs.map((d) => {
+              const raw = (d.data() as any) || {};
+              return {
+                ...raw,
+                id: d.id,
+                baseName: raw?.name ?? '',
+                rosters: { ...(raw?.rosters || {}), [LEGACY_SEASON_ID]: raw?.players || [] },
+                name: getTeamName(raw, seasonId),
+                players: getTeamRoster<any>(raw, seasonId),
+              } as Team;
+            });
             setTeams(data);
           } catch (innerErr) {
             console.error('[useLeagueData] teams parse error:', innerErr);
@@ -125,7 +149,7 @@ export function useLeagueData() {
 
       // Real-time match reports listener
       unsubReports = onSnapshot(
-        collection(db, 'match_reports'),
+        collection(db, reportsCollectionName(seasonId)),
         (snap) => {
           try {
             const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as MatchReport[];
@@ -158,7 +182,7 @@ export function useLeagueData() {
       try { unsubTeams?.(); } catch {}
       try { unsubReports?.(); } catch {}
     };
-  }, []);
+  }, [seasonId]);
 
   // Calculate standings from matchdays - include ALL teams
   const standings = useMemo((): TeamStanding[] => {

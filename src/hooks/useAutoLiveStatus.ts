@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { matchdaysCollectionName } from '@/config/seasons';
 import type { Matchday } from '@/types/league';
 
 /**
@@ -62,7 +63,7 @@ export function useAutoLiveStatus(matchdays: Matchday[], refetch: () => void) {
 
         if (matchdayNeedsUpdate) {
           try {
-            const docRef = doc(db, 'matchdays', matchday.id);
+            const docRef = doc(db, matchdaysCollectionName(), matchday.id);
             await updateDoc(docRef, { matches: updatedMatches });
             updated = true;
             console.log(`[AutoLive] Updated matchday ${matchday.jornada} - set matches to LIVE`);

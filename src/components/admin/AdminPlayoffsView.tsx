@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { matchdaysCollectionName } from '@/config/seasons';
 import { X, CheckCircle2, Edit2, Play, Clock, RefreshCw, Eye, Loader2, Trophy, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, MatchReport, Team, MatchReportPlayer } from '@/types/league';
@@ -55,7 +56,7 @@ export function AdminPlayoffsView({
   const loadPlayoffs = async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, 'matchdays'));
+      const snap = await getDocs(collection(db, matchdaysCollectionName()));
       const existing: Record<string, Matchday> = {};
       snap.docs
         .filter(d => d.id.startsWith(PLAYOFF_ID_PREFIX))
@@ -104,7 +105,7 @@ export function AdminPlayoffsView({
           if (needsPatch) {
             try {
               await setDoc(
-                doc(db, 'matchdays', def.id),
+                doc(db, matchdaysCollectionName(), def.id),
                 {
                   jornada: cur.jornada,
                   date: cur.date,
@@ -122,7 +123,7 @@ export function AdminPlayoffsView({
           }
           merged.push(cur);
         } else {
-          await setDoc(doc(db, 'matchdays', def.id), {
+          await setDoc(doc(db, matchdaysCollectionName(), def.id), {
             jornada: def.jornada,
             date: def.date,
             rest: def.rest,

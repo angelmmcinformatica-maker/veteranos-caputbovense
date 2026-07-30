@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { matchdaysCollectionName } from '@/config/seasons';
 import {
   PLAYOFF_BRACKET_EDGES,
   resolveTargetSlot,
@@ -49,7 +50,7 @@ export function usePlayoffsAutoAdvance(playoffMatchdays: Matchday[] | undefined)
 
             try {
               await setDoc(
-                doc(db, 'matchdays', targetMd.id),
+                doc(db, matchdaysCollectionName(), targetMd.id),
                 {
                   jornada: targetMd?.jornada ?? 0,
                   date: targetMd?.date ?? '',
