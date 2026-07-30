@@ -1,6 +1,7 @@
 import { useState, forwardRef } from 'react';
 import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSeason } from '@/contexts/SeasonContext';
 import type { Matchday, Team, MatchReport, TopScorer, CardRanking } from '@/types/league';
 import { AdminMatchesView } from '@/components/admin/AdminMatchesView';
 import { AdminTeamsView } from '@/components/admin/AdminTeamsView';
@@ -22,6 +23,7 @@ type AdminModal = 'matches' | 'teams' | 'reports' | 'users' | 'playoffs' | null;
 
 export function AdminView({ matchdays, playoffMatchdays, teams, matchReports, topScorers, cardRankings, onDataRefresh }: AdminViewProps) {
   const { currentUser, userData, loading, error, signIn, signOut, isAdmin, isReferee, isDelegate } = useAuth();
+  const { isReadOnly, season } = useSeason();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,6 +170,15 @@ export function AdminView({ matchdays, playoffMatchdays, teams, matchReports, to
           </button>
         </div>
       </div>
+
+      {isReadOnly && (
+        <div className="glass-card p-3 mb-4 border border-warning/30 bg-warning/10">
+          <p className="text-sm">
+            <strong>{season?.label}</strong> está archivada: los datos son de solo lectura.
+            Cambia a la temporada actual en el selector de la cabecera para editar.
+          </p>
+        </div>
+      )}
 
       {/* Role-specific welcome message */}
       <div className="glass-card p-4 mb-4">

@@ -186,6 +186,10 @@ export function MatchEditModal({
   }, [isListening, startListening, stopListening]);
 
   const handleSave = async () => {
+    if (isSeasonReadOnly()) {
+      toast.error('Temporada archivada: solo lectura');
+      return;
+    }
     setIsSaving(true);
     try {
       // 1. Update match in matchday document
