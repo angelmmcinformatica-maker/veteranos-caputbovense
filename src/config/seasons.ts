@@ -89,7 +89,9 @@ interface SeasonAwareTeamDoc {
 /** Display name of a team for a given season (falls back to the base name). */
 export function getTeamName(team: SeasonAwareTeamDoc | null | undefined, seasonId?: string | null): string {
   const season = seasonId ?? getActiveSeasonId();
-  return team?.seasonNames?.[season] ?? team?.name ?? '';
+  const base = team?.name ?? '';
+  const rename = SEASON_TEAM_RENAMES?.[season]?.[base.trim().toUpperCase()];
+  return team?.seasonNames?.[season] ?? rename ?? base;
 }
 
 /** Roster of a team for a given season. Legacy season uses the `players` array. */
