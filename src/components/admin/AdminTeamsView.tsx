@@ -1051,7 +1051,7 @@ export function AdminTeamsView({
                   })}
                 </div>
 
-                {filteredTeams.length === 0 && (
+                {listTab === 'active' && filteredTeams.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No se encontraron equipos</p>
                   </div>
