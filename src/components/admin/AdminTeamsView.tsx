@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
 import { useSeason } from '@/contexts/SeasonContext';
 import { rosterFieldPath, PREVIOUS_SEASON_ID, SEASON_TEAM_RENAMES, getTeamName } from '@/config/seasons';
+import { useAllTeams, type AllTeamsEntry } from '@/hooks/useAllTeams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
