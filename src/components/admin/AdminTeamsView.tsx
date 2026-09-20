@@ -877,7 +877,131 @@ export function AdminTeamsView({
                   </div>
                 )}
 
+                {/* Sub-tabs: active clubs vs archived clubs */}
+                {userRole === 'admin' && (
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      size="sm"
+                      variant={listTab === 'active' ? 'default' : 'outline'}
+                      onClick={() => { setListTab('active'); setArchiveTeam(null); }}
+                    >
+                      Equipos activos
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={listTab === 'inactive' ? 'default' : 'outline'}
+                      onClick={() => setListTab('inactive')}
+                    >
+                      Equipos inactivos ({inactiveTeams.length})
+                    </Button>
+                  </div>
+                )}
+
+                {/* Archived clubs: player files + direct assignment */}
+                {listTab === 'inactive' && userRole === 'admin' && (
+                  <div className="space-y-4">
+                    {inactiveTeams.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        No hay equipos retirados en {season?.label}
+                      </p>
+                    )}
+
+                    {!archiveTeam && inactiveTeams.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {inactiveTeams.map((team) => (
+                          <button
+                            key={`inactive-${team.id}`}
+                            onClick={() => setArchiveTeam(team)}
+                            className="glass-card p-4 flex items-center gap-3 text-left hover:ring-1 hover:ring-primary/50 transition-all"
+                          >
+                            <div className="w-12 h-12 rounded-xl bg-secondary/40 flex items-center justify-center shrink-0">
+                              <Users className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{team.baseName || team.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Retirado · {team.previousPlayers?.length || 0} fichas archivadas
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {archiveTeam && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <button
+                            onClick={() => setArchiveTeam(null)}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            ← Volver a equipos inactivos
+                          </button>
+                          <p className="text-xs text-muted-foreground">
+                            Plantilla {PREVIOUS_SEASON_ID.replace('-', '/')} de{' '}
+                            {archiveTeam.baseName || archiveTeam.name}
+                          </p>
+                        </div>
+
+                        {(archiveTeam.previousPlayers?.length || 0) === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-8">
+                            Este club no tiene jugadores archivados
+                          </p>
+                        ) : (
+                          <div className="grid gap-2 md:grid-cols-2">
+                            {(archiveTeam.previousPlayers || []).map((player, i) => {
+                              const key = `${archiveTeam.id}-${player?.id}-${i}`;
+                              const target = assignTargets[key] || '';
+                              return (
+                                <div
+                                  key={key}
+                                  className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/20 flex-wrap"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">
+                                      {player?.alias || player?.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      Dorsal {String(player?.id ?? '-')}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={target}
+                                      onChange={(e) =>
+                                        setAssignTargets((prev) => ({ ...prev, [key]: e.target.value }))
+                                      }
+                                      className="text-xs bg-secondary border border-border rounded-lg px-2 py-1.5 max-w-[160px]"
+                                    >
+                                      <option value="">Asignar a…</option>
+                                      {(teams || []).map((t) => (
+                                        <option key={`opt-${t.id}`} value={t.id}>
+                                          {t.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      disabled={isSaving || !target || isReadOnly}
+                                      onClick={() => addPlayersToTeam(target, [player])}
+                                    >
+                                      <Plus className="w-3.5 h-3.5 mr-1" />
+                                      Fichar
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Teams list */}
+                {listTab === 'active' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredTeams.map((team) => {
                     const shieldUrl = getTeamShield(team.name);
