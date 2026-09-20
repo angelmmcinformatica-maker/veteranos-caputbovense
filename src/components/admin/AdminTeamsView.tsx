@@ -1050,6 +1050,8 @@ export function AdminTeamsView({
                     );
                   })}
                 </div>
+                )}
+
 
                 {listTab === 'active' && filteredTeams.length === 0 && (
                   <div className="text-center py-8">
