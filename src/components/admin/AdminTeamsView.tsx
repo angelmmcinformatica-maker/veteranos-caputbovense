@@ -43,6 +43,7 @@ export function AdminTeamsView({
   userTeamName = null
 }: AdminTeamsViewProps) {
   const { seasonId, isReadOnly, season } = useSeason();
+  const { allTeams } = useAllTeams();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferSearch, setTransferSearch] = useState('');
