@@ -1240,7 +1240,9 @@ export function AdminTeamsView({
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{player?.alias || player?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{from}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {from}{retired ? ' · club retirado' : ''}
+                        </p>
                       </div>
                       {already ? (
                         <span className="text-xs text-muted-foreground shrink-0">Ya en plantilla</span>
