@@ -1201,10 +1201,27 @@ export function AdminTeamsView({
                   className="pl-9"
                 />
               </div>
+              <select
+                value={transferOrigin}
+                onChange={(e) => setTransferOrigin(e.target.value)}
+                className="mt-2 w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="ALL">Todos los clubes de origen ({PREVIOUS_SEASON_ID.replace('-', '/')})</option>
+                {transferSourceTeams.map((t) => {
+                  const label = t?.baseName || t?.name || '';
+                  const count = t?.previousPlayers?.length || 0;
+                  return (
+                    <option key={`src-${t.id}`} value={label}>
+                      {label}{t?.active === false ? ' (retirado)' : ''} · {count}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
               {allPreviousPlayers
                 .filter(({ player, from }) => {
+                  if (transferOrigin !== 'ALL' && from !== transferOrigin) return false;
                   const q = transferSearch.trim().toLowerCase();
                   if (!q) return true;
                   return (
@@ -1213,8 +1230,8 @@ export function AdminTeamsView({
                     String(from || '').toLowerCase().includes(q)
                   );
                 })
-                .slice(0, 200)
-                .map(({ player, from }, i) => {
+                .slice(0, 300)
+                .map(({ player, from, retired }, i) => {
                   const already = isInCurrentRoster(player);
                   return (
                     <div
