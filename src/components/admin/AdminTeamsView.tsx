@@ -428,11 +428,11 @@ export function AdminTeamsView({
     return list.some((p) => String(p?.name || '').trim().toLowerCase() === name);
   };
 
-  const addPlayersToRoster = async (incoming: Player[]) => {
-    if (!selectedTeam || guardReadOnly() || incoming.length === 0) return;
+  const addPlayersToTeam = async (targetTeamId: string | null | undefined, incoming: Player[]) => {
+    if (!targetTeamId || guardReadOnly() || !incoming?.length) return;
     setIsSaving(true);
     try {
-      const teamRef = doc(db, 'teams', selectedTeam.id);
+      const teamRef = doc(db, 'teams', targetTeamId);
       const teamSnap = await getDoc(teamRef);
       const teamData = teamSnap.exists() ? teamSnap.data() : {};
       const current: Player[] = seasonRosterOf(teamData);
@@ -456,7 +456,9 @@ export function AdminTeamsView({
       });
 
       await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: updatedPlayers });
-      setSelectedTeam({ ...selectedTeam, players: updatedPlayers });
+      if (selectedTeam?.id === targetTeamId) {
+        setSelectedTeam({ ...selectedTeam, players: updatedPlayers });
+      }
       onDataChange?.();
       toast.success(`${toAdd.length} jugador(es) incorporado(s)`);
     } catch (error) {
@@ -466,6 +468,8 @@ export function AdminTeamsView({
       setIsSaving(false);
     }
   };
+
+  const addPlayersToRoster = (incoming: Player[]) => addPlayersToTeam(selectedTeam?.id, incoming);
 
   const applySeasonRenames = async () => {
     if (guardReadOnly()) return;
