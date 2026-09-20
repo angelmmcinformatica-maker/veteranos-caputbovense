@@ -118,6 +118,7 @@ export const SEASON_TEAM_RENAMES: Record<string, Record<string, string>> = {
     'TRANSTELLO MIAJADAS': 'CLINICA DENT. DOCTOR DOBLADO',
     'INTER DON BENITO POLO OPUESTO': 'GIMNASTICO D.B. VETERANOS',
     'INTER DON BENITO': 'GIMNASTICO D.B. VETERANOS',
+    'VULEBAR TEXEIRA DON BENITO': 'CENTROGLASS VULEBAR',
   },
 };
 
@@ -126,7 +127,7 @@ export const SEASON_TEAM_RENAMES: Record<string, Record<string, string>> = {
  * Keys are the base `name` stored in Firestore.
  */
 export const SEASON_INACTIVE_TEAMS: Record<string, string[]> = {
-  '2026-2027': ['CD VETERANOS RUECAS'],
+  '2026-2027': ['CD VETERANOS RUECAS', 'ZALAMEA VETERANOS'],
 };
 
 /** Whether a team participates in the given season. */

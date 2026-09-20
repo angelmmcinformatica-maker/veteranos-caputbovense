@@ -204,11 +204,6 @@ export const PLAYOFF_MATCHDAYS_2026_2027: Matchday[] = [
   round('playoff-copa-final', 96, '08-05-2027', [
     ['Ganador Semifinal Copa 1', 'Ganador Semifinal Copa 2'],
   ]),
-  round('playoff-consolacion', 97, '17-04-2027', [
-    ['25º Clasificado', '26º Clasificado'],
-    ['25º Clasificado', '27º Clasificado'],
-    ['26º Clasificado', '27º Clasificado'],
-  ]),
   round('playoff-seleccion-afas', 98, '15-05-2027', [
     ['SELECCIÓN AFAS A', 'SELECCIÓN AFAS B'],
   ]),
