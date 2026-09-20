@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import type { Team, MatchReport, MatchReportPlayer, Player } from '@/types/league';
 import { useSeason } from '@/contexts/SeasonContext';
 import { rosterFieldPath, PREVIOUS_SEASON_ID, SEASON_TEAM_RENAMES, getTeamName } from '@/config/seasons';
+import { useAllTeams, type AllTeamsEntry } from '@/hooks/useAllTeams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,9 +43,14 @@ export function AdminTeamsView({
   userTeamName = null
 }: AdminTeamsViewProps) {
   const { seasonId, isReadOnly, season } = useSeason();
+  const { allTeams } = useAllTeams();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferSearch, setTransferSearch] = useState('');
+  const [transferOrigin, setTransferOrigin] = useState<string>('ALL');
+  const [listTab, setListTab] = useState<'active' | 'inactive'>('active');
+  const [archiveTeam, setArchiveTeam] = useState<AllTeamsEntry | null>(null);
+  const [assignTargets, setAssignTargets] = useState<Record<string, string>>({});
   const [isMigrating, setIsMigrating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<{ player: Player; occurrence: number } | null>(null);
@@ -388,14 +394,33 @@ export function AdminTeamsView({
     return (selectedTeam?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
   }, [selectedTeam]);
 
+  // Source clubs include teams retired for the active season (Zalamea, Ruecas…)
+  const transferSourceTeams = useMemo(() => {
+    const byName = new Map<string, AllTeamsEntry>();
+    (allTeams || []).forEach((t) => {
+      const key = String(t?.baseName || t?.name || '').trim();
+      if (key) byName.set(key, t);
+    });
+    return [...byName.values()].sort((a, b) =>
+      String(a?.baseName || a?.name).localeCompare(String(b?.baseName || b?.name)),
+    );
+  }, [allTeams]);
+
+  const inactiveTeams = useMemo(
+    () => (allTeams || []).filter((t) => t?.active === false),
+    [allTeams],
+  );
+
   const allPreviousPlayers = useMemo(() => {
-    const out: { player: Player; from: string }[] = [];
-    (teams || []).forEach((t) => {
-      const roster = (t?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
-      roster.forEach((player) => out.push({ player, from: t?.baseName || t?.name || '' }));
+    const out: { player: Player; from: string; retired: boolean }[] = [];
+    (transferSourceTeams || []).forEach((t) => {
+      const roster = (t?.previousPlayers as Player[]) || [];
+      roster.forEach((player) =>
+        out.push({ player, from: t?.baseName || t?.name || '', retired: t?.active === false }),
+      );
     });
     return out.sort((a, b) => String(a.player?.name).localeCompare(String(b.player?.name)));
-  }, [teams]);
+  }, [transferSourceTeams]);
 
   const isInCurrentRoster = (player: Player) => {
     const list = selectedTeam?.players || [];
@@ -403,11 +428,11 @@ export function AdminTeamsView({
     return list.some((p) => String(p?.name || '').trim().toLowerCase() === name);
   };
 
-  const addPlayersToRoster = async (incoming: Player[]) => {
-    if (!selectedTeam || guardReadOnly() || incoming.length === 0) return;
+  const addPlayersToTeam = async (targetTeamId: string | null | undefined, incoming: Player[]) => {
+    if (!targetTeamId || guardReadOnly() || !incoming?.length) return;
     setIsSaving(true);
     try {
-      const teamRef = doc(db, 'teams', selectedTeam.id);
+      const teamRef = doc(db, 'teams', targetTeamId);
       const teamSnap = await getDoc(teamRef);
       const teamData = teamSnap.exists() ? teamSnap.data() : {};
       const current: Player[] = seasonRosterOf(teamData);
@@ -431,7 +456,9 @@ export function AdminTeamsView({
       });
 
       await updateDoc(teamRef, { [rosterFieldPath(seasonId)]: updatedPlayers });
-      setSelectedTeam({ ...selectedTeam, players: updatedPlayers });
+      if (selectedTeam?.id === targetTeamId) {
+        setSelectedTeam({ ...selectedTeam, players: updatedPlayers });
+      }
       onDataChange?.();
       toast.success(`${toAdd.length} jugador(es) incorporado(s)`);
     } catch (error) {
@@ -441,6 +468,8 @@ export function AdminTeamsView({
       setIsSaving(false);
     }
   };
+
+  const addPlayersToRoster = (incoming: Player[]) => addPlayersToTeam(selectedTeam?.id, incoming);
 
   const applySeasonRenames = async () => {
     if (guardReadOnly()) return;
@@ -848,7 +877,131 @@ export function AdminTeamsView({
                   </div>
                 )}
 
+                {/* Sub-tabs: active clubs vs archived clubs */}
+                {userRole === 'admin' && (
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      size="sm"
+                      variant={listTab === 'active' ? 'default' : 'outline'}
+                      onClick={() => { setListTab('active'); setArchiveTeam(null); }}
+                    >
+                      Equipos activos
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={listTab === 'inactive' ? 'default' : 'outline'}
+                      onClick={() => setListTab('inactive')}
+                    >
+                      Equipos inactivos ({inactiveTeams.length})
+                    </Button>
+                  </div>
+                )}
+
+                {/* Archived clubs: player files + direct assignment */}
+                {listTab === 'inactive' && userRole === 'admin' && (
+                  <div className="space-y-4">
+                    {inactiveTeams.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        No hay equipos retirados en {season?.label}
+                      </p>
+                    )}
+
+                    {!archiveTeam && inactiveTeams.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {inactiveTeams.map((team) => (
+                          <button
+                            key={`inactive-${team.id}`}
+                            onClick={() => setArchiveTeam(team)}
+                            className="glass-card p-4 flex items-center gap-3 text-left hover:ring-1 hover:ring-primary/50 transition-all"
+                          >
+                            <div className="w-12 h-12 rounded-xl bg-secondary/40 flex items-center justify-center shrink-0">
+                              <Users className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{team.baseName || team.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Retirado · {team.previousPlayers?.length || 0} fichas archivadas
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {archiveTeam && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <button
+                            onClick={() => setArchiveTeam(null)}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            ← Volver a equipos inactivos
+                          </button>
+                          <p className="text-xs text-muted-foreground">
+                            Plantilla {PREVIOUS_SEASON_ID.replace('-', '/')} de{' '}
+                            {archiveTeam.baseName || archiveTeam.name}
+                          </p>
+                        </div>
+
+                        {(archiveTeam.previousPlayers?.length || 0) === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-8">
+                            Este club no tiene jugadores archivados
+                          </p>
+                        ) : (
+                          <div className="grid gap-2 md:grid-cols-2">
+                            {(archiveTeam.previousPlayers || []).map((player, i) => {
+                              const key = `${archiveTeam.id}-${player?.id}-${i}`;
+                              const target = assignTargets[key] || '';
+                              return (
+                                <div
+                                  key={key}
+                                  className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/20 flex-wrap"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">
+                                      {player?.alias || player?.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      Dorsal {String(player?.id ?? '-')}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={target}
+                                      onChange={(e) =>
+                                        setAssignTargets((prev) => ({ ...prev, [key]: e.target.value }))
+                                      }
+                                      className="text-xs bg-secondary border border-border rounded-lg px-2 py-1.5 max-w-[160px]"
+                                    >
+                                      <option value="">Asignar a…</option>
+                                      {(teams || []).map((t) => (
+                                        <option key={`opt-${t.id}`} value={t.id}>
+                                          {t.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      disabled={isSaving || !target || isReadOnly}
+                                      onClick={() => addPlayersToTeam(target, [player])}
+                                    >
+                                      <Plus className="w-3.5 h-3.5 mr-1" />
+                                      Fichar
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Teams list */}
+                {listTab === 'active' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredTeams.map((team) => {
                     const shieldUrl = getTeamShield(team.name);
@@ -897,8 +1050,10 @@ export function AdminTeamsView({
                     );
                   })}
                 </div>
+                )}
 
-                {filteredTeams.length === 0 && (
+
+                {listTab === 'active' && filteredTeams.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No se encontraron equipos</p>
                   </div>
@@ -1046,10 +1201,27 @@ export function AdminTeamsView({
                   className="pl-9"
                 />
               </div>
+              <select
+                value={transferOrigin}
+                onChange={(e) => setTransferOrigin(e.target.value)}
+                className="mt-2 w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="ALL">Todos los clubes de origen ({PREVIOUS_SEASON_ID.replace('-', '/')})</option>
+                {transferSourceTeams.map((t) => {
+                  const label = t?.baseName || t?.name || '';
+                  const count = t?.previousPlayers?.length || 0;
+                  return (
+                    <option key={`src-${t.id}`} value={label}>
+                      {label}{t?.active === false ? ' (retirado)' : ''} · {count}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
               {allPreviousPlayers
                 .filter(({ player, from }) => {
+                  if (transferOrigin !== 'ALL' && from !== transferOrigin) return false;
                   const q = transferSearch.trim().toLowerCase();
                   if (!q) return true;
                   return (
@@ -1058,8 +1230,8 @@ export function AdminTeamsView({
                     String(from || '').toLowerCase().includes(q)
                   );
                 })
-                .slice(0, 200)
-                .map(({ player, from }, i) => {
+                .slice(0, 300)
+                .map(({ player, from, retired }, i) => {
                   const already = isInCurrentRoster(player);
                   return (
                     <div
@@ -1068,7 +1240,9 @@ export function AdminTeamsView({
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{player?.alias || player?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{from}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {from}{retired ? ' · club retirado' : ''}
+                        </p>
                       </div>
                       {already ? (
                         <span className="text-xs text-muted-foreground shrink-0">Ya en plantilla</span>
