@@ -393,14 +393,33 @@ export function AdminTeamsView({
     return (selectedTeam?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
   }, [selectedTeam]);
 
+  // Source clubs include teams retired for the active season (Zalamea, Ruecas…)
+  const transferSourceTeams = useMemo(() => {
+    const byName = new Map<string, AllTeamsEntry>();
+    (allTeams || []).forEach((t) => {
+      const key = String(t?.baseName || t?.name || '').trim();
+      if (key) byName.set(key, t);
+    });
+    return [...byName.values()].sort((a, b) =>
+      String(a?.baseName || a?.name).localeCompare(String(b?.baseName || b?.name)),
+    );
+  }, [allTeams]);
+
+  const inactiveTeams = useMemo(
+    () => (allTeams || []).filter((t) => t?.active === false),
+    [allTeams],
+  );
+
   const allPreviousPlayers = useMemo(() => {
-    const out: { player: Player; from: string }[] = [];
-    (teams || []).forEach((t) => {
-      const roster = (t?.rosters?.[PREVIOUS_SEASON_ID] as Player[]) || [];
-      roster.forEach((player) => out.push({ player, from: t?.baseName || t?.name || '' }));
+    const out: { player: Player; from: string; retired: boolean }[] = [];
+    (transferSourceTeams || []).forEach((t) => {
+      const roster = (t?.previousPlayers as Player[]) || [];
+      roster.forEach((player) =>
+        out.push({ player, from: t?.baseName || t?.name || '', retired: t?.active === false }),
+      );
     });
     return out.sort((a, b) => String(a.player?.name).localeCompare(String(b.player?.name)));
-  }, [teams]);
+  }, [transferSourceTeams]);
 
   const isInCurrentRoster = (player: Player) => {
     const list = selectedTeam?.players || [];
