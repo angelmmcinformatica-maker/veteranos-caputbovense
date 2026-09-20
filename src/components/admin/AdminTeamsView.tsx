@@ -46,6 +46,10 @@ export function AdminTeamsView({
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferSearch, setTransferSearch] = useState('');
+  const [transferOrigin, setTransferOrigin] = useState<string>('ALL');
+  const [listTab, setListTab] = useState<'active' | 'inactive'>('active');
+  const [archiveTeam, setArchiveTeam] = useState<AllTeamsEntry | null>(null);
+  const [assignTargets, setAssignTargets] = useState<Record<string, string>>({});
   const [isMigrating, setIsMigrating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<{ player: Player; occurrence: number } | null>(null);
