@@ -119,6 +119,7 @@ export function TeamDetailModal({
                 <div>
                   <h2 className="text-lg font-bold">{teamName}</h2>
                   <p className="text-xs text-muted-foreground">{roster.length} jugadores</p>
+                  <FollowTeamButton team={teamName} className="mt-1.5" />
                 </div>
               </div>
               <button

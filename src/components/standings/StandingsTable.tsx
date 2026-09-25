@@ -81,6 +81,7 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                           {team.team}
                         </span>
                       )}
+                      <FollowTeamButton team={team.team} compact />
                     </div>
                   </td>
                   <td className="text-center font-bold text-lg">{team.points}</td>
