@@ -1,36 +1,34 @@
-const CACHE_NAME = 'veteranos-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/manifest.json'
-];
+// Keep push handling active when this PWA worker owns the root scope.
+importScripts("/firebase-messaging-sw.js");
+
+const CACHE_NAME = "veteranos-v1";
+const STATIC_ASSETS = ["/", "/manifest.json"];
 
 // Install event - cache static assets
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
-    })
+    }),
   );
   self.skipWaiting();
 });
 
 // Activate event - clean old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
+      return Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)));
+    }),
   );
   self.clients.claim();
 });
 
 // Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
-  
+  if (event.request.method !== "GET") return;
+
   // Skip Firebase/external API requests
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
@@ -49,6 +47,6 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         return caches.match(event.request);
-      })
+      }),
   );
 });
