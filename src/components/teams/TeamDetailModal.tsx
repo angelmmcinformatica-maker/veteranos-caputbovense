@@ -1,3 +1,4 @@
+import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { useState, useMemo } from 'react';
 import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';

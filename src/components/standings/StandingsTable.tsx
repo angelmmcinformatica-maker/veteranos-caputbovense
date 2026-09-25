@@ -1,3 +1,4 @@
+import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { cn } from '@/lib/utils';
 import type { TeamStanding } from '@/types/league';
 import { FormIndicator } from './FormIndicator';
