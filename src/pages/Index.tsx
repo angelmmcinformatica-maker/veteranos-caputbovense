@@ -19,7 +19,13 @@ import { toast } from 'sonner';
 type Tab = 'home' | 'standings' | 'matches' | 'stats' | 'playoffs' | 'fairplay' | 'admin';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    try {
+      const t = new URLSearchParams(window.location.search).get('tab');
+      const valid: Tab[] = ['home', 'standings', 'matches', 'stats', 'playoffs', 'fairplay', 'admin'];
+      return t && (valid as string[]).includes(t) ? (t as Tab) : 'home';
+    } catch { return 'home'; }
+  });
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<{ name: string; team: string } | null>(null);
   
