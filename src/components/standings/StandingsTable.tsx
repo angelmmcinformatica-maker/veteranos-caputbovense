@@ -1,3 +1,4 @@
+import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { cn } from '@/lib/utils';
 import type { TeamStanding } from '@/types/league';
 import { FormIndicator } from './FormIndicator';
@@ -81,6 +82,7 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                           {team.team}
                         </span>
                       )}
+                      <FollowTeamButton team={team.team} compact />
                     </div>
                   </td>
                   <td className="text-center font-bold text-lg">{team.points}</td>

@@ -1,3 +1,4 @@
+import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { useState, useMemo } from 'react';
 import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -119,6 +120,7 @@ export function TeamDetailModal({
                 <div>
                   <h2 className="text-lg font-bold">{teamName}</h2>
                   <p className="text-xs text-muted-foreground">{roster.length} jugadores</p>
+                  <FollowTeamButton team={teamName} className="mt-1.5" />
                 </div>
               </div>
               <button
