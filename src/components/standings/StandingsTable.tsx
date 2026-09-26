@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { cn } from '@/lib/utils';
 import type { TeamStanding } from '@/types/league';
 import { FormIndicator } from './FormIndicator';
 import { useTeamImages } from '@/hooks/useTeamImages';
-import { Shield } from 'lucide-react';
+import { Shield, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface StandingsTableProps {
   standings: TeamStanding[];
@@ -12,6 +14,7 @@ interface StandingsTableProps {
 
 export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) {
   const { getTeamShield } = useTeamImages();
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
 
   return (
     <div className="glass-card w-full min-w-0 max-w-full overflow-hidden">
@@ -33,16 +36,18 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
             </tr>
           </thead>
           <tbody>
-            {standings.map((team, index) => {
+            {standings.map((team) => {
               const shieldUrl = getTeamShield(team.team);
               // League zones: 1-8 playoffs (title), 9-24 cup, 25-27 eliminated
               const isPlayoff = team.position <= 8;
               const isCup = team.position >= 9 && team.position <= 24;
               const isRelegation = team.position >= 25;
               
+              const form = [...Array(Math.max(0, 5 - (team.form?.length ?? 0))).fill('?'), ...(team.form ?? [])] as ('W' | 'D' | 'L' | '?')[];
+              const expanded = expandedTeam === team.team;
               return (
+                <tbody key={team.team}>
                 <tr 
-                  key={team.team}
                   className={cn(
                     isPlayoff && 'bg-primary/5',
                     isCup && 'bg-accent/5',
@@ -66,8 +71,8 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                            className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 object-contain rounded"
                         />
                       ) : (
-                         <div className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 rounded bg-secondary/50 flex items-center justify-center">
-                          <Shield className="w-3 h-3 text-muted-foreground" />
+                          <div role="img" aria-label={`Escudo genérico de ${team.team}`} className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 rounded bg-secondary/50 flex items-center justify-center">
+                           <Shield aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                         </div>
                       )}
                       {onTeamClick ? (
@@ -84,6 +89,9 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                         </span>
                       )}
                       <FollowTeamButton team={team.team} compact />
+                      <Button type="button" variant="ghost" size="icon" className="standings-expand h-7 w-7 shrink-0" aria-label={`${expanded ? 'Ocultar' : 'Ver'} estadísticas de ${team.team}`} aria-expanded={expanded} onClick={() => setExpandedTeam(expanded ? null : team.team)}>
+                        <ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} />
+                      </Button>
                     </div>
                   </td>
                   <td className="text-center font-bold text-lg">{team.points}</td>
@@ -102,15 +110,22 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                   </td>
                   <td className="hidden sm:table-cell">
                     <div className="flex items-center justify-center gap-1">
-                      {team.form.map((result, i) => (
+                       {form.map((result, i) => (
                         <FormIndicator key={i} result={result} />
                       ))}
                     </div>
                   </td>
                 </tr>
+                {expanded && <tr className="standings-detail-row"><td colSpan={11}>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-xs">
+                    <span>G <strong>{team.won}</strong></span><span>E <strong>{team.drawn}</strong></span><span>P <strong>{team.lost}</strong></span>
+                    <span>GF <strong>{team.goalsFor}</strong></span><span>GC <strong>{team.goalsAgainst}</strong></span>
+                    <span className="flex items-center gap-1">Racha {form.map((result, i) => <FormIndicator key={i} result={result} />)}</span>
+                  </div>
+                </td></tr>}
+                </tbody>
               );
             })}
-          </tbody>
         </table>
       </div>
     </div>
