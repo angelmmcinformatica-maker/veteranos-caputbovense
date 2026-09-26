@@ -95,7 +95,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
     : undefined;
 
   return (
-    <div className="space-y-4 animate-fade-up">
+    <div className="w-full min-w-0 max-w-full space-y-4 animate-fade-up">
       {/* PWA Install Banner */}
       <InstallPWA />
 
@@ -107,13 +107,13 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
       />
 
       {/* Hero section */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
         <LeaderCard leader={leader} shieldUrl={leaderShield} />
         <PichichiCard pichichi={pichichi} photoUrl={pichichiPhoto} />
       </div>
 
       {/* Matchday + Standings */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         {/* Featured Matchday (LIVE takes priority, otherwise Last Played) */}
         {featuredMatchday && (
           <MatchdaySection
@@ -128,7 +128,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
         )}
 
         {/* Full Standings */}
-        <div>
+        <div className="min-w-0 max-w-full">
           <div className="flex items-center gap-2 mb-3">
             <h3 className="text-sm font-semibold">Clasificación</h3>
           </div>
