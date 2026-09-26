@@ -330,8 +330,11 @@
   .standings-table th:nth-child(10) { width: 1.875rem; }
 
   .standings-table .landscape-stat { display: table-cell; }
+  /* In landscape hide DG (10th col) to make room; keep Racha (last col) visible */
+  .standings-table th:nth-child(10),
+  .standings-table td:nth-child(10) { display: none; }
   .standings-table th:last-child,
-  .standings-table td:last-child { display: none; }
+  .standings-table td:last-child { display: table-cell; }
 
   .standings-table td:nth-child(2) > div { gap: 0.25rem; }
   .standings-table td:nth-child(2) img,
