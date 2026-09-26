@@ -1,6 +1,7 @@
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { Trophy, Award, XCircle } from 'lucide-react';
 import type { TeamStanding } from '@/types/league';
+import { useSeason } from '@/contexts/SeasonContext';
 
 interface StandingsViewProps {
   standings: TeamStanding[];
@@ -8,11 +9,12 @@ interface StandingsViewProps {
 }
 
 export function StandingsView({ standings, onTeamClick }: StandingsViewProps) {
+  const { season } = useSeason();
   return (
     <div className="animate-fade-up">
       <div className="mb-4">
         <h2 className="text-xl font-bold">Clasificación</h2>
-        <p className="text-sm text-muted-foreground">Temporada 2025-2026</p>
+        <p className="text-sm text-muted-foreground">{season.label}</p>
       </div>
 
       {/* Legend */}

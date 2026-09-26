@@ -260,22 +260,22 @@ export function useLeagueData() {
         if ((match.homeGoals || 0) > (match.awayGoals || 0)) {
           homeTeam.won++;
           homeTeam.points += 3;
-          homeTeam.form.push('W');
+          if (match.status === 'PLAYED') homeTeam.form.push('W');
           awayTeam.lost++;
-          awayTeam.form.push('L');
+          if (match.status === 'PLAYED') awayTeam.form.push('L');
         } else if ((match.homeGoals || 0) < (match.awayGoals || 0)) {
           awayTeam.won++;
           awayTeam.points += 3;
-          awayTeam.form.push('W');
+          if (match.status === 'PLAYED') awayTeam.form.push('W');
           homeTeam.lost++;
-          homeTeam.form.push('L');
+          if (match.status === 'PLAYED') homeTeam.form.push('L');
         } else {
           homeTeam.drawn++;
           homeTeam.points += 1;
-          homeTeam.form.push('D');
+          if (match.status === 'PLAYED') homeTeam.form.push('D');
           awayTeam.drawn++;
           awayTeam.points += 1;
-          awayTeam.form.push('D');
+          if (match.status === 'PLAYED') awayTeam.form.push('D');
         }
       });
     });
