@@ -1,19 +1,27 @@
 import { HeartHandshake, Home, Shield, Info, Sparkles, Swords } from 'lucide-react';
-import { deportividadData } from '@/data/deportividadData';
+import { useMemo } from 'react';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { useSeason } from '@/contexts/SeasonContext';
+import { fairPlayFromReports } from '@/lib/fairPlayFromReports';
+import type { Team, MatchReport } from '@/types/league';
+import { TeamShield } from '@/components/teams/TeamShield';
 
 interface FairPlayViewProps {
+  teams: Team[];
+  matchReports: MatchReport[];
   onTeamClick?: (teamName: string) => void;
 }
 
-export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
+export function FairPlayView({ teams, matchReports, onTeamClick }: FairPlayViewProps) {
   const { getTeamShield } = useTeamImages();
+  const { season } = useSeason();
 
-  const sorted = [...deportividadData].sort((a, b) => {
+  const sorted = useMemo(() => fairPlayFromReports(teams, matchReports).sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (a.sanctionPoints !== b.sanctionPoints) return a.sanctionPoints - b.sanctionPoints;
     return a.team.localeCompare(b.team);
-  });
+  }), [teams, matchReports]);
+  const hasDiscipline = sorted.some(entry => entry.yellowCards || entry.redCards || entry.sanctionPoints);
 
   return (
     <div className="animate-fade-up space-y-6 pb-8">
@@ -22,7 +30,7 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
           <HeartHandshake className="w-3.5 h-3.5 text-primary" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-            Juego Limpio · 2025/26
+            Juego Limpio · {season.shortLabel}
           </span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold gradient-text">
@@ -32,6 +40,8 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
           Premio al juego limpio y la conducta deportiva del Campeonato Caputbovense.
         </p>
       </div>
+
+      {!hasDiscipline && <p role="status" className="text-center text-sm text-muted-foreground">Todavía no hay datos disciplinarios registrados en las actas de esta temporada.</p>}
 
       {/* Regla de oro */}
       <div className="glass-card border border-primary/20 p-3 sm:p-4 flex items-start gap-3 max-w-3xl mx-auto">
@@ -93,13 +103,7 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
                   {pos}
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0 rounded-full bg-secondary/60 flex items-center justify-center overflow-hidden ring-1 ring-white/10">
-                    {shield ? (
-                      <img src={shield} alt={entry.team} className="w-full h-full object-cover" />
-                    ) : (
-                      <Shield className="w-3 h-3 text-muted-foreground/40" />
-                    )}
-                  </div>
+                   <TeamShield name={entry.team} src={shield} className="w-6 h-6 sm:w-7 sm:h-7" />
                   <span className={`text-[11px] sm:text-sm truncate ${isTop3 ? 'font-bold text-foreground' : 'font-semibold'}`}>
                     {entry.team}
                   </span>
@@ -136,7 +140,7 @@ export function FairPlayView({ onTeamClick }: FairPlayViewProps) {
       </div>
 
       <p className="text-[10px] text-center text-muted-foreground/60 italic">
-        Datos de deportividad oficiales del Comité de Competición.
+        Puntos calculados con las actas disponibles: −1 por amarilla, −3 por roja y sanciones registradas. Sin puntos iniciales supuestos.
       </p>
     </div>
   );
