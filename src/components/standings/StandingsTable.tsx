@@ -35,7 +35,6 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
               <th className="text-center hidden sm:table-cell">Racha</th>
             </tr>
           </thead>
-          <tbody>
             {standings.map((team) => {
               const shieldUrl = getTeamShield(team.team);
               // League zones: 1-8 playoffs (title), 9-24 cup, 25-27 eliminated
