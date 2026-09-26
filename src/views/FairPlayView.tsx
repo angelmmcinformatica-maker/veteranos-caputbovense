@@ -1,4 +1,4 @@
-import { HeartHandshake, Home, Shield, Info, Sparkles, Swords } from 'lucide-react';
+import { HeartHandshake, Home, Info, Sparkles, Swords } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { useSeason } from '@/contexts/SeasonContext';
@@ -84,8 +84,8 @@ export function FairPlayView({ teams, matchReports, onTeamClick }: FairPlayViewP
           {sorted.map((entry, idx) => {
             const pos = idx + 1;
             const shield = getTeamShield(entry.team);
-            const isTop3 = pos <= 3;
-            const isLeader = pos === 1;
+             const isTop3 = hasDiscipline && pos <= 3;
+             const isLeader = hasDiscipline && pos === 1;
             return (
               <button
                 key={entry.team}
