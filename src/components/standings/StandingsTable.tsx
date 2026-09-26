@@ -23,11 +23,11 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
               <th className="text-left">Equipo</th>
               <th className="text-center w-9 sm:w-10 font-bold">PTS</th>
               <th className="text-center w-8">PJ</th>
-              <th className="text-center w-8 hidden sm:table-cell">G</th>
-              <th className="text-center w-8 hidden sm:table-cell">E</th>
-              <th className="text-center w-8 hidden sm:table-cell">P</th>
-              <th className="text-center w-10 hidden sm:table-cell">GF</th>
-              <th className="text-center w-10 hidden sm:table-cell">GC</th>
+              <th className="landscape-stat text-center w-8 hidden sm:table-cell">G</th>
+              <th className="landscape-stat text-center w-8 hidden sm:table-cell">E</th>
+              <th className="landscape-stat text-center w-8 hidden sm:table-cell">P</th>
+              <th className="landscape-stat text-center w-10 hidden sm:table-cell">GF</th>
+              <th className="landscape-stat text-center w-10 hidden sm:table-cell">GC</th>
               <th className="text-center w-9 sm:w-10">DG</th>
               <th className="text-center hidden sm:table-cell">Racha</th>
             </tr>
@@ -88,11 +88,11 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                   </td>
                   <td className="text-center font-bold text-lg">{team.points}</td>
                   <td className="text-center text-muted-foreground">{team.played}</td>
-                   <td className="text-center text-green-400 hidden sm:table-cell">{team.won}</td>
-                   <td className="text-center text-yellow-400 hidden sm:table-cell">{team.drawn}</td>
-                   <td className="text-center text-red-400 hidden sm:table-cell">{team.lost}</td>
-                   <td className="text-center hidden sm:table-cell">{team.goalsFor}</td>
-                   <td className="text-center text-muted-foreground hidden sm:table-cell">{team.goalsAgainst}</td>
+                   <td className="landscape-stat text-center text-green-400 hidden sm:table-cell">{team.won}</td>
+                   <td className="landscape-stat text-center text-yellow-400 hidden sm:table-cell">{team.drawn}</td>
+                   <td className="landscape-stat text-center text-red-400 hidden sm:table-cell">{team.lost}</td>
+                   <td className="landscape-stat text-center hidden sm:table-cell">{team.goalsFor}</td>
+                   <td className="landscape-stat text-center text-muted-foreground hidden sm:table-cell">{team.goalsAgainst}</td>
                   <td className={cn(
                     'text-center font-medium',
                     team.goalDifference > 0 && 'text-primary',
