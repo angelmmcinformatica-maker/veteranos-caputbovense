@@ -237,7 +237,7 @@ export function useLeagueData() {
 
     // Process all played AND LIVE matches (live matches count for real-time standings)
     // Sort matchdays chronologically (by round) so the form streak reflects recent order
-    const chronologicalMatchdays = [...matchdays].sort((a, b) => (a.round ?? 0) - (b.round ?? 0));
+    const chronologicalMatchdays = [...matchdays].sort((a, b) => (a.jornada ?? 0) - (b.jornada ?? 0));
     chronologicalMatchdays.forEach(matchday => {
       matchday.matches?.forEach(match => {
         // Include both PLAYED and LIVE matches in standings
