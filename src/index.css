@@ -160,6 +160,18 @@
     @apply w-full;
   }
 
+  @media (max-width: 639px) {
+    .standings-table {
+      max-width: 100%;
+    }
+
+    .standings-table th,
+    .standings-table td {
+      padding: 0.625rem 0.25rem;
+      font-size: 0.75rem;
+    }
+  }
+
   .standings-table th {
     @apply text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-2;
   }

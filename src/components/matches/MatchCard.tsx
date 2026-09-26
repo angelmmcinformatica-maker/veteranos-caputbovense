@@ -60,7 +60,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
     <CardWrapper
       onClick={onClick}
       className={cn(
-        'w-full max-w-full rounded-lg transition-all text-left overflow-hidden box-border',
+        'w-full min-w-0 max-w-full rounded-lg transition-all text-left overflow-hidden box-border',
         compact ? 'p-2 sm:p-4 bg-secondary/50' : 'glass-card-hover p-2 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
@@ -69,9 +69,9 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       )}
     >
       {/* Status badge */}
-      <div className="flex justify-center mb-1.5 sm:mb-2">
+      <div className="flex min-w-0 max-w-full flex-wrap justify-center text-center mb-1.5 sm:mb-2">
         {isPlayed && (
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span className="flex min-w-0 flex-wrap items-center justify-center gap-1 text-[10px] text-muted-foreground">
             <CheckCircle2 className="w-3 h-3" />
             Finalizado
             {hasReport && (
@@ -80,7 +80,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </span>
         )}
         {isLive && (
-          <span className="flex items-center gap-1 text-[10px] text-status-win font-medium">
+          <span className="flex min-w-0 flex-wrap items-center justify-center gap-1 text-[10px] text-status-win font-medium">
             <Radio className="w-3 h-3 animate-pulse" />
             En juego
             {elapsedMinutes !== null && (
@@ -91,7 +91,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </span>
         )}
         {isPendingResult && (
-          <span className="flex items-center gap-1 text-[10px] text-warning font-medium">
+          <span className="flex min-w-0 flex-wrap items-center justify-center gap-1 text-[10px] text-warning font-medium">
             <AlertCircle className="w-3 h-3" />
             Finalizado - Resultado Pendiente
           </span>
@@ -103,7 +103,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </span>
         )}
         {isPending && (
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span className="flex min-w-0 flex-wrap items-center justify-center gap-1 text-[10px] text-muted-foreground">
             <Clock className="w-3 h-3" />
             {match.date && <span>{match.date}</span>}
             {match.date && match.time && <span>•</span>}
@@ -117,7 +117,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
       </div>
 
       {/* Match info - vertical on mobile, horizontal on sm+ */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2 min-w-0 w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2 min-w-0 w-full max-w-full overflow-hidden">
         {/* Mobile: vertical stack */}
         <div className="flex sm:hidden flex-col items-center gap-1 w-full min-w-0">
           {/* Home team */}
@@ -130,14 +130,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.home)}
                 className={cn(
-                  'text-center leading-snug hover:text-primary transition-colors truncate',
+                   'min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
                 {match.home}
               </button>
             ) : (
-              <p className={cn('text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
+              <p className={cn('min-w-0 max-w-full text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
                 {match.home}
               </p>
             )}
@@ -178,14 +178,14 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.away)}
                 className={cn(
-                  'text-center leading-snug hover:text-primary transition-colors truncate',
+                   'min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
                 {match.away}
               </button>
             ) : (
-              <p className={cn('text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
+              <p className={cn('min-w-0 max-w-full text-center leading-snug truncate', compact ? 'text-xs' : 'text-sm')}>
                 {match.away}
               </p>
             )}

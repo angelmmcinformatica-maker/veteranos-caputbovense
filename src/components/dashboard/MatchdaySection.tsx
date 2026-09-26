@@ -28,7 +28,7 @@ export function MatchdaySection({ title, jornada, matches, rest, variant, onMatc
   const titleClass = variant === 'live' ? 'text-red-500' : '';
 
   return (
-    <div className="glass-card p-3 sm:p-5 w-full overflow-hidden box-border">
+    <div className="glass-card p-3 sm:p-5 w-full min-w-0 max-w-full overflow-hidden box-border">
       <div className="flex items-center justify-between mb-4 min-w-0 gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
           {icon}
@@ -38,7 +38,7 @@ export function MatchdaySection({ title, jornada, matches, rest, variant, onMatc
           Jornada {jornada}
         </span>
       </div>
-      <div className="grid gap-2" style={{ minWidth: 0 }}>
+      <div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] gap-2">
         {matches.map((match, index) => (
           <MatchCard
             key={index}
