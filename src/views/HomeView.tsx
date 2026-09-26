@@ -95,7 +95,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
     : undefined;
 
   return (
-    <div className="w-full min-w-0 max-w-full space-y-4 animate-fade-up">
+    <div className="home-view w-full min-w-0 max-w-full space-y-4 animate-fade-up">
       {/* PWA Install Banner */}
       <InstallPWA />
 

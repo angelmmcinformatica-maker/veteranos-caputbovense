@@ -38,7 +38,7 @@ export function MatchdaySection({ title, jornada, matches, rest, variant, onMatc
           Jornada {jornada}
         </span>
       </div>
-      <div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] gap-2">
+      <div className="home-matchday-grid grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] gap-2">
         {matches.map((match, index) => (
           <MatchCard
             key={index}
