@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
@@ -28,6 +28,21 @@ export function MatchesView({ matchdays, matchReports, teams, onTeamClick, onPla
     return playedMatchdays[playedMatchdays.length - 1]?.jornada || matchdays[0]?.jornada || 1;
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') !== 'matches') return;
+    const matchId = params.get('match');
+    if (!matchId || matchId.length > 250) return;
+    const found = matchdays.flatMap(md => (md.matches ?? []).map(match => ({ match, jornada: md.jornada })))
+      .find(({ match }) => `${match.home}-${match.away}` === matchId);
+    if (!found) return;
+    setSelectedJornada(found.jornada);
+    setSelectedMatch(found.match);
+    params.delete('match');
+    const query = params.toString();
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+  }, [matchdays]);
 
   const selectedMatchday = matchdays.find(md => md.jornada === selectedJornada);
   const maxJornada = Math.max(...matchdays.map(md => md.jornada), 1);
