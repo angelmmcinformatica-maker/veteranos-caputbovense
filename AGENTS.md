@@ -1,0 +1,3 @@
+- Derive public fair-play display from the active season's match reports and active teams; this avoids showing legacy hardcoded scores as current disciplinary records.
+- Resolve push notification match links against loaded season matchdays on the Matches screen; existing report dialogs remain the single match-detail experience.
+- Use one neutral, labeled TeamShield fallback in public standings and team details; missing official images must not imply an official crest.

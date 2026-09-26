@@ -33,18 +33,18 @@ export function TeamDetailModal({
   const { getTeamShield, getPlayerPhoto } = useTeamImages();
 
   const teamShield = getTeamShield(teamName);
+  const team = teams.find(t => t.name === teamName);
 
   // Get all matches for this team
   const teamMatches = matchdays.flatMap(md =>
     (md.matches ?? []).filter(m => m.home === teamName || m.away === teamName)
       .map(m => ({ match: m, jornada: md.jornada, rest: false }))
-      .concat(md.rest?.trim().toUpperCase() === teamName.trim().toUpperCase()
+      .concat([teamName, team?.baseName].some(name => name && md.rest?.trim().toUpperCase() === name.trim().toUpperCase())
         ? [{ match: null, jornada: md.jornada, rest: true }]
         : [])
   ).sort((a, b) => a.jornada - b.jornada);
 
   // Get team roster from teams collection - SORTED BY DORSAL
-  const team = teams.find(t => t.name === teamName);
   const roster = [...(team?.players || [])].sort((a, b) => {
     const dorsalA = typeof a.id === 'number' ? a.id : parseInt(String(a.id)) || 999;
     const dorsalB = typeof b.id === 'number' ? b.id : parseInt(String(b.id)) || 999;

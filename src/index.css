@@ -335,12 +335,16 @@
 
   .standings-table td:nth-child(2) > div { gap: 0.25rem; }
   .standings-table td:nth-child(2) img,
-  .standings-table td:nth-child(2) > div > div { width: 1.125rem; height: 1.125rem; }
+  .standings-table td:nth-child(2) > div > span[role="img"] { width: 1.125rem; height: 1.125rem; }
   .standings-table td:nth-child(2) button[aria-pressed] { padding: 0.125rem; }
   .standings-table td:nth-child(2) button[aria-pressed] svg { width: 0.875rem; height: 0.875rem; }
 }
 
 @media (max-width: 639px) and (orientation: portrait) {
+  .standings-table .standings-detail-row td:last-child { display: table-cell; }
+}
+
+@media (orientation: landscape) and (max-width: 899px) {
   .standings-table .standings-detail-row td:last-child { display: table-cell; }
 }
 
