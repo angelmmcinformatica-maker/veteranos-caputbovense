@@ -106,12 +106,15 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                     </div>
                   </td>
                 </tr>
-                {expanded && <tr className="standings-detail-row"><td colSpan={11}>
+                {expanded && <tr className="standings-detail-row standings-detail-portrait"><td colSpan={5}>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-xs">
                     <span>G <strong>{team.won}</strong></span><span>E <strong>{team.drawn}</strong></span><span>P <strong>{team.lost}</strong></span>
                     <span>GF <strong>{team.goalsFor}</strong></span><span>GC <strong>{team.goalsAgainst}</strong></span>
                     <span className="flex items-center gap-1">Racha {form.map((result, i) => <FormIndicator key={i} result={result} />)}</span>
                   </div>
+                </td></tr>}
+                {expanded && <tr className="standings-detail-row standings-detail-landscape"><td colSpan={10}>
+                  <div className="flex items-center gap-2 py-1 text-xs">Racha {form.map((result, i) => <FormIndicator key={i} result={result} />)}</div>
                 </td></tr>}
                 </tbody>
               );

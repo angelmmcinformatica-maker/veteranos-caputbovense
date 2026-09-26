@@ -348,6 +348,12 @@
   .standings-table .standings-detail-row td:last-child { display: table-cell; }
 }
 
+.standings-table .standings-detail-landscape { display: none; }
+@media (orientation: landscape) and (max-width: 899px) {
+  .standings-table .standings-detail-portrait { display: none; }
+  .standings-table .standings-detail-landscape { display: table-row; }
+}
+
 @media (min-width: 900px), (min-width: 640px) and (orientation: portrait) {
   .standings-table .standings-detail-row,
   .standings-table .standings-expand { display: none; }
