@@ -1,10 +1,11 @@
 import { FollowTeamButton } from '@/components/notifications/FollowTeamButton';
 import { useState, useMemo } from 'react';
-import { X, Users, Calendar, Trophy, Target, Shield, User, Home, Car, ArrowUpDown } from 'lucide-react';
+import { X, Users, Calendar, Trophy, Target, User, Home, Car, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, Match, Team, MatchReport, MatchReportPlayer } from '@/types/league';
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { TeamShield } from '@/components/teams/TeamShield';
 
 interface TeamDetailModalProps {
   teamName: string;
@@ -34,9 +35,12 @@ export function TeamDetailModal({
   const teamShield = getTeamShield(teamName);
 
   // Get all matches for this team
-  const teamMatches = matchdays.flatMap(md => 
-    md.matches?.filter(m => m.home === teamName || m.away === teamName)
-      .map(m => ({ ...m, jornada: md.jornada })) || []
+  const teamMatches = matchdays.flatMap(md =>
+    (md.matches ?? []).filter(m => m.home === teamName || m.away === teamName)
+      .map(m => ({ match: m, jornada: md.jornada, rest: false }))
+      .concat(md.rest?.trim().toUpperCase() === teamName.trim().toUpperCase()
+        ? [{ match: null, jornada: md.jornada, rest: true }]
+        : [])
   ).sort((a, b) => a.jornada - b.jornada);
 
   // Get team roster from teams collection - SORTED BY DORSAL
@@ -49,7 +53,7 @@ export function TeamDetailModal({
   });
 
   // Calculate team stats
-  const playedMatches = teamMatches.filter(m => m.status === 'PLAYED');
+  const playedMatches = teamMatches.map(item => item.match).filter((m): m is Match => m?.status === 'PLAYED');
   const wins = playedMatches.filter(m => 
     (m.home === teamName && m.homeGoals > m.awayGoals) ||
     (m.away === teamName && m.awayGoals > m.homeGoals)
@@ -110,16 +114,10 @@ export function TeamDetailModal({
           <div className="sticky top-0 glass-card border-b border-border/50 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {teamShield ? (
-                  <img src={teamShield} alt={teamName} className="w-12 h-12 object-contain" />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-primary" />
-                  </div>
-                )}
+                <TeamShield name={teamName} src={teamShield} className="w-12 h-12" />
                 <div>
                   <h2 className="text-lg font-bold">{teamName}</h2>
-                  <p className="text-xs text-muted-foreground">{roster.length} jugadores</p>
+                  <p className="text-xs text-muted-foreground">{roster.length ? `${roster.length} jugadores` : 'Plantilla pendiente de publicar'}</p>
                   <FollowTeamButton team={teamName} className="mt-1.5" />
                 </div>
               </div>
@@ -188,7 +186,8 @@ export function TeamDetailModal({
           <div className="flex-1 overflow-y-auto p-4">
             {activeTab === 'matches' && (
               <div className="space-y-2">
-                {teamMatches.map((match, index) => {
+                {teamMatches.map(({ match, jornada, rest }, index) => {
+                  if (rest || !match) return <div key={`rest-${jornada}`} className="w-full glass-card p-3 text-sm text-muted-foreground">Jornada {jornada} · Descansa</div>;
                   const isHome = match.home === teamName;
                   const opponent = isHome ? match.away : match.home;
                   const opponentShield = getTeamShield(opponent);
@@ -219,7 +218,7 @@ export function TeamDetailModal({
                             isLoss && 'bg-destructive/20 text-destructive',
                             match.status !== 'PLAYED' && 'bg-secondary text-muted-foreground'
                           )}>
-                            J{match.jornada}
+                             J{jornada}
                           </div>
                           <div className={cn(
                             'w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center',
@@ -227,13 +226,7 @@ export function TeamDetailModal({
                           )}>
                             {isHome ? <Home className="w-3 h-3" /> : <Car className="w-3 h-3" />}
                           </div>
-                          {opponentShield ? (
-                            <img src={opponentShield} alt={opponent} className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded flex-shrink-0" />
-                          ) : (
-                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded bg-secondary/50 flex items-center justify-center flex-shrink-0">
-                              <Shield className="w-3 h-3 text-muted-foreground" />
-                            </div>
-                          )}
+                          <TeamShield name={opponent} src={opponentShield} className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
 
                         {/* Center: Opponent name - flexible with truncation */}
@@ -364,7 +357,7 @@ export function TeamDetailModal({
 
                   {roster.length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground">No hay jugadores registrados</p>
+                      <p className="text-muted-foreground">Plantilla pendiente de publicar</p>
                     </div>
                   )}
                 </div>

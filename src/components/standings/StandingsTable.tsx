@@ -4,8 +4,9 @@ import { cn } from '@/lib/utils';
 import type { TeamStanding } from '@/types/league';
 import { FormIndicator } from './FormIndicator';
 import { useTeamImages } from '@/hooks/useTeamImages';
-import { Shield, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TeamShield } from '@/components/teams/TeamShield';
 
 interface StandingsTableProps {
   standings: TeamStanding[];
@@ -63,25 +64,15 @@ export function StandingsTable({ standings, onTeamClick }: StandingsTableProps) 
                   </td>
                   <td className="font-medium">
                      <div className="flex w-full min-w-0 items-center gap-1 sm:gap-2">
-                      {shieldUrl ? (
-                        <img
-                          src={shieldUrl}
-                          alt={team.team}
-                           className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 object-contain rounded"
-                        />
-                      ) : (
-                          <div role="img" aria-label={`Escudo genérico de ${team.team}`} className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 rounded bg-secondary/50 flex items-center justify-center">
-                           <Shield aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
-                        </div>
-                      )}
+                      <TeamShield name={team.team} src={shieldUrl} className="w-5 h-5 sm:w-6 sm:h-6" />
                       {onTeamClick ? (
-                        <button
+                        <Button variant="ghost" size="sm"
                           onClick={() => onTeamClick(team.team)}
-                           className="block min-w-0 flex-1 truncate hover:text-primary hover:underline transition-colors text-left"
+                           className="block h-auto p-0 min-w-0 flex-1 truncate hover:text-primary hover:underline text-left justify-start"
                            title={team.team}
                         >
                           {team.team}
-                        </button>
+                        </Button>
                       ) : (
                          <span className="block min-w-0 flex-1 truncate" title={team.team}>
                           {team.team}
