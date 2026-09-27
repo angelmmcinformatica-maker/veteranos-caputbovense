@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState, forwardRef } from 'react';
 import { Shield, Lock, LogIn, LogOut, Loader2, UserCheck, Users, Gavel } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -202,9 +203,9 @@ export function AdminView({ matchdays, playoffMatchdays, teams, matchReports, to
       </div>
 
       {isAdmin && (
-        <a href="/admin/carga-rapida" className="mb-4 flex items-center justify-center gap-2 w-full h-14 rounded-lg bg-primary text-primary-foreground font-semibold text-base">
+        <Link to="/admin/carga-rapida" className="mb-4 flex items-center justify-center gap-2 w-full h-14 rounded-lg bg-primary text-primary-foreground font-semibold text-base">
           ⚡ Carga rápida
-        </a>
+        </Link>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 flex-1 content-start">
