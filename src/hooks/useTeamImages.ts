@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import clinicaShield from '@/assets/shields/clinica-dental.png.asset.json';
+import centroglassShield from '@/assets/shields/centroglass-vulebar.png.asset.json';
+import gimnasticoShield from '@/assets/shields/gimnastico-db.png.asset.json';
 
 interface TeamImages {
   shield?: string;
@@ -18,6 +21,14 @@ interface UseTeamImagesResult {
 
 // Global cache for images
 const imagesCache = new Map<string, TeamImages>();
+
+// Officially supplied shields for the three renamed 2026/2027 clubs.
+// Match display names exactly so historic names retain their existing images.
+const suppliedShields: Record<string, string> = {
+  'CLINICA DENT. DOCTOR DOBLADO': clinicaShield.url,
+  'CENTROGLASS VULEBAR': centroglassShield.url,
+  'GIMNASTICO D.B. VETERANOS': gimnasticoShield.url,
+};
 
 export function useTeamImages(): UseTeamImagesResult {
   const [loading, setLoading] = useState(true);
@@ -48,7 +59,7 @@ export function useTeamImages(): UseTeamImagesResult {
   }, []);
 
   const getTeamShield = useCallback((teamName: string): string | undefined => {
-    return imagesCache.get(teamName)?.shield;
+    return suppliedShields[teamName] ?? imagesCache.get(teamName)?.shield;
   }, []);
 
   const getPlayerPhoto = useCallback((teamName: string, playerId: string | number): string | undefined => {

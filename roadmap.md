@@ -5,3 +5,4 @@
 - [ ] Complete team archive presentation, rest fixtures, and neutral shield fallback.
 - [ ] Open the correct match report from push alerts while retaining existing navigation.
 - [ ] Check build and four requested viewports; do not publish.
+- [ ] Link the three supplied 2026/2027 shields to their exact display names and verify on home, standings, and calendar without publishing.
