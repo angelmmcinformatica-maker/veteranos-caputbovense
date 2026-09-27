@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
@@ -82,7 +83,7 @@ export default function QuickResults() {
     );
   }
 
-  const hadResult = sel && (sel.match.status === 'PLAYED' || sel.match.status === 'LIVE' || (sel.match.homeGoals || 0) + (sel.match.awayGoals || 0) > 0);
+  const hadResult = sel && hasConfirmedScore(sel.match);
   const scorerRoster = teams.find((t) => t.name === scorerTeam)?.players ?? [];
 
   const save = async () => {
@@ -95,7 +96,7 @@ export default function QuickResults() {
       const matches = (snap.data().matches ?? []) as Match[];
       if (!matches.some((m) => m.home === sel.match.home && m.away === sel.match.away)) throw new Error('Partido no encontrado');
       await updateDoc(ref, {
-        matches: matches.map((m) => (m.home === sel.match.home && m.away === sel.match.away ? { ...m, homeGoals: home, awayGoals: away, status } : m)),
+        matches: matches.map((m) => (m.home === sel.match.home && m.away === sel.match.away ? { ...m, homeGoals: home, awayGoals: away, status, autoLive: false } : m)),
       });
       if (scorerTeam && scorer.trim()) {
         const reportId = `${sel.match.home}-${sel.match.away}`;
@@ -168,7 +169,7 @@ export default function QuickResults() {
                     </div>
                     <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                       <div className="flex items-center gap-2 min-w-0"><TeamShield name={m.home} src={getTeamShield(m.home)} className="size-8" /><span className="text-sm font-medium break-words min-w-0">{m.home}</span></div>
-                      <span className="text-xl font-bold tabular-nums">{m.status === 'PLAYED' || m.status === 'LIVE' ? `${m.homeGoals} - ${m.awayGoals}` : 'vs'}</span>
+                      <span className="text-xl font-bold tabular-nums">{hasConfirmedScore(m) ? `${m.homeGoals} - ${m.awayGoals}` : m.status === 'LIVE' ? 'Pendiente' : 'vs'}</span>
                       <div className="flex items-center gap-2 min-w-0 justify-end text-right"><span className="text-sm font-medium break-words min-w-0">{m.away}</span><TeamShield name={m.away} src={getTeamShield(m.away)} className="size-8" /></div>
                     </div>
                   </button>

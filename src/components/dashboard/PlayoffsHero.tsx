@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useMemo } from 'react';
 import { Trophy, Home, ArrowRight, Shield, Hourglass } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
@@ -370,7 +371,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                 m.home && m.away
                   ? findLivePlayoffMatch(playoffMatchdays, m.home, m.away)
                   : null;
-              const showScore = live && (live.status === 'PLAYED' || live.status === 'LIVE');
+              const showScore = live && (live.status === 'PLAYED' || live.status === 'LIVE') && hasConfirmedScore(live);
               const isLive = live?.status === 'LIVE';
               return (
                 <button

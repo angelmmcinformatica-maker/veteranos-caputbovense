@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -307,7 +308,7 @@ export function AdminPlayoffsView({
                                   match.status === 'PENDING' && 'text-muted-foreground text-base'
                                 )}
                               >
-                                {match.status === 'PLAYED' || match.status === 'LIVE' ? match.homeGoals : '-'}
+                                {hasConfirmedScore(match) ? match.homeGoals : '-'}
                               </span>
                               <span className="text-muted-foreground text-sm">:</span>
                               <span
@@ -316,7 +317,7 @@ export function AdminPlayoffsView({
                                   match.status === 'PENDING' && 'text-muted-foreground text-base'
                                 )}
                               >
-                                {match.status === 'PLAYED' || match.status === 'LIVE' ? match.awayGoals : '-'}
+                                {hasConfirmedScore(match) ? match.awayGoals : '-'}
                               </span>
                             </div>
                             <div className="flex-1 min-w-0 text-right">

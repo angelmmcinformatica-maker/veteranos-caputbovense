@@ -11,6 +11,8 @@ export interface Match {
   // Penalty shootout (only used in playoffs when goals are tied at FT)
   homePenalties?: number | null;
   awayPenalties?: number | null;
+  /** true when LIVE was set only by the kick-off timer and no score has been saved yet */
+  autoLive?: boolean;
 }
 
 export interface Matchday {

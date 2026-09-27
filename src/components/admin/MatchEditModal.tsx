@@ -209,6 +209,7 @@ export function MatchEditModal({
               date: matchDate || '',
               time: matchTime || '',
               status: matchStatus,
+              autoLive: false,
               referee: selectedReferee || null,
               refereeName: refereeUser?.fullName || null,
               homePenalties: isPlayoff && isTied ? (homePenalties ?? null) : null,
