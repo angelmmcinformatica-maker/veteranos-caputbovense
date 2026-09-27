@@ -55,7 +55,7 @@ export function useAutoLiveStatus(matchdays: Matchday[], refetch: () => void) {
           // Match is in progress (0-105 minutes)
           if (diffMinutes >= 0 && diffMinutes <= 105) {
             matchdayNeedsUpdate = true;
-            return { ...match, status: 'LIVE' as const };
+            return { ...match, status: 'LIVE' as const, autoLive: true };
           }
 
           return match;

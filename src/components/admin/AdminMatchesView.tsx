@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useState } from 'react';
 import { X, Calendar, CheckCircle2, FileText, Edit2, Play, Clock, RefreshCw, Eye, ChevronLeft, ChevronRight, Gavel } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -222,14 +223,14 @@ export function AdminMatchesView({
                               'w-8 h-8 rounded bg-secondary flex items-center justify-center text-lg font-bold',
                               match.status === 'PENDING' && 'text-muted-foreground text-base'
                             )}>
-                              {match.status === 'PLAYED' || match.status === 'LIVE' ? match.homeGoals : '-'}
+                              {hasConfirmedScore(match) ? match.homeGoals : '-'}
                             </span>
                             <span className="text-muted-foreground text-sm">:</span>
                             <span className={cn(
                               'w-8 h-8 rounded bg-secondary flex items-center justify-center text-lg font-bold',
                               match.status === 'PENDING' && 'text-muted-foreground text-base'
                             )}>
-                              {match.status === 'PLAYED' || match.status === 'LIVE' ? match.awayGoals : '-'}
+                              {hasConfirmedScore(match) ? match.awayGoals : '-'}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0 text-right">

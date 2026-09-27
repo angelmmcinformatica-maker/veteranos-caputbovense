@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
@@ -223,7 +224,7 @@ function MatchCard({
   const isLive = live?.status === 'LIVE';
   const isFinal = live?.status === 'PLAYED';
   const score =
-    live && (isLive || isFinal)
+    live && (isLive || isFinal) && hasConfirmedScore(live)
       ? { home: live.homeGoals, away: live.awayGoals }
       : match.score;
 

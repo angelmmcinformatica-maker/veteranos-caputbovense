@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useState } from 'react';
 import { X, User, Goal, CreditCard, ArrowRightLeft, Shield, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -196,6 +197,10 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
                       {match.time && (
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1">{match.time}</p>
                       )}
+                    </div>
+                  ) : !hasConfirmedScore(match) && match.status !== 'POSTPONED' ? (
+                    <div className="text-center max-w-[6rem]">
+                      <span className="text-muted-foreground text-xs sm:text-sm font-semibold">Marcador pendiente</span>
                     </div>
                   ) : (
                     <>

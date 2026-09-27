@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -242,6 +243,7 @@ export function useLeagueData() {
       matchday.matches?.forEach(match => {
         // Include both PLAYED and LIVE matches in standings
         if (match.status !== 'PLAYED' && match.status !== 'LIVE') return;
+        if (!hasConfirmedScore(match)) return;
 
         const homeTeam = teamStats[match.home];
         const awayTeam = teamStats[match.away];

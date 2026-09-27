@@ -1,3 +1,4 @@
+import { hasConfirmedScore } from '@/lib/matchScore';
 import { Clock, CheckCircle2, Radio, FileText, Shield, AlertCircle, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
@@ -22,6 +23,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
   const isPendingResult = displayStatus === 'PENDING_RESULT';
   const isPending = displayStatus === 'PENDING';
   const isPostponed = displayStatus === 'POSTPONED';
+  const scorePending = (isLive || isPendingResult) && !hasConfirmedScore(match);
 
   const homeShield = getTeamShield(match.home);
   const awayShield = getTeamShield(match.away);
@@ -147,6 +149,8 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           <div className="flex items-center justify-center">
             {isPostponed ? (
               <span className="text-warning font-bold text-xs">APL</span>
+            ) : scorePending ? (
+              <span className="text-muted-foreground text-xs font-medium text-center">Marcador pendiente</span>
             ) : (isPlayed || isLive || isPendingResult) ? (
               <div className="flex items-center gap-1">
                 <span className={cn(
@@ -218,6 +222,8 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           <div className="flex items-center justify-center flex-shrink-0">
             {isPostponed ? (
               <span className="text-warning font-bold text-sm">APL</span>
+            ) : scorePending ? (
+              <span className="text-muted-foreground text-[11px] font-medium text-center leading-tight max-w-[5.5rem]">Marcador pendiente</span>
             ) : (isPlayed || isLive || isPendingResult) ? (
               <div className="flex items-center gap-0.5">
                 <span className={cn(
