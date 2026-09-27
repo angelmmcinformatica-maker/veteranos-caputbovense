@@ -1,8 +1,8 @@
 - [x] Remove the PWA portrait orientation lock.
 - [x] Reflow home match cards and standings in small landscape screens without changing portrait or desktop.
 - [x] Verify 360×640, 640×360, 390×844, and 844×390 with no page-wide horizontal overflow or bottom-nav occlusion.
-- [ ] Make standings and fair-play labels follow the selected season; add compact expandable mobile standings and real-data form/discipline.
-- [ ] Complete team archive presentation, rest fixtures, and neutral shield fallback.
-- [ ] Open the correct match report from push alerts while retaining existing navigation.
-- [ ] Check build and four requested viewports; do not publish.
-- [ ] Link the three supplied 2026/2027 shields to their exact display names and verify on home, standings, and calendar without publishing.
+- [x] Make standings and fair-play labels follow the selected season; add compact expandable mobile standings and real-data form/discipline.
+- [x] Complete team archive presentation, rest fixtures, and neutral shield fallback.
+- [x] Open the correct match report from push alerts while retaining existing navigation.
+- [x] Check build and four requested viewports; do not publish.
+- [x] Link the three supplied 2026/2027 shields to their exact display names and verify on home, standings, and calendar without publishing.
