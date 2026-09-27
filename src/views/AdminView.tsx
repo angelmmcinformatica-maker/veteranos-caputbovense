@@ -201,6 +201,12 @@ export function AdminView({ matchdays, playoffMatchdays, teams, matchReports, to
         </div>
       </div>
 
+      {isAdmin && (
+        <a href="/admin/carga-rapida" className="mb-4 flex items-center justify-center gap-2 w-full h-14 rounded-lg bg-primary text-primary-foreground font-semibold text-base">
+          ⚡ Carga rápida
+        </a>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 flex-1 content-start">
         <AdminCard 
           title="Gestión de Partidos y Actas"
