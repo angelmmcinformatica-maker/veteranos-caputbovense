@@ -1,6 +1,7 @@
 import { AlertTriangle, User } from 'lucide-react';
 import type { CardRanking } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 
 interface CardsTableProps {
   players: CardRanking[];
@@ -29,17 +30,9 @@ export function CardsTable({ players, onPlayerClick }: CardsTableProps) {
                 {index + 1}
               </span>
 
-              {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt={player.name}
-                  className="w-10 h-10 rounded-full object-cover border border-yellow-500/20"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-yellow-400/60" />
-                </div>
-              )}
+              <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.playerId}
+                className="w-10 h-10 border border-yellow-500/20 bg-secondary"
+                fallbackClassName="text-sm text-muted-foreground" />
               
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate hover:text-primary transition-colors">{player.name}</p>

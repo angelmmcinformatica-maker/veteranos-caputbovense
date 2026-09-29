@@ -2,6 +2,7 @@ import { Target, User } from 'lucide-react';
 import type { TopScorer } from '@/types/league';
 import { cn } from '@/lib/utils';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 
 interface TopScorersTableProps {
   scorers: TopScorer[];
@@ -36,17 +37,9 @@ export function TopScorersTable({ scorers, onPlayerClick }: TopScorersTableProps
                 {index + 1}
               </span>
               
-              {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt={scorer.name}
-                  className="w-10 h-10 rounded-full object-cover border border-orange-500/20"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-orange-400/60" />
-                </div>
-              )}
+              <PlayerAvatar photoUrl={photoUrl} name={scorer.name} dorsal={scorer.playerId}
+                className="w-10 h-10 border border-orange-500/20 bg-secondary"
+                fallbackClassName="text-sm text-muted-foreground" />
               
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate hover:text-primary transition-colors">{scorer.name}</p>
