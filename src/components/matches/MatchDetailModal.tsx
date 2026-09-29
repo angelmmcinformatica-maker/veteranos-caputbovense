@@ -4,6 +4,7 @@ import { X, User, Goal, CreditCard, ArrowRightLeft, Shield, Map } from 'lucide-r
 import { cn } from '@/lib/utils';
 import type { Match, MatchReport, MatchReportPlayer, Team } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 import { TacticalField } from './TacticalField';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -111,7 +112,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
   const PlayerName = ({ player, teamName, className }: { player: MatchReportPlayer; teamName: string; className?: string }) => {
     const playerId = getPlayerId(player.name, teamName);
-    const photoUrl = playerId ? getPlayerPhoto(teamName, playerId) : undefined;
+    const photoUrl = playerId !== undefined ? getPlayerPhoto(teamName, playerId) : undefined;
     
     if (onPlayerClick) {
       return (
@@ -119,18 +120,16 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
           onClick={() => onPlayerClick(player.name, teamName)}
           className={cn("hover:text-primary hover:underline transition-colors text-left inline-flex items-center gap-1", className)}
         >
-          {photoUrl && (
-            <img src={photoUrl} alt={player.name} className="w-5 h-5 rounded-full object-cover" />
-          )}
+          <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.matchNumber}
+            className="w-5 h-5 bg-secondary" fallbackClassName="text-[10px] text-primary" />
           {player.alias || player.name}
         </button>
       );
     }
     return (
       <span className={cn("inline-flex items-center gap-1", className)}>
-        {photoUrl && (
-          <img src={photoUrl} alt={player.name} className="w-5 h-5 rounded-full object-cover" />
-        )}
+        <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.matchNumber}
+          className="w-5 h-5 bg-secondary" fallbackClassName="text-[10px] text-primary" />
         {player.alias || player.name}
       </span>
     );

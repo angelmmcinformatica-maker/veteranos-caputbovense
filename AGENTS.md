@@ -2,3 +2,4 @@
 - Resolve push notification match links against loaded season matchdays on the Matches screen; existing report dialogs remain the single match-detail experience.
 - Use one neutral, labeled TeamShield fallback in public standings and team details; missing official images must not imply an official crest.
 - Keep supplied current-season shield overrides in useTeamImages using exact display names; the shared lookup updates every public view without changing historic team records.
+- Render player photos through PlayerAvatar in public views and preserve ImageUpload in Admin; both fall back to the dorsal on image failure without changing stored URLs or upload controls.

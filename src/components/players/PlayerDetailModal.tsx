@@ -1,7 +1,8 @@
-import { X, User, Target, CreditCard, Clock, Play, Armchair, Home, Car, Shield } from 'lucide-react';
+import { X, Target, CreditCard, Clock, Play, Armchair, Home, Car, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, MatchReport, MatchReportPlayer, Team } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 
 interface PlayerDetailModalProps {
   playerName: string;
@@ -140,17 +141,9 @@ export function PlayerDetailModal({
         <div className="sticky top-0 glass-card border-b border-border/50 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {playerPhotoUrl ? (
-                <img
-                  src={playerPhotoUrl}
-                  alt={playerName}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-primary/30"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                  <User className="w-7 h-7 text-primary" />
-                </div>
-              )}
+              <PlayerAvatar photoUrl={playerPhotoUrl} name={playerName}
+                dorsal={playerId} className="w-14 h-14 border-2 border-primary/30 bg-primary/10"
+                fallbackClassName="text-lg text-primary" />
               <div>
                 <h2 className="text-lg font-bold">{playerName}</h2>
                 <div className="flex items-center gap-2">

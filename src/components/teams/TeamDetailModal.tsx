@@ -6,6 +6,7 @@ import type { Matchday, Match, Team, MatchReport, MatchReportPlayer } from '@/ty
 import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { TeamShield } from '@/components/teams/TeamShield';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 
 interface TeamDetailModalProps {
   teamName: string;
@@ -306,17 +307,10 @@ export function TeamDetailModal({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            {photoUrl ? (
-                              <img 
-                                src={photoUrl} 
-                                alt={player.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-primary/20"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary">
-                                {typeof player.id === 'number' ? player.id : '#'}
-                              </div>
-                            )}
+                            <PlayerAvatar photoUrl={photoUrl} name={player.name}
+                              dorsal={player.id}
+                              className="w-10 h-10 border-2 border-primary/20 bg-primary/10"
+                              fallbackClassName="text-sm text-primary" />
                             <div>
                               <p className="font-medium text-sm">
                                 {player.alias || player.name}
