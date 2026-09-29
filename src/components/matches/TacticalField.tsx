@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import type { MatchReportPlayer } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
+import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 
 interface TacticalFieldProps {
   teamName: string;
@@ -152,15 +153,9 @@ export function TacticalField({ teamName, formation, players, homeTeamPlayers, c
               style={{ top: `${top}%`, left: `${left}%` }}
             >
               {/* Player circle */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-background shadow-lg flex items-center justify-center overflow-hidden ring-2 ring-background/50">
-                {photoUrl ? (
-                  <img src={photoUrl} alt={player.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xs sm:text-sm font-bold text-primary">
-                    {player.matchNumber}
-                  </span>
-                )}
-              </div>
+              <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.matchNumber}
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-background shadow-lg ring-2 ring-background/50"
+                fallbackClassName="text-xs sm:text-sm text-primary" />
               {/* Player name */}
               <div className="bg-secondary/90 px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-medium text-foreground whitespace-nowrap max-w-[60px] truncate">
                 {player.alias || player.name.split(' ')[0]}

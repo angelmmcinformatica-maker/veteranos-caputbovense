@@ -23,6 +23,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
   const sizeClasses = {
     sm: 'w-10 h-10',
@@ -85,10 +86,11 @@ export function ImageUpload({
       >
         {uploading ? (
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
-        ) : currentUrl ? (
+        ) : currentUrl && currentUrl !== failedUrl ? (
           <img
             src={currentUrl}
             alt=""
+            onError={() => setFailedUrl(currentUrl)}
             className={cn(
               'w-full h-full object-cover',
               shape === 'circle' ? 'rounded-full' : 'rounded-lg'
