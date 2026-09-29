@@ -38,6 +38,7 @@ export function ImageUpload({
     setUploading(true);
     try {
       await onUpload(file);
+      setFailedUrl(null);
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {

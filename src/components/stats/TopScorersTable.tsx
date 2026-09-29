@@ -20,7 +20,7 @@ export function TopScorersTable({ scorers, onPlayerClick }: TopScorersTableProps
       </div>
       <div className="divide-y divide-white/5">
         {scorers.map((scorer, index) => {
-          const photoUrl = getPlayerPhoto(scorer.team, scorer.playerId || scorer.name);
+          const photoUrl = getPlayerPhoto(scorer.team, scorer.playerId ?? scorer.name);
           return (
             <button 
               key={`${scorer.name}-${scorer.team}`}

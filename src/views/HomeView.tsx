@@ -90,7 +90,7 @@ export function HomeView({ leader, pichichi, lastPlayedMatchday, nextMatchday, s
 
   // Get leader shield and pichichi photo
   const leaderShield = leader ? getTeamShield(leader.team) : undefined;
-  const pichichiPhoto = pichichi && pichichiPlayerId 
+  const pichichiPhoto = pichichi && pichichiPlayerId !== undefined
     ? getPlayerPhoto(pichichi.team, pichichiPlayerId) 
     : undefined;
 

@@ -19,7 +19,7 @@ export function CardsTable({ players, onPlayerClick }: CardsTableProps) {
       </div>
       <div className="divide-y divide-white/5">
         {players.map((player, index) => {
-          const photoUrl = getPlayerPhoto(player.team, player.playerId || player.name);
+          const photoUrl = getPlayerPhoto(player.team, player.playerId ?? player.name);
           return (
             <button 
               key={`${player.name}-${player.team}`}
