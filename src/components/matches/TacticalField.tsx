@@ -140,7 +140,7 @@ export function TacticalField({ teamName, formation, players, homeTeamPlayers, c
           if (!pos) return null;
 
           const playerId = getPlayerId(player.name);
-          const photoUrl = playerId ? getPlayerPhoto(teamName, playerId) : undefined;
+          const photoUrl = playerId !== undefined ? getPlayerPhoto(teamName, playerId) : undefined;
           
           // Convert position to percentage (row 0 = bottom, row 4 = top)
           const top = 100 - (pos[0] / 4.5 * 85 + 7.5);

@@ -1,4 +1,4 @@
-import { AlertTriangle, User } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import type { CardRanking } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { PlayerAvatar } from '@/components/players/PlayerAvatar';

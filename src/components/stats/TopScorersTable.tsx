@@ -1,4 +1,4 @@
-import { Target, User } from 'lucide-react';
+import { Target } from 'lucide-react';
 import type { TopScorer } from '@/types/league';
 import { cn } from '@/lib/utils';
 import { useTeamImages } from '@/hooks/useTeamImages';

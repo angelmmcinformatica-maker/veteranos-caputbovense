@@ -1,4 +1,4 @@
-import { X, User, Target, CreditCard, Clock, Play, Armchair, Home, Car, Shield } from 'lucide-react';
+import { X, Target, CreditCard, Clock, Play, Armchair, Home, Car, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Matchday, MatchReport, MatchReportPlayer, Team } from '@/types/league';
 import { useTeamImages } from '@/hooks/useTeamImages';

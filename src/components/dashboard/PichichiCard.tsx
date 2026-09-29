@@ -1,5 +1,4 @@
-import { Target, Flame, User } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Flame } from 'lucide-react';
 import type { TopScorer } from '@/types/league';
 import { PlayerAvatar } from '@/components/players/PlayerAvatar';
 

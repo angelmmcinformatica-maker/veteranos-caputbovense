@@ -112,7 +112,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
 
   const PlayerName = ({ player, teamName, className }: { player: MatchReportPlayer; teamName: string; className?: string }) => {
     const playerId = getPlayerId(player.name, teamName);
-    const photoUrl = playerId ? getPlayerPhoto(teamName, playerId) : undefined;
+    const photoUrl = playerId !== undefined ? getPlayerPhoto(teamName, playerId) : undefined;
     
     if (onPlayerClick) {
       return (
