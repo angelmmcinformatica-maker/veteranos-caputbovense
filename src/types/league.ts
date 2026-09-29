@@ -100,6 +100,7 @@ export interface TopScorer {
   team: string;
   goals: number;
   playerId?: string | number;
+  dorsal?: string | number;
 }
 
 export interface CardRanking {
@@ -108,4 +109,5 @@ export interface CardRanking {
   yellowCards: number;
   redCards: number;
   playerId?: string | number;
+  dorsal?: string | number;
 }

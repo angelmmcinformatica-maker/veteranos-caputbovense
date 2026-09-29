@@ -308,7 +308,7 @@ export function TeamDetailModal({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <PlayerAvatar photoUrl={photoUrl} name={player.name}
-                              dorsal={typeof player.id === 'number' ? player.id : '#'}
+                              dorsal={player.id}
                               className="w-10 h-10 border-2 border-primary/20 bg-primary/10"
                               fallbackClassName="text-sm text-primary" />
                             <div>

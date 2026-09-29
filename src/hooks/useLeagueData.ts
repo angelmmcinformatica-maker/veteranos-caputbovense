@@ -332,7 +332,8 @@ export function useLeagueData() {
                 name: player.name,
                 team: teamName,
                 goals: 0,
-                playerId: player.id
+                playerId: player.id,
+                dorsal: player.matchNumber
               };
             }
             scorers[playerId].goals += player.goals;
@@ -369,7 +370,8 @@ export function useLeagueData() {
                 team: teamName,
                 yellowCards: 0,
                 redCards: 0,
-                playerId: player.id
+                playerId: player.id,
+                dorsal: player.matchNumber
               };
             }
             players[playerId].yellowCards += player.yellowCards || 0;

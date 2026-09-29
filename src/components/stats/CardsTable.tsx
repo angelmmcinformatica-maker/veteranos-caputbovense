@@ -30,7 +30,7 @@ export function CardsTable({ players, onPlayerClick }: CardsTableProps) {
                 {index + 1}
               </span>
 
-              <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.playerId}
+              <PlayerAvatar photoUrl={photoUrl} name={player.name} dorsal={player.dorsal ?? player.playerId}
                 className="w-10 h-10 border border-yellow-500/20 bg-secondary"
                 fallbackClassName="text-sm text-muted-foreground" />
               

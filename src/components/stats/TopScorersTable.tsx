@@ -37,7 +37,7 @@ export function TopScorersTable({ scorers, onPlayerClick }: TopScorersTableProps
                 {index + 1}
               </span>
               
-              <PlayerAvatar photoUrl={photoUrl} name={scorer.name} dorsal={scorer.playerId}
+              <PlayerAvatar photoUrl={photoUrl} name={scorer.name} dorsal={scorer.dorsal ?? scorer.playerId}
                 className="w-10 h-10 border border-orange-500/20 bg-secondary"
                 fallbackClassName="text-sm text-muted-foreground" />
               

@@ -23,7 +23,7 @@ export function PichichiCard({ pichichi, photoUrl }: PichichiCardProps) {
         
         <div className="flex items-center gap-4">
           {/* Player photo */}
-          <PlayerAvatar photoUrl={photoUrl} name={pichichi.name} dorsal={pichichi.playerId}
+          <PlayerAvatar photoUrl={photoUrl} name={pichichi.name} dorsal={pichichi.dorsal ?? pichichi.playerId}
             className="w-14 h-14 border-2 border-orange-500/30 bg-secondary"
             fallbackClassName="text-lg text-muted-foreground" />
           
