@@ -22,8 +22,8 @@ describe('player photo fallback', () => {
 
   it('retains the upload control and shows its dorsal when an admin photo fails', () => {
     render(<ImageUpload currentUrl="/missing.jpg" placeholder={<span>9</span>} onUpload={async () => {}} />);
-    fireEvent.error(screen.getByRole('img'));
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    fireEvent.error(screen.getByRole('presentation'));
+    expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
     expect(screen.getByRole('button')).toContainElement(screen.getByText('9'));
   });
 });
