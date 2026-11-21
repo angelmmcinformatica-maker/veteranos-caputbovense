@@ -6,3 +6,7 @@
 - [x] Open the correct match report from push alerts while retaining existing navigation.
 - [x] Check build and four requested viewports; do not publish.
 - [x] Link the three supplied 2026/2027 shields to their exact display names and verify on home, standings, and calendar without publishing.
+- [x] Add confirmed match venues, safe Maps links, and administrator venue-only editing; preserve existing results and reports.
+- [x] Verify J10 exceptions, venue-only save tests and mobile/desktop layouts without publishing; Valdivia exact field remains unconfirmed as requested.
+- [ ] Verify venue save/readback through the real authenticated Admin UI (blocked: no administrator session available).
+- [ ] Validate Google Maps destination on an authorized deployed origin (blocked: live Maps testing unavailable in sandbox; do not publish yet).

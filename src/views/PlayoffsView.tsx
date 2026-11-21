@@ -1,4 +1,5 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { MatchVenueInfo } from '@/components/matches/MatchVenueInfo';
 import { Trophy, Award, Shield, Home, Clock, Users } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { consolacionTeams } from '@/data/deportividadData';
@@ -288,6 +289,7 @@ function MatchCard({
           </span>
         </div>
       )}
+      {live && <MatchVenueInfo match={live} />}
     </div>
   );
 }

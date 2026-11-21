@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MatchVenueEditor } from './MatchVenueEditor';
 
 interface MatchEditModalProps {
   match: Match;
@@ -317,6 +318,7 @@ export function MatchEditModal({
             {/* Result Tab - only for admin and referee */}
             {canEditResult && (
             <TabsContent value="result" className="m-0 space-y-6">
+              {userRole === 'admin' && <MatchVenueEditor match={match} matchday={matchday} homeTeam={homeTeam} />}
               {/* Status selector */}
               <div className="space-y-2">
                 <Label>Estado del partido</Label>

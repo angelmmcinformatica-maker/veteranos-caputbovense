@@ -7,6 +7,8 @@ import { MatchDetailModal } from '@/components/matches/MatchDetailModal';
 import { useTeamImages } from '@/hooks/useTeamImages';
 import { TeamShield } from '@/components/teams/TeamShield';
 import { PlayerAvatar } from '@/components/players/PlayerAvatar';
+import { MatchVenueInfo } from '@/components/matches/MatchVenueInfo';
+import { Button } from '@/components/ui/button';
 
 interface TeamDetailModalProps {
   teamName: string;
@@ -200,15 +202,15 @@ export function TeamDetailModal({
                   const hasReport = !!getMatchReport(match);
 
                   return (
-                    <button
+                    <div
                       key={index}
-                      onClick={() => match.status === 'PLAYED' ? setSelectedMatch(match) : undefined}
                       className={cn(
-                        'w-full glass-card p-2 sm:p-3 text-left transition-all',
+                        'relative w-full glass-card p-2 sm:p-3 text-left transition-all',
                         match.status === 'PLAYED' && 'cursor-pointer hover:ring-1 hover:ring-primary/50',
                         match.status !== 'PLAYED' && 'opacity-60'
                       )}
                     >
+                      <Button type="button" variant="ghost" className="absolute inset-0 h-full w-full opacity-0 focus-visible:opacity-100 focus-visible:bg-transparent" onClick={() => setSelectedMatch(match)} aria-label={`Ver partido de jornada ${jornada} contra ${opponent}`} />
                       <div className="flex items-center gap-2">
                         {/* Left: Jornada + Home/Away + Shield */}
                         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
@@ -256,7 +258,8 @@ export function TeamDetailModal({
                           )}
                         </div>
                       </div>
-                    </button>
+                      <MatchVenueInfo match={match} />
+                    </div>
                   );
                 })}
 

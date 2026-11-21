@@ -1,4 +1,5 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { MatchVenueInfo } from '@/components/matches/MatchVenueInfo';
 import { useMemo } from 'react';
 import { Trophy, Home, ArrowRight, Shield, Hourglass } from 'lucide-react';
 import { useTeamImages } from '@/hooks/useTeamImages';
@@ -374,12 +375,10 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
               const showScore = live && (live.status === 'PLAYED' || live.status === 'LIVE') && hasConfirmedScore(live);
               const isLive = live?.status === 'LIVE';
               return (
-                <button
+                <div
                   key={m.id}
-                  type="button"
-                  onClick={onNavigate}
                   className={cn(
-                    'group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
+                    'relative group text-left rounded-xl border p-3 transition-all hover:scale-[1.02] hover:shadow-lg snap-start',
                     'shrink-0 w-[78%] md:w-auto',
                     m.competition === 'liga'
                       ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
@@ -387,6 +386,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                     isLive && 'ring-2 ring-destructive/60'
                   )}
                 >
+                  <Button variant="ghost" type="button" onClick={onNavigate} aria-label="Ver fase final" className="absolute inset-0 w-full h-full opacity-0 focus-visible:opacity-100 focus-visible:bg-transparent" />
                   <div className="flex items-center justify-between mb-2">
                     <span className={cn(
                       'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
@@ -416,7 +416,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                       </div>
                       {showScore && (
                         <span className="text-lg font-extrabold tabular-nums text-foreground flex-shrink-0">
-                          {live!.homeGoals}
+                          {live?.homeGoals}
                         </span>
                       )}
                     </div>
@@ -431,7 +431,7 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                       </div>
                       {showScore && (
                         <span className="text-lg font-extrabold tabular-nums text-foreground flex-shrink-0">
-                          {live!.awayGoals}
+                          {live?.awayGoals}
                         </span>
                       )}
                     </div>
@@ -443,7 +443,8 @@ export function PlayoffsHero({ onNavigate, onTeamClick, playoffMatchdays }: Play
                       </div>
                     )}
                   </div>
-                </button>
+                  {live && <MatchVenueInfo match={live} />}
+                </div>
               );
             })}
           </div>

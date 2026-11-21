@@ -1,4 +1,5 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { MatchVenueInfo } from './MatchVenueInfo';
 import { useState } from 'react';
 import { X, User, Goal, CreditCard, ArrowRightLeft, Shield, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -244,6 +245,7 @@ export function MatchDetailModal({ match, matchReport, teams, onClose, onPlayerC
             </div>
           </div>
 
+          <MatchVenueInfo match={match} homeTeam={homeTeam} />
           {!matchReport ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">

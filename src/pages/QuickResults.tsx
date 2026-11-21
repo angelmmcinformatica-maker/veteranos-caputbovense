@@ -1,4 +1,6 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { MatchVenueEditor } from '@/components/admin/MatchVenueEditor';
+import { MatchVenueInfo } from '@/components/matches/MatchVenueInfo';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
@@ -173,6 +175,7 @@ export default function QuickResults() {
                       <div className="flex items-center gap-2 min-w-0 justify-end text-right"><span className="text-sm font-medium break-words min-w-0">{m.away}</span><TeamShield name={m.away} src={getTeamShield(m.away)} className="size-8" /></div>
                     </div>
                   </button>
+                  <MatchVenueInfo match={m} />
                 </li>
               ))}
             </ul>
@@ -180,6 +183,7 @@ export default function QuickResults() {
         ) : (
           <div className="space-y-5">
             <p className="text-xs text-muted-foreground">Jornada {sel.matchday.jornada} · {sel.match.date || sel.matchday.date} {sel.match.time}</p>
+            <MatchVenueEditor key={`${sel.matchday.id}-${sel.match.home}-${sel.match.away}`} match={sel.match} matchday={sel.matchday} homeTeam={teams.find(t => t.name === sel.match.home)} />
             {hadResult && (
               <div className="p-3 rounded-lg border border-warning/30 bg-warning/10 text-sm">
                 Este partido ya tiene resultado ({sel.match.homeGoals} - {sel.match.awayGoals}, {statusLabel[sel.match.status]}). Al guardar se modificará.

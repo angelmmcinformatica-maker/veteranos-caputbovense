@@ -1,4 +1,5 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { resolveMatchVenue, withConfirmedMatchVenue } from '@/lib/matchVenue';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -480,9 +481,22 @@ export function useLeagueData() {
     return candidates[0].matchday;
   }, [matchdays]);
 
+  // Presentation-only enrichment; no writes or inferred team assignments.
+  const [publicMatchdays, publicPlayoffs] = useMemo(() => {
+    const enrichVenues = (days: Matchday[]) => days.map(md => ({
+      ...md,
+      matches: (md.matches ?? []).map(raw => {
+        const match = withConfirmedMatchVenue(raw, seasonId, md.jornada);
+        const homeTeam = teams.find(team => team.name === match.home);
+        return match.venue != null ? match : { ...match, venue: resolveMatchVenue(match, homeTeam, seasonId) };
+      }),
+    }));
+    return [enrichVenues(matchdays), enrichVenues(playoffMatchdays)];
+  }, [matchdays, playoffMatchdays, teams, seasonId]);
+
   return {
-    matchdays,
-    playoffMatchdays,
+    matchdays: publicMatchdays,
+    playoffMatchdays: publicPlayoffs,
     teams,
     matchReports,
     standings,
@@ -490,8 +504,8 @@ export function useLeagueData() {
     topScorers,
     pichichi,
     cardRankings,
-    lastPlayedMatchday,
-    nextMatchday,
+    lastPlayedMatchday: publicMatchdays.find(md => md.id === lastPlayedMatchday?.id) ?? null,
+    nextMatchday: publicMatchdays.find(md => md.id === nextMatchday?.id) ?? null,
     loading,
     error,
     refetch

@@ -1,4 +1,6 @@
 import { hasConfirmedScore } from '@/lib/matchScore';
+import { MatchVenueInfo } from './MatchVenueInfo';
+import { Button } from '@/components/ui/button';
 import { Clock, CheckCircle2, Radio, FileText, Shield, AlertCircle, Ban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Match } from '@/types/league';
@@ -36,7 +38,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
     }
   };
 
-  const CardWrapper = onClick ? 'button' : 'div';
+  const CardWrapper = 'div';
 
   const TeamShield = ({ url, name }: { url?: string; name: string }) => (
     url ? (
@@ -60,9 +62,8 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
 
   return (
     <CardWrapper
-      onClick={onClick}
       className={cn(
-        'w-full min-w-0 max-w-full rounded-lg transition-all text-left overflow-hidden box-border',
+        'relative w-full min-w-0 max-w-full rounded-lg transition-all text-left overflow-hidden box-border',
         compact ? 'p-2 sm:p-4 bg-secondary/50' : 'glass-card-hover p-2 sm:p-4',
         isLive && 'border-l-2 border-l-status-win',
         isPendingResult && 'border-l-2 border-l-warning',
@@ -70,6 +71,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
         onClick && 'cursor-pointer hover:ring-1 hover:ring-primary/50'
       )}
     >
+      {onClick && <Button variant="ghost" type="button" className="absolute inset-0 h-full w-full opacity-0 focus-visible:opacity-100 focus-visible:bg-transparent" onClick={onClick} aria-label={`Ver partido ${match.home} contra ${match.away}`} />}
       {/* Status badge */}
       <div className="flex min-w-0 max-w-full flex-wrap justify-center text-center mb-1.5 sm:mb-2">
         {isPlayed && (
@@ -132,7 +134,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.home)}
                 className={cn(
-                   'min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
+                   'relative z-10 min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
@@ -182,7 +184,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
               <button
                 onClick={(e) => handleTeamClick(e, match.away)}
                 className={cn(
-                   'min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
+                   'relative z-10 min-w-0 max-w-full text-center leading-snug hover:text-primary transition-colors truncate',
                   compact ? 'text-xs' : 'text-sm'
                 )}
               >
@@ -206,7 +208,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             {onTeamClick ? (
               <button
                 onClick={(e) => handleTeamClick(e, match.home)}
-                className="text-right leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
+                className="relative z-10 text-right leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
               >
                 {match.home}
               </button>
@@ -256,7 +258,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
             {onTeamClick ? (
               <button
                 onClick={(e) => handleTeamClick(e, match.away)}
-                className="text-left leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
+                className="relative z-10 text-left leading-snug hover:text-primary hover:underline transition-colors text-xs line-clamp-2 break-words"
               >
                 {match.away}
               </button>
@@ -268,6 +270,7 @@ export function MatchCard({ match, compact = false, showTime = false, onClick, h
           </div>
         </div>
       </div>
+      <MatchVenueInfo match={match} />
     </CardWrapper>
   );
 }

@@ -1,3 +1,9 @@
+export interface MatchVenue {
+  name: string;
+  locality: string;
+  confirmed: boolean;
+}
+
 export interface Match {
   home: string;
   away: string;
@@ -13,6 +19,8 @@ export interface Match {
   awayPenalties?: number | null;
   /** true when LIVE was set only by the kick-off timer and no score has been saved yet */
   autoLive?: boolean;
+  /** Explicit match venue, independent of home team; unconfirmed suppresses fallback. */
+  venue?: MatchVenue | null;
 }
 
 export interface Matchday {
@@ -39,6 +47,7 @@ export interface Team {
   seasonNames?: Record<string, string> | null;
   /** Per-season rosters, e.g. { "2026-2027": Player[] } */
   rosters?: Record<string, Player[]> | null;
+  seasonVenues?: Record<string, MatchVenue> | null;
 }
 
 
