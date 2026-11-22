@@ -1,5 +1,27 @@
 import type { Match, MatchVenue, Team } from '@/types/league';
 
+// Exact current-season display names only; never infer a club's ground from a locality.
+// User-supplied grounds with unambiguous club/locality correspondence. No database writes.
+const habitualVenues: Record<string, MatchVenue> = {
+  'VETERANOS ALMOHARIN': { name: 'La Higuerilla', locality: 'Almoharín, Cáceres', confirmed: true, mapsQuery: 'Pabellón Multiusos de Almoharín', mapsNearbyReference: true },
+  'VALDEHORNILLOS VETERANOS': { name: 'Julián Lozano Pintado', locality: 'Valdehornillos, Badajoz', confirmed: true, mapsQuery: 'Estadio Las Amapolas, Valdehornillos' },
+  'PALAZUELO SANTA TERESA': { name: 'La Morera', locality: 'Palazuelo, Badajoz', confirmed: true },
+  'SANTA AMALIA VETERANOS': { name: 'La Mesta', locality: 'Santa Amalia, Badajoz', confirmed: true },
+  'TALARRUBIAS VETERANOS': { name: 'Campo de fútbol municipal', locality: 'Talarrubias, Badajoz', confirmed: true },
+  'VALDIVIA VETERANOS': { name: 'Primero de Mayo', locality: 'Valdivia, Badajoz', confirmed: true },
+  'SAN BARTOLOME VETERANOS': { name: 'Campo de fútbol municipal', locality: 'La Coronada, Badajoz', confirmed: true },
+  'VETERANOS ZURBARAN': { name: 'La Pradera', locality: 'Zurbarán, Badajoz', confirmed: true },
+  'AD ALCUESCAR': { name: 'José Luis Moretón', locality: 'Alcuéscar, Cáceres', confirmed: true },
+  'CD GARGALIGAS': { name: 'Campo de fútbol municipal', locality: 'Gargáligas, Badajoz', confirmed: true },
+  'CP RENA': { name: 'Campo de fútbol municipal', locality: 'Rena, Badajoz', confirmed: true },
+  'CD ESTEBAN GOMEZ VET. EL TORVISCAL': { name: 'Campo de fútbol municipal', locality: 'El Torviscal, Badajoz', confirmed: true },
+  'AMAZONIA ORELLANA': { name: 'Polideportivo municipal', locality: 'Orellana la Vieja, Badajoz', confirmed: true },
+  'HERNAN CORTES VETERANOS': { name: 'Daniel, Gonzalo y Jorge', locality: 'Hernán Cortés, Badajoz', confirmed: true },
+  'CAMPANARIO ATLETICO': { name: 'El Ejido', locality: 'Campanario, Badajoz', confirmed: true },
+  'CAMPANARIO INTERSERENA': { name: 'El Ejido', locality: 'Campanario, Badajoz', confirmed: true },
+  'AGRICOLA MERCHAN VVA.': { name: 'Anexo Villanovense', locality: 'Villanueva de la Serena, Badajoz', confirmed: true },
+};
+
 // Explicit fixture information only. A locality alone does not confirm a ground.
 const confirmedJ10: Array<{ teams: [string, string]; venue: MatchVenue }> = [
   { teams: ['DOCENARIO ATLETICO', 'AMAZONIA ORELLANA'], venue: { name: 'Campo de fútbol de Quintana', locality: 'Quintana de la Serena, Badajoz', confirmed: true } },
@@ -16,7 +38,8 @@ export function withConfirmedMatchVenue(match: Match, seasonId: string, jornada:
 }
 
 export function resolveMatchVenue(match: Match, homeTeam: Team | undefined, seasonId: string): MatchVenue | null {
-  const venue = match.venue ?? homeTeam?.seasonVenues?.[seasonId];
+  const venue = match.venue ?? homeTeam?.seasonVenues?.[seasonId]
+    ?? (seasonId === '2026-2027' ? habitualVenues[match.home] : undefined);
   return venue?.confirmed && venue.name?.trim() && venue.locality?.trim() ? venue : null;
 }
 

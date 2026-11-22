@@ -55,4 +55,50 @@ describe('Sedes confirmadas', () => {
     expect(replaceMatchVenue([match, base], 0, venue)).toEqual([{ ...match, venue }, base]);
     expect(() => replaceMatchVenue([base], -1, venue)).toThrow('Partido no encontrado');
   });
+  it.each([
+    ['VETERANOS ALMOHARIN', 'La Higuerilla', 'Almoharín, Cáceres'],
+    ['VALDEHORNILLOS VETERANOS', 'Julián Lozano Pintado', 'Valdehornillos, Badajoz'],
+    ['PALAZUELO SANTA TERESA', 'La Morera', 'Palazuelo, Badajoz'],
+    ['SANTA AMALIA VETERANOS', 'La Mesta', 'Santa Amalia, Badajoz'],
+    ['TALARRUBIAS VETERANOS', 'Campo de fútbol municipal', 'Talarrubias, Badajoz'],
+    ['VALDIVIA VETERANOS', 'Primero de Mayo', 'Valdivia, Badajoz'],
+    ['SAN BARTOLOME VETERANOS', 'Campo de fútbol municipal', 'La Coronada, Badajoz'],
+    ['VETERANOS ZURBARAN', 'La Pradera', 'Zurbarán, Badajoz'],
+    ['AD ALCUESCAR', 'José Luis Moretón', 'Alcuéscar, Cáceres'],
+    ['CD GARGALIGAS', 'Campo de fútbol municipal', 'Gargáligas, Badajoz'],
+    ['CP RENA', 'Campo de fútbol municipal', 'Rena, Badajoz'],
+    ['CD ESTEBAN GOMEZ VET. EL TORVISCAL', 'Campo de fútbol municipal', 'El Torviscal, Badajoz'],
+    ['AMAZONIA ORELLANA', 'Polideportivo municipal', 'Orellana la Vieja, Badajoz'],
+    ['HERNAN CORTES VETERANOS', 'Daniel, Gonzalo y Jorge', 'Hernán Cortés, Badajoz'],
+    ['CAMPANARIO ATLETICO', 'El Ejido', 'Campanario, Badajoz'],
+    ['CAMPANARIO INTERSERENA', 'El Ejido', 'Campanario, Badajoz'],
+    ['AGRICOLA MERCHAN VVA.', 'Anexo Villanovense', 'Villanueva de la Serena, Badajoz'],
+  ])('habitual de %s: %s sin cambiar el partido ni el archivo', (home, name, locality) => {
+    const match = { ...base, home };
+    const original = structuredClone(match);
+    const resolved = resolveMatchVenue(match, undefined, '2026-2027');
+    expect(resolved).toMatchObject({ name, locality, confirmed: true });
+    const url = new URL(venueMapsUrl(resolved) ?? 'https://invalid.example');
+    expect(url.hostname).toBe('www.google.com');
+    expect(url.searchParams.get('query')).toBe(resolved?.mapsQuery ?? `${name}, ${locality}, España`);
+    expect(resolveMatchVenue(match, undefined, '2025-2026')).toBeNull();
+    expect(match).toEqual(original);
+  });
+  it('Almoharín usa el pabellón solo como referencia cercana', () => {
+    const resolved = resolveMatchVenue({ ...base, home: 'VETERANOS ALMOHARIN' }, undefined, '2026-2027');
+    expect(resolved?.mapsNearbyReference).toBe(true);
+    expect(new URL(venueMapsUrl(resolved) ?? 'https://invalid.example').searchParams.get('query')).toBe('Pabellón Multiusos de Almoharín');
+  });
+  it.each(['GIMNASTICO D.B. VETERANOS', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO', 'CENTROGLASS VULEBAR', 'CLINICA DENT. DOCTOR DOBLADO', 'V. BAR LA TASCA MIAJADAS', 'AD CAPUTBOVENSE', 'DOCENARIO ATLETICO', 'ZALAMEA VETERANOS'])('no adivina sede habitual para %s', home => {
+    expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toBeNull();
+  });
+  it('la sede habitual guardada prevalece sobre la configuración y una excepción pendiente sobre ambas', () => {
+    const home = 'PALAZUELO SANTA TERESA';
+    const homeTeam: Team = { id: '1', name: home, players: [], seasonVenues: { '2026-2027': venue } };
+    expect(resolveMatchVenue({ ...base, home }, homeTeam, '2026-2027')).toEqual(venue);
+    const exceptional = withConfirmedMatchVenue({ ...base, home, away: 'VETERANOS ZURBARAN' }, '2026-2027', 10);
+    expect(resolveMatchVenue(exceptional, homeTeam, '2026-2027')).toBeNull();
+    expect(resolveMatchVenue({ ...exceptional, home: 'VALDIVIA VETERANOS' }, undefined, '2026-2027')).toBeNull();
+    expect(resolveMatchVenue({ ...base, home, venue }, undefined, '2026-2027')).toEqual(venue);
+  });
 });

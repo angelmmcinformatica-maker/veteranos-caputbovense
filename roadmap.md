@@ -10,3 +10,4 @@
 - [x] Verify J10 exceptions, venue-only save tests and mobile/desktop layouts without publishing; Valdivia exact field remains unconfirmed as requested.
 - [ ] Verify venue save/readback through the real authenticated Admin UI (blocked: no administrator session available).
 - [ ] Validate Google Maps destination on an authorized deployed origin (blocked: live Maps testing unavailable in sandbox; do not publish yet).
+- [x] Complete 17 reliable current-season habitual grounds, label Almoharín's nearby reference, preserve fixture overrides; 44 tests and five viewport checks passed without publishing. Eight active clubs remain unassigned (ambiguous or no supplied ground); Palazuelo–Zurbarán J10 remains pending.

@@ -3,5 +3,5 @@
 - Use one neutral, labeled TeamShield fallback in public standings and team details; missing official images must not imply an official crest.
 - Keep supplied current-season shield overrides in useTeamImages using exact display names; the shared lookup updates every public view without changing historic team records.
 - Render player photos through PlayerAvatar in public views and preserve ImageUpload in Admin; both fall back to the dorsal on image failure without changing stored URLs or upload controls.
-- Resolve venues centrally with explicit per-match data before season-specific team defaults; confirmed fixture configuration is read-only enrichment so existing match data stays untouched.
+- Resolve venues centrally in order: explicit match data (including unconfirmed), fixture exceptions, stored season-specific team defaults, then exact-name current-season habitual configuration; enrichment is read-only to preserve data and archives, and nearby Maps references retain their distinct label/query when edited.
 - Save venue edits independently in a Firestore transaction against the latest match array, preserving scores, status and reports; external Maps links must be siblings of match-opening buttons to remain independently tappable.

@@ -31,6 +31,14 @@ describe('Guardar solo campo', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar solo el campo' }));
     expect(state.updates).toHaveLength(0);
   });
+  it.each([
+    { name: 'La Higuerilla', locality: 'Almoharín, Cáceres', confirmed: true, mapsQuery: 'Pabellón Multiusos de Almoharín', mapsNearbyReference: true },
+    { name: 'Julián Lozano Pintado', locality: 'Valdehornillos, Badajoz', confirmed: true, mapsQuery: 'Estadio Las Amapolas, Valdehornillos' },
+  ])('conserva el destino Maps al guardar $name sin tocar resultado', async venue => {
+    render(<MatchVenueEditor {...props} match={{ ...match, venue }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar solo el campo' }));
+    await waitFor(() => expect(state.updates).toEqual([{ matches: [{ ...match, venue }] }]));
+  });
   it('no muestra edición a árbitros', () => {
     state.admin = false;
     render(<MatchVenueEditor {...props} />);

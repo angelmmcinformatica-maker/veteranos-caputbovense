@@ -20,10 +20,14 @@ export function MatchVenueEditor({ match, matchday, homeTeam }: { match: Match; 
   const [name, setName] = useState(initial?.name ?? '');
   const [locality, setLocality] = useState(initial?.locality ?? '');
   const [confirmed, setConfirmed] = useState(initial?.confirmed === true);
+  const [mapsQuery, setMapsQuery] = useState(initial?.mapsQuery ?? '');
+  const [mapsNearbyReference, setMapsNearbyReference] = useState(initial?.mapsNearbyReference === true);
   const [habitual, setHabitual] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const venue = { name: name.trim(), locality: locality.trim(), confirmed };
+  const venue = { name: name.trim(), locality: locality.trim(), confirmed,
+    ...(mapsQuery.trim() ? { mapsQuery: mapsQuery.trim(), ...(mapsNearbyReference ? { mapsNearbyReference: true } : {}) } : {}),
+  };
   if (!isAdmin || !currentUser || !userData || isReadOnly) return null;
 
   const save = async () => {
@@ -56,6 +60,8 @@ export function MatchVenueEditor({ match, matchday, homeTeam }: { match: Match; 
       <div className="space-y-2"><Label htmlFor="venue-name">Nombre del campo</Label><Input id="venue-name" maxLength={150} value={name} onChange={(e) => setName(e.target.value)} /></div>
       <div className="space-y-2"><Label htmlFor="venue-locality">Población y provincia</Label><Input id="venue-locality" maxLength={150} value={locality} onChange={(e) => setLocality(e.target.value)} /></div>
     </div>
+    <div className="space-y-2"><Label htmlFor="venue-maps-query">Destino en Google Maps (si es distinto del nombre del campo)</Label><Input id="venue-maps-query" maxLength={200} value={mapsQuery} onChange={(e) => setMapsQuery(e.target.value)} /></div>
+    {mapsQuery.trim() && <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={mapsNearbyReference} onChange={(e) => setMapsNearbyReference(e.target.checked)} />El destino es una referencia cercana, no el campo</label>}
     <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />Campo exacto confirmado</label>
     {homeTeam && <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={habitual} onChange={(e) => setHabitual(e.target.checked)} />También es el campo habitual de {homeTeam.name} en esta temporada</label>}
     <MatchVenueInfo match={{ ...match, venue }} />
