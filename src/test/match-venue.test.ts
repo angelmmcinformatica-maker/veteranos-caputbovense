@@ -7,7 +7,6 @@ const venue: MatchVenue = { name: 'Julián Lozano Pintado', locality: 'Valdehorn
 describe('Sedes confirmadas', () => {
   it.each([
     ['DOCENARIO ATLETICO', 'AMAZONIA ORELLANA', 'Campo de fútbol de Quintana', 'Quintana de la Serena, Badajoz'],
-    ['VALDEHORNILLOS VETERANOS', 'SPORTING DON BENITO', 'Julián Lozano Pintado', 'Valdehornillos, Badajoz'],
     ['SANTA AMALIA VETERANOS', 'VALDIVIA VETERANOS', 'Campo de fútbol de césped artificial', 'Santa Amalia, Badajoz'],
   ])('J10 %s–%s apunta a %s', (home, away, name, locality) => {
     const match = withConfirmedMatchVenue({ ...base, home, away }, '2026-2027', 10);
@@ -15,6 +14,13 @@ describe('Sedes confirmadas', () => {
     const url = new URL(venueMapsUrl(match.venue ?? null) ?? 'https://invalid.example');
     expect(url.hostname).toBe('www.google.com');
     expect(url.searchParams.get('query')).toBe(`${name}, ${locality}, España`);
+  });
+  it('Valdehornillos muestra Julián Lozano Pintado pero busca Estadio Las Amapolas', () => {
+    const match = withConfirmedMatchVenue({ ...base, home: 'VALDEHORNILLOS VETERANOS', away: 'SPORTING DON BENITO' }, '2026-2027', 10);
+    expect(match.venue).toEqual({ name: 'Julián Lozano Pintado', locality: 'Valdehornillos, Badajoz', confirmed: true, mapsQuery: 'Estadio Las Amapolas, Valdehornillos' });
+    const url = new URL(venueMapsUrl(match.venue ?? null) ?? 'https://invalid.example');
+    expect(url.hostname).toBe('www.google.com');
+    expect(url.searchParams.get('query')).toBe('Estadio Las Amapolas, Valdehornillos');
   });
   it('Palazuelo–Zurbarán conserva Valdivia sin adivinar el campo exacto', () => {
     const match = withConfirmedMatchVenue({ ...base, home: 'PALAZUELO SANTA TERESA', away: 'VETERANOS ZURBARAN' }, '2026-2027', 10);

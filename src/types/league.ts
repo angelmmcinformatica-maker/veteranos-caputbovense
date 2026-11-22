@@ -2,6 +2,8 @@ export interface MatchVenue {
   name: string;
   locality: string;
   confirmed: boolean;
+  /** Optional Google Maps query when it differs from the display name. */
+  mapsQuery?: string;
 }
 
 export interface Match {

@@ -4,7 +4,7 @@ import type { Match, MatchVenue, Team } from '@/types/league';
 const confirmedJ10: Array<{ teams: [string, string]; venue: MatchVenue }> = [
   { teams: ['DOCENARIO ATLETICO', 'AMAZONIA ORELLANA'], venue: { name: 'Campo de fútbol de Quintana', locality: 'Quintana de la Serena, Badajoz', confirmed: true } },
   { teams: ['PALAZUELO SANTA TERESA', 'VETERANOS ZURBARAN'], venue: { name: '', locality: 'Valdivia, Badajoz', confirmed: false } },
-  { teams: ['VALDEHORNILLOS VETERANOS', 'SPORTING DON BENITO'], venue: { name: 'Julián Lozano Pintado', locality: 'Valdehornillos, Badajoz', confirmed: true } },
+  { teams: ['VALDEHORNILLOS VETERANOS', 'SPORTING DON BENITO'], venue: { name: 'Julián Lozano Pintado', locality: 'Valdehornillos, Badajoz', confirmed: true, mapsQuery: 'Estadio Las Amapolas, Valdehornillos' } },
   { teams: ['SANTA AMALIA VETERANOS', 'VALDIVIA VETERANOS'], venue: { name: 'Campo de fútbol de césped artificial', locality: 'Santa Amalia, Badajoz', confirmed: true } },
 ];
 
@@ -22,7 +22,8 @@ export function resolveMatchVenue(match: Match, homeTeam: Team | undefined, seas
 
 export function venueMapsUrl(venue: MatchVenue | null): string | null {
   if (!venue?.confirmed || !venue.name?.trim() || !venue.locality?.trim()) return null;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue.name.trim()}, ${venue.locality.trim()}, España`)}`;
+  const query = venue.mapsQuery?.trim() || `${venue.name.trim()}, ${venue.locality.trim()}, España`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
 /** Change venue only, retaining all other fields from the latest stored match. */
