@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { replaceMatchVenue, resolveMatchVenue, venueMapsUrl, withConfirmedMatchVenue } from '@/lib/matchVenue';
+import { celestinoMeraVenue, isGoogleMapsUrl, replaceMatchVenue, resolveMatchVenue, venueMapsUrl, withConfirmedMatchVenue } from '@/lib/matchVenue';
 import type { Match, MatchVenue, Team } from '@/types/league';
 
 const base: Match = { home: 'DOCENARIO ATLETICO', away: 'AMAZONIA ORELLANA', homeGoals: 2, awayGoals: 1, date: '', time: '', status: 'PLAYED', referee: null, refereeName: null };
@@ -36,7 +36,7 @@ describe('Sedes confirmadas', () => {
   it('no asigna campos por nombres, otras jornadas ni históricos', () => {
     expect(withConfirmedMatchVenue(base, '2025-2026', 10).venue).toBeUndefined();
     expect(withConfirmedMatchVenue(base, '2026-2027', 9).venue).toBeUndefined();
-    expect(resolveMatchVenue(base, undefined, '2026-2027')).toBeNull();
+    expect(resolveMatchVenue({ ...base, home: 'EQUIPO SIN CAMPO' }, undefined, '2026-2027')).toBeNull();
   });
   it('campo no confirmado impide enlace y fallback habitual', () => {
     const homeTeam: Team = { id: '1', name: base.home, players: [], seasonVenues: { '2026-2027': venue } };
@@ -56,9 +56,9 @@ describe('Sedes confirmadas', () => {
     expect(() => replaceMatchVenue([base], -1, venue)).toThrow('Partido no encontrado');
   });
   it.each([
-    ['VETERANOS ALMOHARIN', 'La Higuerilla', 'Almoharín, Cáceres'],
+    ['VETERANOS ALMOHARIN', 'El Higueral', 'Almoharín, Cáceres'],
     ['VALDEHORNILLOS VETERANOS', 'Julián Lozano Pintado', 'Valdehornillos, Badajoz'],
-    ['PALAZUELO SANTA TERESA', 'La Morera', 'Palazuelo, Badajoz'],
+    ['PALAZUELO SANTA TERESA', 'Las Moreras', 'Palazuelo, Badajoz'],
     ['SANTA AMALIA VETERANOS', 'La Mesta', 'Santa Amalia, Badajoz'],
     ['TALARRUBIAS VETERANOS', 'Campo de fútbol municipal', 'Talarrubias, Badajoz'],
     ['VALDIVIA VETERANOS', 'Primero de Mayo', 'Valdivia, Badajoz'],
@@ -66,7 +66,7 @@ describe('Sedes confirmadas', () => {
     ['VETERANOS ZURBARAN', 'La Pradera', 'Zurbarán, Badajoz'],
     ['AD ALCUESCAR', 'José Luis Moretón', 'Alcuéscar, Cáceres'],
     ['CD GARGALIGAS', 'Campo de fútbol municipal', 'Gargáligas, Badajoz'],
-    ['CP RENA', 'Campo de fútbol municipal', 'Rena, Badajoz'],
+    ['CP RENA', 'Campo Municipal', 'Rena, Badajoz'],
     ['CD ESTEBAN GOMEZ VET. EL TORVISCAL', 'Campo de fútbol municipal', 'El Torviscal, Badajoz'],
     ['AMAZONIA ORELLANA', 'Polideportivo municipal', 'Orellana la Vieja, Badajoz'],
     ['HERNAN CORTES VETERANOS', 'Daniel, Gonzalo y Jorge', 'Hernán Cortés, Badajoz'],
@@ -80,7 +80,8 @@ describe('Sedes confirmadas', () => {
     expect(resolved).toMatchObject({ name, locality, confirmed: true });
     const url = new URL(venueMapsUrl(resolved) ?? 'https://invalid.example');
     expect(url.hostname).toBe('www.google.com');
-    expect(url.searchParams.get('query')).toBe(resolved?.mapsQuery ?? `${name}, ${locality}, España`);
+    if (resolved?.mapsUrl) expect(url.href).toBe(resolved.mapsUrl);
+    else expect(url.searchParams.get('query')).toBe(resolved?.mapsQuery ?? `${name}, ${locality}, España`);
     expect(resolveMatchVenue(match, undefined, '2025-2026')).toBeNull();
     expect(match).toEqual(original);
   });
@@ -89,7 +90,7 @@ describe('Sedes confirmadas', () => {
     expect(resolved?.mapsNearbyReference).toBe(true);
     expect(new URL(venueMapsUrl(resolved) ?? 'https://invalid.example').searchParams.get('query')).toBe('Pabellón Multiusos de Almoharín');
   });
-  it.each(['GIMNASTICO D.B. VETERANOS', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO', 'CENTROGLASS VULEBAR', 'CLINICA DENT. DOCTOR DOBLADO', 'V. BAR LA TASCA MIAJADAS', 'AD CAPUTBOVENSE', 'DOCENARIO ATLETICO', 'ZALAMEA VETERANOS'])('no adivina sede habitual para %s', home => {
+  it.each(['GIMNASTICO D.B. VETERANOS', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO', 'CENTROGLASS VULEBAR', 'CLINICA DENT. DOCTOR DOBLADO', 'ZALAMEA VETERANOS'])('no adivina sede habitual para %s', home => {
     expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toBeNull();
   });
   it('la sede habitual guardada prevalece sobre la configuración y una excepción pendiente sobre ambas', () => {
@@ -100,5 +101,32 @@ describe('Sedes confirmadas', () => {
     expect(resolveMatchVenue(exceptional, homeTeam, '2026-2027')).toBeNull();
     expect(resolveMatchVenue({ ...exceptional, home: 'VALDIVIA VETERANOS' }, undefined, '2026-2027')).toBeNull();
     expect(resolveMatchVenue({ ...base, home, venue }, undefined, '2026-2027')).toEqual(venue);
+  });
+  it.each([
+    ['AD ALCUESCAR', 'José Luis Moretón', 'Alcuéscar, Cáceres', 'https://www.google.com/maps/place/Campo+de+f%C3%BAtbol/data=!4m5!3m4!1s0xd15d3b9608b4553:0xe219edab883fab9e!8m2!3d39.1838942!4d-6.2390009'],
+    ['HERNAN CORTES VETERANOS', 'Daniel, Gonzalo y Jorge', 'Hernán Cortés, Badajoz', 'https://www.google.com/maps/place/Estadio+Municipal+Hern%C3%A1n+Cort%C3%A9s/data=!4m5!3m4!1s0xd144fc5ce461f0d:0xda55a0847459e5e6!8m2!3d39.0301332!4d-5.9340478'],
+    ['PALAZUELO SANTA TERESA', 'Las Moreras', 'Palazuelo, Badajoz', 'https://www.google.com/maps/place/Campo+de+f%C3%BAtbol+Las+Moreras/data=!4m5!3m4!1s0xd14550038dd738b:0x232b31de933b9a7!8m2!3d39.1104452!4d-5.737172'],
+    ['DOCENARIO ATLETICO', 'Eusebio Mata', 'Zalamea de la Serena, Badajoz', 'https://www.google.com/maps/place/Campo+Municipal+de+futbol+Eusebio+Mata/data=!4m5!3m4!1s0xd14866eab2a12b7:0x973cc963d614a479!8m2!3d38.6575701!4d-5.662329'],
+    ['V. BAR LA TASCA MIAJADAS', 'Campo de Césped Artificial', 'Miajadas, Cáceres', 'https://www.google.com/maps/place/Campo+de+C%C3%A9sped+Artificial/data=!4m5!3m4!1s0xd144df7a72b5943:0xc63bcbd134db59a9!8m2!3d39.1454887!4d-5.89895'],
+    ['CP RENA', 'Campo Municipal', 'Rena, Badajoz', 'https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+de+Rena/data=!4m5!3m4!1s0xd14575e7900346d:0x530d61cf79ef0294!8m2!3d39.052546!4d-5.8033927'],
+    ['AD CAPUTBOVENSE', 'Campo Municipal Cabeza del Buey', 'Cabeza del Buey, Badajoz', 'https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+de+Cabeza+del+Buey/data=!4m5!3m4!1s0xd14baa6e8e0dcc5:0xf072705aabc7d7c3!8m2!3d38.7172453!4d-5.2301453'],
+  ])('%s conserva nombre y destino exacto confirmado', (home, name, locality, mapsUrl) => {
+    const match = { ...base, home };
+    const resolved = resolveMatchVenue(match, undefined, '2026-2027');
+    expect(resolved).toEqual({ name, locality, confirmed: true, mapsUrl });
+    expect(venueMapsUrl(resolved)).toBe(mapsUrl);
+    expect(resolveMatchVenue(match, undefined, '2025-2026')).toBeNull();
+    expect(resolveMatchVenue({ ...match, venue }, undefined, '2026-2027')).toEqual(venue);
+  });
+  it('Celestino Mera solo se resuelve tras elegirlo para el partido', () => {
+    expect(venueMapsUrl(celestinoMeraVenue)).toBe('https://www.google.com/maps/place/Campo+de+f%C3%BAtbol+Celestino+Mera/data=!4m5!3m4!1s0xd145b26da09e793:0xfa991bc8acb79511!8m2!3d38.9639961!4d-5.8658986');
+    for (const home of ['CENTROGLASS VULEBAR', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO']) {
+      expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toBeNull();
+      expect(resolveMatchVenue({ ...base, home, venue: celestinoMeraVenue }, undefined, '2026-2027')).toEqual(celestinoMeraVenue);
+    }
+  });
+  it.each(['javascript:alert(1)', 'https://www.google.com.evil.example/maps/place/test', 'https://evil.example/maps/', 'http://www.google.com/maps/place/test', 'https://www.google.com/search?q=test'])('rechaza destinos no válidos: %s', mapsUrl => {
+    expect(isGoogleMapsUrl(mapsUrl)).toBe(false);
+    expect(venueMapsUrl({ ...venue, mapsUrl })).toBeNull();
   });
 });

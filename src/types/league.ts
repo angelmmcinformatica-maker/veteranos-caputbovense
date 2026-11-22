@@ -4,6 +4,8 @@ export interface MatchVenue {
   confirmed: boolean;
   /** Optional Google Maps query when it differs from the display name. */
   mapsQuery?: string;
+  /** Exact confirmed Google Maps destination, preferred over a search query. */
+  mapsUrl?: string;
   /** Maps points to a nearby landmark, not the ground itself. */
   mapsNearbyReference?: boolean;
 }

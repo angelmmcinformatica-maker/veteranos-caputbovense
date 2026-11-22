@@ -8,6 +8,7 @@
 - [x] Link the three supplied 2026/2027 shields to their exact display names and verify on home, standings, and calendar without publishing.
 - [x] Add confirmed match venues, safe Maps links, and administrator venue-only editing; preserve existing results and reports.
 - [x] Verify J10 exceptions, venue-only save tests and mobile/desktop layouts without publishing; Valdivia exact field remains unconfirmed as requested.
+- [x] Update confirmed venue names and seven exact Maps links; offer Celestino Mera for manual match selection only; 57 tests and five viewports passed without publishing.
 - [ ] Verify venue save/readback through the real authenticated Admin UI (blocked: no administrator session available).
-- [ ] Validate Google Maps destination on an authorized deployed origin (blocked: live Maps testing unavailable in sandbox; do not publish yet).
-- [x] Complete 17 reliable current-season habitual grounds, label Almoharín's nearby reference, preserve fixture overrides; 44 tests and five viewport checks passed without publishing. Eight active clubs remain unassigned (ambiguous or no supplied ground); Palazuelo–Zurbarán J10 remains pending.
+- [x] Verify exact Maps destinations in loaded matchdays and external-tab navigation from preview (Alcuéscar exact URL requested); no publication needed.
+- [x] Complete reliable current-season habitual grounds and preserve fixture overrides; Almoharín now El Higueral and Palazuelo Las Moreras. Centroglass, Mesón Los Barros, Sporting, Gimnástico and Clínica remain unassigned; Palazuelo–Zurbarán J10 exact field remains pending.

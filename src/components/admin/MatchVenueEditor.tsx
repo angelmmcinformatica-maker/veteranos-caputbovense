@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSeason } from '@/contexts/SeasonContext';
 import { matchdaysCollectionName } from '@/config/seasons';
-import { replaceMatchVenue, resolveMatchVenue, withConfirmedMatchVenue } from '@/lib/matchVenue';
+import { celestinoMeraVenue, isGoogleMapsUrl, replaceMatchVenue, resolveMatchVenue, withConfirmedMatchVenue } from '@/lib/matchVenue';
 import { MatchVenueInfo } from '@/components/matches/MatchVenueInfo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,17 +21,22 @@ export function MatchVenueEditor({ match, matchday, homeTeam }: { match: Match; 
   const [locality, setLocality] = useState(initial?.locality ?? '');
   const [confirmed, setConfirmed] = useState(initial?.confirmed === true);
   const [mapsQuery, setMapsQuery] = useState(initial?.mapsQuery ?? '');
+  const [mapsUrl, setMapsUrl] = useState(initial?.mapsUrl ?? '');
   const [mapsNearbyReference, setMapsNearbyReference] = useState(initial?.mapsNearbyReference === true);
   const [habitual, setHabitual] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const venue = { name: name.trim(), locality: locality.trim(), confirmed,
+    ...(mapsUrl.trim() ? { mapsUrl: mapsUrl.trim() } : {}),
     ...(mapsQuery.trim() ? { mapsQuery: mapsQuery.trim(), ...(mapsNearbyReference ? { mapsNearbyReference: true } : {}) } : {}),
   };
   if (!isAdmin || !currentUser || !userData || isReadOnly) return null;
 
   const save = async () => {
     if (!isAdmin || !currentUser || !userData || isReadOnly || saving) return;
+    if (venue.mapsUrl && !isGoogleMapsUrl(venue.mapsUrl)) {
+      setMessage('Indica un enlace de Google Maps válido: https://www.google.com/maps/…'); return;
+    }
     if (confirmed && (!venue.name || !venue.locality)) {
       setMessage('Indica el campo exacto y la población antes de confirmarlo.'); return;
     }
@@ -61,6 +66,11 @@ export function MatchVenueEditor({ match, matchday, homeTeam }: { match: Match; 
       <div className="space-y-2"><Label htmlFor="venue-locality">Población y provincia</Label><Input id="venue-locality" maxLength={150} value={locality} onChange={(e) => setLocality(e.target.value)} /></div>
     </div>
     <div className="space-y-2"><Label htmlFor="venue-maps-query">Destino en Google Maps (si es distinto del nombre del campo)</Label><Input id="venue-maps-query" maxLength={200} value={mapsQuery} onChange={(e) => setMapsQuery(e.target.value)} /></div>
+    <div className="space-y-2"><Label htmlFor="venue-maps-url">Enlace exacto de Google Maps (prioritario sobre la búsqueda)</Label><Input id="venue-maps-url" type="url" maxLength={2000} value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} /></div>
+    {['CENTROGLASS VULEBAR', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO'].includes(match.home) && <Button type="button" variant="outline" className="h-auto min-h-11 whitespace-normal w-full sm:w-auto" onClick={() => {
+      setName(celestinoMeraVenue.name); setLocality(celestinoMeraVenue.locality);
+      setMapsUrl(celestinoMeraVenue.mapsUrl ?? ''); setMapsQuery(''); setMapsNearbyReference(false); setConfirmed(true);
+    }}><MapPin />Seleccionar Celestino Mera para este partido</Button>}
     {mapsQuery.trim() && <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={mapsNearbyReference} onChange={(e) => setMapsNearbyReference(e.target.checked)} />El destino es una referencia cercana, no el campo</label>}
     <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />Campo exacto confirmado</label>
     {homeTeam && <label className="flex gap-2 items-start text-sm"><input type="checkbox" className="mt-1" checked={habitual} onChange={(e) => setHabitual(e.target.checked)} />También es el campo habitual de {homeTeam.name} en esta temporada</label>}
