@@ -90,7 +90,7 @@ describe('Sedes confirmadas', () => {
     expect(resolved?.mapsNearbyReference).toBe(true);
     expect(new URL(venueMapsUrl(resolved) ?? 'https://invalid.example').searchParams.get('query')).toBe('Pabellón Multiusos de Almoharín');
   });
-  it.each(['GIMNASTICO D.B. VETERANOS', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO', 'CENTROGLASS VULEBAR', 'CLINICA DENT. DOCTOR DOBLADO', 'ZALAMEA VETERANOS'])('no adivina sede habitual para %s', home => {
+  it.each(['CLINICA DENT. DOCTOR DOBLADO', 'ZALAMEA VETERANOS'])('no adivina sede habitual para %s', home => {
     expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toBeNull();
   });
   it('la sede habitual guardada prevalece sobre la configuración y una excepción pendiente sobre ambas', () => {
@@ -118,11 +118,12 @@ describe('Sedes confirmadas', () => {
     expect(resolveMatchVenue(match, undefined, '2025-2026')).toBeNull();
     expect(resolveMatchVenue({ ...match, venue }, undefined, '2026-2027')).toEqual(venue);
   });
-  it('Celestino Mera solo se resuelve tras elegirlo para el partido', () => {
+  it('Celestino Mera es el habitual de los equipos de Don Benito; la sede del partido prevalece', () => {
     expect(venueMapsUrl(celestinoMeraVenue)).toBe('https://www.google.com/maps/place/Campo+de+f%C3%BAtbol+Celestino+Mera/data=!4m5!3m4!1s0xd145b26da09e793:0xfa991bc8acb79511!8m2!3d38.9639961!4d-5.8658986');
-    for (const home of ['CENTROGLASS VULEBAR', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO']) {
-      expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toBeNull();
-      expect(resolveMatchVenue({ ...base, home, venue: celestinoMeraVenue }, undefined, '2026-2027')).toEqual(celestinoMeraVenue);
+    for (const home of ['GIMNASTICO D.B. VETERANOS', 'CENTROGLASS VULEBAR', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO']) {
+      expect(resolveMatchVenue({ ...base, home }, undefined, '2026-2027')).toEqual(celestinoMeraVenue);
+      expect(resolveMatchVenue({ ...base, home }, undefined, '2025-2026')).toBeNull();
+      expect(resolveMatchVenue({ ...base, home, venue }, undefined, '2026-2027')).toEqual(venue);
     }
   });
   it.each(['javascript:alert(1)', 'https://www.google.com.evil.example/maps/place/test', 'https://evil.example/maps/', 'http://www.google.com/maps/place/test', 'https://www.google.com/search?q=test'])('rechaza destinos no válidos: %s', mapsUrl => {

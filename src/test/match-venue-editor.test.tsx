@@ -52,10 +52,10 @@ describe('Guardar solo campo', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar solo el campo' }));
     expect(state.updates).toHaveLength(0);
   });
-  it('Celestino Mera requiere selección y guardado explícitos', async () => {
+  it('Celestino Mera se precarga como habitual y solo se guarda al pulsar guardar', async () => {
     state.home = 'CENTROGLASS VULEBAR';
     render(<MatchVenueEditor {...props} match={{ ...match, home: 'CENTROGLASS VULEBAR' }} />);
-    expect(screen.getByLabelText('Nombre del campo')).toHaveValue('');
+    expect(screen.getByLabelText('Nombre del campo')).toHaveValue('Celestino Mera');
     expect(state.updates).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Seleccionar Celestino Mera para este partido' }));
     expect(state.updates).toHaveLength(0);

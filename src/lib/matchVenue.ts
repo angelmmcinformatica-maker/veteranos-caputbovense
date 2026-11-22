@@ -1,5 +1,11 @@
 import type { Match, MatchVenue, Team } from '@/types/league';
 
+/** Confirmed default home ground for Don Benito clubs (Paloma Quintero shares access). */
+export const celestinoMeraVenue: MatchVenue = {
+  name: 'Celestino Mera', locality: 'Don Benito, Badajoz', confirmed: true,
+  mapsUrl: 'https://www.google.com/maps/place/Campo+de+f%C3%BAtbol+Celestino+Mera/data=!4m5!3m4!1s0xd145b26da09e793:0xfa991bc8acb79511!8m2!3d38.9639961!4d-5.8658986',
+};
+
 // Exact current-season display names only; never infer a club's ground from a locality.
 // User-supplied grounds with unambiguous club/locality correspondence. No database writes.
 const habitualVenues: Record<string, MatchVenue> = {
@@ -22,13 +28,8 @@ const habitualVenues: Record<string, MatchVenue> = {
   'AGRICOLA MERCHAN VVA.': { name: 'Anexo Villanovense', locality: 'Villanueva de la Serena, Badajoz', confirmed: true },
   'DOCENARIO ATLETICO': { name: 'Eusebio Mata', locality: 'Zalamea de la Serena, Badajoz', confirmed: true, mapsUrl: 'https://www.google.com/maps/place/Campo+Municipal+de+futbol+Eusebio+Mata/data=!4m5!3m4!1s0xd14866eab2a12b7:0x973cc963d614a479!8m2!3d38.6575701!4d-5.662329' },
   'V. BAR LA TASCA MIAJADAS': { name: 'Campo de Césped Artificial', locality: 'Miajadas, Cáceres', confirmed: true, mapsUrl: 'https://www.google.com/maps/place/Campo+de+C%C3%A9sped+Artificial/data=!4m5!3m4!1s0xd144df7a72b5943:0xc63bcbd134db59a9!8m2!3d39.1454887!4d-5.89895' },
+  ...Object.fromEntries(['GIMNASTICO D.B. VETERANOS', 'CENTROGLASS VULEBAR', 'MESON LOS BARROS DON BENITO', 'SPORTING DON BENITO'].map((team) => [team, celestinoMeraVenue])),
   'AD CAPUTBOVENSE': { name: 'Campo Municipal Cabeza del Buey', locality: 'Cabeza del Buey, Badajoz', confirmed: true, mapsUrl: 'https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+de+Cabeza+del+Buey/data=!4m5!3m4!1s0xd14baa6e8e0dcc5:0xf072705aabc7d7c3!8m2!3d38.7172453!4d-5.2301453' },
-};
-
-/** Offered for explicit per-match selection only, never an automatic team default. */
-export const celestinoMeraVenue: MatchVenue = {
-  name: 'Celestino Mera', locality: 'Don Benito, Badajoz', confirmed: true,
-  mapsUrl: 'https://www.google.com/maps/place/Campo+de+f%C3%BAtbol+Celestino+Mera/data=!4m5!3m4!1s0xd145b26da09e793:0xfa991bc8acb79511!8m2!3d38.9639961!4d-5.8658986',
 };
 
 export function isGoogleMapsUrl(value: string): boolean {
